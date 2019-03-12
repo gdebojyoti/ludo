@@ -12,6 +12,18 @@ body {
   margin: 20px;
 }
 
+.player {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: palevioletred;
+  transition: transform .2s;
+}
+
 .grid {
   position: relative;
   width: calc(#{$quadrantHeight} + #{$quadrantWidth} + 2px);
@@ -35,6 +47,9 @@ body {
 
   &--red {
     transform: translateY($quadrantWidth);
+    outline: red solid 2px;
+    outline-offset: 2px;
+    z-index: 1;
   }
   &--blue {
     transform: translate($quadrantWidth, calc(#{$quadrantHeight} + #{$quadrantWidth})) rotate(270deg);
