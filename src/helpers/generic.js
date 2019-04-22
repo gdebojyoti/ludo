@@ -9,6 +9,29 @@ export function fetchItemFromArrayWithKey (array = [], key = '', value) {
   return itemToBeFetched
 }
 
+export function initializePieces () {
+  const details = {}
+  const colors = ['red', 'blue', 'yellow', 'green']
+  const pieces = ['alfa', 'beta', 'charlie', 'delta']
+  colors.forEach(color => {
+    details[color] = {}
+    pieces.forEach(piece => {
+      details[color][piece] = {
+        position: 0
+      }
+    })
+  })
+
+  console.log(details)
+  return details
+}
+
+export function initializeCells () {
+  const details = {}
+
+  return details
+}
+
 // return a random number between 1 & 6
 export function getRollByNumber () {
   return 2
