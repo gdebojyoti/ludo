@@ -1,0 +1,53 @@
+// Where Games are kept. The game service only knows this interface, so the in-memory store (ADR-0004) can be swapped
+// for a Postgres one without touching game logic.
+import type { GameState } from "@ludo/shared";
+
+export interface Game {
+  id: string;
+  state: GameState;
+  /** Shared by the Host so others can join. Unique among Games in the Lobby, and only used there. */
+  gameCode: string;
+  hostId: string;
+  /** The Players in the Game, in the order they joined, so the Host is first. */
+  players: GamePlayer[];
+}
+
+export interface GamePlayer {
+  playerId: string;
+  /** The Player name they gave when they entered the Game, kept for the whole Game. */
+  playerName: string;
+}
+
+export interface GameStore {
+  /** Adds the Game, or replaces the one with the same ID. */
+  save: (game: Game) => Promise<void>;
+  /** The Game the Player is in, if it's active: a Player is in at most one active Game. */
+  findActiveGameByPlayer: (playerId: string) => Promise<Game | undefined>;
+  findLobbyGameByCode: (gameCode: string) => Promise<Game | undefined>;
+}
+
+export const createMemoryGameStore = (): GameStore => {
+  const games = new Map<string, Game>();
+
+  return {
+    save: async (game) => {
+      games.set(game.id, copy(game));
+    },
+    findActiveGameByPlayer: async (playerId) => {
+      const game = [...games.values()].find((game) => isActive(game) && isPlayerIn(game, playerId));
+      return game && copy(game);
+    },
+    findLobbyGameByCode: async (gameCode) => {
+      const game = [...games.values()].find((game) => game.state === "lobby" && game.gameCode === gameCode);
+      return game && copy(game);
+    },
+  };
+};
+
+/** Whether the Game is still going, rather than ended. The Lobby counts. */
+export const isActive = (game: Game) => game.state === "lobby";
+
+const isPlayerIn = (game: Game, playerId: string) => game.players.some((player) => player.playerId === playerId);
+
+// Hands out copies, so changing a Game only takes effect once it's saved, as with a database.
+const copy = (game: Game): Game => structuredClone(game);

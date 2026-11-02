@@ -4,16 +4,23 @@ import type { AddressInfo } from "node:net";
 
 import { NodeWebSocket } from "engine.io-client";
 import { io, type Socket } from "socket.io-client";
-import type { ClientToServerEvents, ServerToClientEvents } from "@ludo/shared";
+import type { Acknowledgement, ClientToServerEvents, GameSnapshot, ServerToClientEvents } from "@ludo/shared";
 
 import { playerIdCookieName } from "./identity.js";
-import { createGameServer } from "./server.js";
+import { createGameServer, type GameServerOptions } from "./server.js";
 
 export const webOrigin = "http://localhost:8083";
 
+/** What the server sent a connection, in the order it arrived. */
+type Message = { event: "game"; game: GameSnapshot } | { event: "noActiveGame" };
+
 /** One open connection to the server: a browser tab with the web app loaded. */
 export interface Connection {
+  /** Waits for the next message from the server that this connection hasn't read yet. */
+  nextMessage: () => Promise<Message>;
   ping: () => Promise<"pong">;
+  createGame: (playerName: string) => Promise<Acknowledgement<{ game: GameSnapshot }>>;
+  leaveGame: () => Promise<Acknowledgement>;
   /** Sends a command with any arguments, unchecked by the event types, as no well-behaved client would. */
   sendUnchecked: (event: keyof ClientToServerEvents, ...args: unknown[]) => void;
   /** Closes the connection, like closing the tab. */
@@ -31,13 +38,21 @@ export interface Player {
 export interface TestServer {
   url: string;
   createPlayer: () => Player;
+  /**
+   * A tab of a Player with no active Game, with everything sent so far already read: a new Player, or another tab
+   * of `player`.
+   */
+  playerWithNoGame: (player?: Player) => Promise<Connection>;
+  /** A new Host waiting in the Lobby, shown as `playerName`, with everything sent so far already read. */
+  hostInLobby: (playerName?: string, player?: Player) => Promise<{ host: Connection; gameCode: string }>;
   /** The player ID the server gave each open connection, in no particular order. */
   connectedPlayerIds: () => Promise<string[]>;
   close: () => Promise<void>;
 }
 
-export const startServer = async (): Promise<TestServer> => {
-  const server = createGameServer({ port: 0, webOrigins: [webOrigin] });
+/** Starts the server. `options.randomInt` scripts its random choices, such as Game codes. */
+export const startServer = async (options?: GameServerOptions): Promise<TestServer> => {
+  const server = createGameServer({ port: 0, webOrigins: [webOrigin] }, options);
   await new Promise<void>((resolve) => server.httpServer.listen(0, resolve));
   const { port } = server.httpServer.address() as AddressInfo;
   const url = `http://localhost:${port}`;
@@ -57,6 +72,10 @@ export const startServer = async (): Promise<TestServer> => {
       });
       sockets.push(socket);
 
+      const inbox = createInbox<Message>();
+      socket.on("game", (game) => inbox.put({ event: "game", game }));
+      socket.on("noActiveGame", () => inbox.put({ event: "noActiveGame" }));
+
       await new Promise<void>((resolve, reject) => {
         socket.once("connect", resolve);
         socket.once("connect_error", reject);
@@ -64,7 +83,10 @@ export const startServer = async (): Promise<TestServer> => {
       });
 
       return {
+        nextMessage: inbox.take,
         ping: () => socket.emitWithAck("ping"),
+        createGame: (playerName) => socket.emitWithAck("createGame", playerName),
+        leaveGame: () => socket.emitWithAck("leaveGame"),
         sendUnchecked: (event, ...args) => {
           (socket.emit as (event: string, ...args: unknown[]) => void)(event, ...args);
         },
@@ -81,6 +103,20 @@ export const startServer = async (): Promise<TestServer> => {
     return { connect, playerId: () => cookieJar.get(playerIdCookieName) };
   };
 
+  const playerWithNoGame = async (player = createPlayer()) => {
+    const tab = await player.connect();
+    await tab.nextMessage();
+    return tab;
+  };
+
+  const hostInLobby = async (playerName = "Luna Lovegood", player = createPlayer()) => {
+    const host = await playerWithNoGame(player);
+    const reply = await host.createGame(playerName);
+    if (!reply.ok || !reply.game.gameCode) throw new Error("The Game wasn't created");
+    await host.nextMessage();
+    return { host, gameCode: reply.game.gameCode };
+  };
+
   const connectedPlayerIds = async () => (await server.io.fetchSockets()).map((socket) => socket.data.playerId);
 
   const close = async () => {
@@ -88,7 +124,7 @@ export const startServer = async (): Promise<TestServer> => {
     await server.io.close();
   };
 
-  return { url, createPlayer, connectedPlayerIds, close };
+  return { url, createPlayer, playerWithNoGame, hostInLobby, connectedPlayerIds, close };
 };
 
 /** Sends a Socket.IO handshake over plain HTTP, the first request a browser makes, so tests can read its headers. */
@@ -113,4 +149,23 @@ const withCookieJar = (cookieJar: Map<string, string>) => {
       return ws;
     }
   };
+};
+
+/** A queue whose `take` waits until there's something to take. */
+const createInbox = <Item>() => {
+  const items: Item[] = [];
+  const waiting: Array<(item: Item) => void> = [];
+
+  const put = (item: Item) => {
+    const waiter = waiting.shift();
+    if (waiter) waiter(item);
+    else items.push(item);
+  };
+
+  const take = (): Promise<Item> => {
+    if (items.length > 0) return Promise.resolve(items.shift() as Item);
+    return new Promise((resolve) => waiting.push(resolve));
+  };
+
+  return { put, take };
 };
