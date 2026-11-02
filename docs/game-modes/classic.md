@@ -29,7 +29,7 @@ Terms in bold are defined in [GLOSSARY.md](../../GLOSSARY.md). The rules never d
 ## Moving
 
 - Only a 6 brings a **Token** out of the **Yard** onto its **Start cell** _(may vary)_.
-- A **Token** moves clockwise around the **Track**, then up its own **Home column** to **Home**.
+- A **Token** moves clockwise around the **Track**, then up its own **Home column** to **Home**. From its **Start cell**, it covers 50 more **Track** **Cells**, ending at the tip of its own arm, then the 5 **Home column** **Cells**, then **Home**: 56 steps in all. It never lands on the **Track** **Cell** just before its own **Start cell**.
 - A **Token** needs an exact **Roll** to reach **Home**. A **Roll** that would take it past **Home** can't **Move** it.
 
 ## Captures
