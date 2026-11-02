@@ -10,7 +10,7 @@ export default function Ludo() {
   // The colours sit on this element, not the page, so a host's page keeps its own.
   return (
     <div className="min-h-dvh bg-white text-black">
-      <main className="mx-auto flex min-h-dvh w-full max-w-107.5 flex-col p-4">
+      <main className="flex min-h-dvh flex-col p-4">
         <h1 className="flex-1 text-2xl font-bold">{commonMessages.wordmark}</h1>
         <footer>
           <ServerStatus status={status} />

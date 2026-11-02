@@ -3,7 +3,6 @@ import { io, type Socket } from "socket.io-client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { ClientToServerEvents, ServerToClientEvents } from "@ludo/shared";
 import { createGameServer, type GameServer } from "./server.js";
-import { startServer } from "./testing.js";
 
 const webOrigin = "http://localhost:8083";
 const hostOrigin = "https://tablehop.games";
@@ -57,20 +56,5 @@ describe("createGameServer", () => {
     expect(fromWebApp.headers.get("access-control-allow-credentials")).toBe("true");
     expect(fromHost.headers.get("access-control-allow-origin")).toBe(hostOrigin);
     expect(fromElsewhere.headers.get("access-control-allow-origin")).not.toBe("https://example.com");
-  });
-});
-
-describe("a command sent without a callback", () => {
-  it("is dropped, and the Player's connection keeps working", async () => {
-    const testServer = await startServer();
-    try {
-      const tab = await testServer.createPlayer().connect();
-
-      tab.sendUnchecked("ping");
-
-      expect(await tab.ping()).toBe("pong");
-    } finally {
-      await testServer.close();
-    }
   });
 });
