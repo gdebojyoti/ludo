@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* Plain functional colours until the design step. */
+@theme {
+  --color-conn-ok: #1fae5b;
+  --color-conn-wait: #f5b700;
+  --color-conn-down: #e5383b;
+}

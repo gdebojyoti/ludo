@@ -1,6 +1,8 @@
 # Issue tracker: GitHub
 
-Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
+Issues and specs for the whole Ludo project (web app, server and shared code, all in this repo) live as GitHub issues on **`gdebojyoti/ludo`**. Use the `gh` CLI for all operations.
+
+**Always pass `--repo gdebojyoti/ludo`** (`-R`) to every `gh issue` / `gh api` call.
 
 ## Conventions
 
@@ -12,7 +14,7 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
 - **Close**: `gh issue close <number> --comment "..."`
 
-Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
+Do not infer the repo from `git remote -v`; the tracker is always `gdebojyoti/ludo` (see above).
 
 ## Pull requests as a triage surface
 
