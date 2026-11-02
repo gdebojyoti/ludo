@@ -5,13 +5,13 @@ import type { ClientToServerEvents, ServerToClientEvents } from "@ludo/shared";
 import { createGameServer, type GameServer } from "./server.js";
 
 const webOrigin = "http://localhost:8083";
-const hostOrigin = "https://tablehop.games";
+const hostAppOrigin = "https://tablehop.games";
 
 let server: GameServer;
 let url: string;
 
 beforeEach(async () => {
-  server = createGameServer({ port: 0, webOrigins: [webOrigin, hostOrigin] });
+  server = createGameServer({ port: 0, webOrigins: [webOrigin, hostAppOrigin] });
   await new Promise<void>((resolve) => server.httpServer.listen(0, resolve));
   const { port } = server.httpServer.address() as AddressInfo;
   url = `http://localhost:${port}`;
@@ -48,13 +48,13 @@ describe("createGameServer", () => {
     });
 
     const fromWebApp = await handshake(webOrigin);
-    const fromHost = await handshake(hostOrigin);
+    const fromHostApp = await handshake(hostAppOrigin);
     const fromElsewhere = await handshake("https://example.com");
 
     expect(fromWebApp.headers.get("access-control-allow-origin")).toBe(webOrigin);
     // The web app sends the player ID cookie, so the browser must be allowed to send credentials.
     expect(fromWebApp.headers.get("access-control-allow-credentials")).toBe("true");
-    expect(fromHost.headers.get("access-control-allow-origin")).toBe(hostOrigin);
+    expect(fromHostApp.headers.get("access-control-allow-origin")).toBe(hostAppOrigin);
     expect(fromElsewhere.headers.get("access-control-allow-origin")).not.toBe("https://example.com");
   });
 });

@@ -3,11 +3,11 @@ import { commonMessages } from "./messages";
 import { useGameServer } from "./useGameServer";
 import "./ludo.css";
 
-// The whole game, as one component: run standalone by ../bootstrap.tsx, and exposed to a host as `ludo/Ludo`.
+// The whole game, as one component: run standalone by ../bootstrap.tsx, and exposed to the host app as `ludo/Ludo`.
 export default function Ludo() {
   const { status } = useGameServer();
 
-  // The colours sit on this element, not the page, so a host's page keeps its own.
+  // The colours sit on this element, not the page, so the host app's page keeps its own.
   return (
     <div className="min-h-dvh bg-white text-black">
       <main className="flex min-h-dvh flex-col p-4">

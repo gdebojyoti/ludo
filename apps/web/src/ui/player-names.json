@@ -1,0 +1,27 @@
+{
+  "firstNames": [
+    "Aberforth", "Alastor", "Albus", "Alecto", "Alicia", "Amos", "Amycus", "Angelina", "Anthony", "Antonin",
+    "Arabella", "Arthur", "Bartemius", "Bathilda", "Bellatrix", "Bertha", "Bill", "Blaise", "Bob", "Cedric",
+    "Charity", "Charlie", "Cho", "Colin", "Cormac", "Cornelius", "Daphne", "Dean", "Dedalus", "Dennis", "Dolores",
+    "Draco", "Dudley", "Elphias", "Emmeline", "Ernie", "Fenrir", "Fleur", "Florean", "Fred", "Gabrielle", "Gellert",
+    "George", "Gilderoy", "Ginny", "Gregory", "Hannah", "Harry", "Hermione", "Hestia", "Horace", "Hugo", "Igor",
+    "James", "Justin", "Katie", "Kingsley", "Lavender", "Lee", "Lily", "Lucius", "Ludovic", "Luna", "Mafalda",
+    "Marcus", "Marge", "Marietta", "Mary", "Michael", "Millicent", "Minerva", "Molly", "Mundungus", "Narcissa",
+    "Neville", "Nymphadora", "Oliver", "Olympe", "Padma", "Pansy", "Parvati", "Penelope", "Percy", "Peter",
+    "Petunia", "Piers", "Pius", "Reginald", "Regulus", "Remus", "Rita", "Romilda", "Ron", "Rose", "Rubeus", "Rufus",
+    "Scorpius", "Seamus", "Severus", "Sirius", "Stan", "Sturgis", "Susan", "Sybill", "Teddy", "Terry", "Theodore",
+    "Thorfinn", "Tom", "Vernon", "Viktor", "Vincent", "Walden", "Xenophilius", "Zacharias"
+  ],
+  "lastNames": [
+    "Abbott", "Bagman", "Bagshot", "Bell", "Black", "Bones", "Boot", "Brown", "Bulstrode", "Burbage", "Carrow",
+    "Cattermole", "Chang", "Clearwater", "Crabbe", "Creevey", "Crouch", "Delacour", "Diggle", "Diggory", "Doge",
+    "Dolohov", "Dumbledore", "Dursley", "Edgecombe", "Evans", "Figg", "Filch", "Finnigan",
+    "Fletcher", "Flint", "Fortescue", "Fudge", "Goldstein", "Goyle", "Granger", "Greengrass", "Greyback",
+    "Grindelwald", "Hagrid", "Hopkirk", "Johnson", "Jones", "Jordan", "Jorkins", "Karkaroff", "Krum", "Lestrange",
+    "Lockhart", "Longbottom", "Lovegood", "Lupin", "Macmillan", "Macnair", "Malfoy", "Maxime", "McGonagall",
+    "McLaggen", "Moody", "Nott", "Ogden", "Parkinson", "Patil", "Pettigrew", "Podmore", "Polkiss", "Potter",
+    "Riddle", "Rowle", "Runcorn", "Scrimgeour", "Shacklebolt", "Shunpike", "Skeeter", "Slughorn", "Smith", "Snape",
+    "Spinnet", "Thicknesse", "Thomas", "Tonks", "Trelawney", "Umbridge", "Vance", "Vane", "Weasley", "Wood",
+    "Zabini"
+  ]
+}
