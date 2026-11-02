@@ -9,7 +9,7 @@ import type { ClientToServerEvents, ServerToClientEvents } from "@ludo/shared";
 import { playerIdCookieName } from "./identity.js";
 import { createGameServer } from "./server.js";
 
-export const webOrigin = "http://localhost:8081";
+export const webOrigin = "http://localhost:8083";
 
 /** One open connection to the server: a browser tab with the web app loaded. */
 export interface Connection {

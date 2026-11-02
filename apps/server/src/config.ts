@@ -7,8 +7,8 @@ export interface Config {
 
 export const readConfig = (env: NodeJS.ProcessEnv): Config => {
   return {
-    port: readPort(env.PORT ?? "4000"),
-    webOrigins: readOrigins(env.WEB_ORIGIN ?? "http://localhost:8081"),
+    port: readPort(env.PORT ?? "4003"),
+    webOrigins: readOrigins(env.WEB_ORIGIN ?? "http://localhost:8083"),
   };
 };
 

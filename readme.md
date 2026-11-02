@@ -18,7 +18,7 @@ Needs Node 24.
 
 ```sh
 npm install
-npm run dev        # web on http://localhost:8081/ludo, server on http://localhost:4000
+npm run dev        # web on http://localhost:8083/ludo, server on http://localhost:4003
 ```
 
 Other commands, run from the root: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.

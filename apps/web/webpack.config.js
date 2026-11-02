@@ -14,7 +14,7 @@ export default {
     clean: true,
   },
   devServer: {
-    port: 8081,
+    port: 8083,
     // Mirrors the routes in vercel.json.
     setupMiddlewares: (middlewares) => [
       (req, res, next) => {

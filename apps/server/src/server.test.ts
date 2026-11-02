@@ -5,7 +5,7 @@ import type { ClientToServerEvents, ServerToClientEvents } from "@ludo/shared";
 import { createGameServer, type GameServer } from "./server.js";
 import { startServer } from "./testing.js";
 
-const webOrigin = "http://localhost:8081";
+const webOrigin = "http://localhost:8083";
 const hostOrigin = "https://tablehop.games";
 
 let server: GameServer;
