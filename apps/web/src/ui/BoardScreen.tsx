@@ -15,12 +15,18 @@ interface Props {
   /** Something that happened without the Player doing it, such as opening a Join link while in this Game. */
   notice: string | undefined;
   error: string | undefined;
-  /** Rolls, settling once the server has replied. */
-  onRoll: () => Promise<unknown>;
+  /** Rolls, settling with the server's reply, or nothing if it never came. */
+  onRoll: () => Promise<{ ok: boolean } | undefined>;
   onMove: (token: number) => void;
   /** Leaves the Game during play, forfeiting it. */
   onLeaveGame: () => void;
 }
+
+/**
+ * Where the viewer's own Roll is: the die tumbles once, then spins on if the server is yet to reply, and either lands
+ * on the Roll or, if it didn't go through, waits to be tapped again.
+ */
+type RollState = "idle" | "tumbling" | "spinning" | "failed";
 
 // The die tumbles for at least this long, and on until the server replies with the Roll. Faces flick past in a fixed
 // order: the server makes every random choice in a Game, and this one isn't even a choice.
@@ -29,13 +35,33 @@ const tumbleForReducedMotion = 300;
 const faceEvery = 90;
 const tumbleFaces = [3, 6, 2, 5, 1, 4];
 
+// After this long without a reply, the Player is told the die is still waiting for it.
+const slowAfter = 1500;
+
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const wait = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-export default function BoardScreen({ board, disabled, notice, error, onRoll, onMove, onLeaveGame }: Props) {
-  const [rolling, setRolling] = useState(false);
+export default function BoardScreen({
+  board: latestBoard,
+  disabled,
+  notice,
+  error,
+  onRoll,
+  onMove,
+  onLeaveGame,
+}: Props) {
+  // The Board as it was when the viewer tapped the die, shown until it lands, as what came after would give the Roll
+  // away: whose Turn it is, and which Tokens can Move.
+  const [heldBoard, setHeldBoard] = useState<SnapshotBoard>();
+  const board = heldBoard ?? latestBoard;
+  const [rollState, setRollState] = useState<RollState>("idle");
+  // Whether the server is taking a while to reply to the Roll.
+  const [slow, setSlow] = useState(false);
+  // Whether the viewer's last Roll came back, so its die lands rather than just appearing.
+  const [landed, setLanded] = useState(false);
   const [tumbleFace, setTumbleFace] = useState(1);
+  const rolling = rollState === "tumbling" || rollState === "spinning";
 
   useEffect(() => {
     if (!rolling || prefersReducedMotion()) return;
@@ -49,6 +75,8 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
   const viewer = board.seat;
   const { turn, rolled, lastRoll, lastMove, moves } = board;
   const isOwnTurn = turn === viewer;
+  // A Roll that didn't go through, while the viewer can still Roll again.
+  const failed = rollState === "failed" && isOwnTurn && !rolled;
   const seatAt = (seatsFromViewer: number) => (viewer + seatsFromViewer) % board.seats.length;
   const homeCount = (seat: Seat) =>
     (board.seats[seat]?.tokens ?? []).filter((position) => position.area === "home").length;
@@ -56,14 +84,26 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
   const otherNames = board.seats.flatMap((seat, index) =>
     index !== viewer && seat.playerName !== null && !seat.left ? [seat.playerName] : [],
   );
-  // The places the viewer can Move a Token from: Tokens in the same place would all end up in the same place too.
-  const placesToMoveFrom = new Set(moves.map((token) => JSON.stringify(board.seats[viewer]?.tokens[token]))).size;
 
   const rollDie = async () => {
+    let replied = false;
     setTumbleFace(tumbleFaces[0] as number);
-    setRolling(true);
-    await Promise.all([onRoll(), wait(prefersReducedMotion() ? tumbleForReducedMotion : tumbleFor)]);
-    setRolling(false);
+    setLanded(false);
+    setSlow(false);
+    setRollState("tumbling");
+    setHeldBoard(latestBoard);
+    const slowTimeout = setTimeout(() => setSlow(true), slowAfter);
+    // Once it's tumbled, it spins until the reply comes.
+    const tumbled = wait(prefersReducedMotion() ? tumbleForReducedMotion : tumbleFor)
+      .then(() => !replied && setRollState("spinning"));
+    const reply = await onRoll().catch(() => undefined);
+    replied = true;
+    await tumbled;
+    clearTimeout(slowTimeout);
+    setSlow(false);
+    setLanded(Boolean(reply?.ok));
+    setRollState(reply?.ok ? "idle" : "failed");
+    setHeldBoard(undefined);
   };
 
   const cardDetail = (seat: Seat) => {
@@ -99,7 +139,10 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
 
   // What's happening now, then what came before it.
   const status = (): { title: string; detail: string | null; before: string | null } => {
-    if (rolling) return { title: boardMessages.rolling, detail: null, before: null };
+    if (rolling) {
+      return { title: boardMessages.rolling, detail: slow ? boardMessages.stillRolling : boardMessages.everyoneSees, before: null };
+    }
+    if (failed) return { title: boardMessages.rollFailed, detail: boardMessages.tapToRetry, before: null };
     if (isOwnTurn && rolled && lastRoll) {
       return { title: boardMessages.youRolled(lastRoll.number), detail: boardMessages.tapToMove, before: null };
     }
@@ -110,8 +153,35 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
   };
   const { title, detail, before } = status();
 
+  // The result, as it comes in, fades up.
+  const titleArrives = failed || (landed && isOwnTurn && rolled);
+
   const dieArea = () => {
-    if (rolling) return <Die number={tumbleFace} ringed />;
+    if (rolling) {
+      return (
+        <Die
+          number={tumbleFace}
+          label={boardMessages.rollingDie}
+          ringed
+          className={rollState === "tumbling" ? "motion-safe:animate-die-tumble" : "motion-safe:animate-die-spin"}
+        />
+      );
+    }
+    if (failed) {
+      return (
+        <button
+          type="button"
+          className="flex size-20 flex-none cursor-pointer items-center justify-center rounded-[18px] bg-cream font-display
+            text-[40px] leading-none text-danger motion-safe:animate-die-shake
+            shadow-[inset_0_-6px_0_var(--color-die-shade),0_0_0_3px_var(--color-danger-line),0_8px_16px_rgba(0,0,0,0.45)]"
+          aria-label={boardMessages.retryRoll}
+          disabled={disabled}
+          onClick={() => rollDie()}
+        >
+          <span aria-hidden>?</span>
+        </button>
+      );
+    }
     if (isOwnTurn && !rolled) {
       return (
         <button
@@ -119,7 +189,7 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
           className="size-20 flex-none cursor-pointer rounded-[18px] bg-cream font-display text-2xl tracking-[0.06em]
             text-maroon uppercase shadow-[inset_0_-6px_0_var(--color-die-shade),0_0_0_3px_var(--color-gold),0_8px_16px_rgba(0,0,0,0.45)]"
           disabled={disabled}
-          onClick={rollDie}
+          onClick={() => rollDie()}
         >
           {boardMessages.roll}
         </button>
@@ -134,6 +204,7 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
           ? boardMessages.dieShowing(lastRoll.number)
           : boardMessages.dieRolledBy(playerName(lastRoll.seat), lastRoll.number)}
         ringed={isOwn}
+        className={isOwn && landed ? "motion-safe:animate-die-land" : ""}
       />
     );
   };
@@ -160,12 +231,19 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
       */}
       <div className="flex h-36 w-full flex-none items-start justify-between gap-4 px-1.5 pt-2">
         <div className="flex min-w-0 flex-1 flex-col gap-1.5" aria-live="polite">
-          <p className={`m-0 truncate font-display leading-tight ${isOwnTurn ? "text-[26px]" : "text-2xl"}`}>{title}</p>
+          <p
+            key={title}
+            className={`m-0 truncate font-display leading-tight ${isOwnTurn ? "text-[26px]" : "text-2xl"} ${
+              titleArrives ? "motion-safe:animate-fade-up" : ""
+            }`}
+          >
+            {title}
+          </p>
           {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-tan">{detail}</p>}
           {isOwnTurn && moves.length > 0 && !rolling && (
             <p className="m-0 mt-1 flex items-center gap-2 text-xs font-semibold text-gold-light">
               <span className="size-3.5 rounded bg-gold-light shadow-[inset_0_0_0_1.5px_#b8892b]" aria-hidden />
-              {boardMessages.placesToMoveFrom(placesToMoveFrom)}
+              {boardMessages.tokensCanMove(moves.length)}
             </p>
           )}
           {before && (

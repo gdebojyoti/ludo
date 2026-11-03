@@ -4,6 +4,7 @@ interface Props {
   label?: string;
   /** A gold ring, marking the viewer's own Roll. */
   ringed?: boolean;
+  className?: string;
 }
 
 // Which of the 3 × 3 spots on a face have a pip, for each number.
@@ -18,14 +19,14 @@ const pipSpots: Record<number, number[]> = {
 
 const spots = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
-export default function Die({ number, label, ringed = false }: Props) {
+export default function Die({ number, label, ringed = false, className = "" }: Props) {
   return (
     <div
       className={`grid size-20 flex-none grid-cols-3 grid-rows-3 gap-0.5 rounded-[18px] bg-cream p-3.5 ${
         ringed
           ? "shadow-[inset_0_-5px_0_var(--color-die-shade),0_0_0_3px_var(--color-gold),0_6px_14px_rgba(0,0,0,0.4)]"
           : "shadow-[inset_0_-5px_0_var(--color-die-shade),0_6px_14px_rgba(0,0,0,0.4)]"
-      }`}
+      } ${className}`}
       role={label ? "img" : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}

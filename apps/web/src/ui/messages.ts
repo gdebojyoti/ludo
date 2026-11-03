@@ -117,6 +117,12 @@ export const boardMessages = {
   home: (count: number) => `${count} Home`,
   yourTurn: "Your turn",
   rolling: "Rolling…",
+  everyoneSees: "Everyone sees this roll.",
+  stillRolling: "Still rolling. Waiting for the result…",
+  rollingDie: "Rolling the die",
+  rollFailed: "Roll didn't go through",
+  tapToRetry: "Tap the die to try again.",
+  retryRoll: "The roll didn't go through. Tap to try again",
   yourTurnShort: "your turn",
   rollingShort: "rolling…",
   pickToken: "pick a token",
@@ -127,7 +133,7 @@ export const boardMessages = {
   waitingToRoll: "Waiting for them to roll.",
   firstRoll: "Roll the die to start your turn.",
   tapToMove: "Tap a highlighted token to move it.",
-  placesToMoveFrom: (count: number) => `${plural(count, "place", "places")} to move from`,
+  tokensCanMove: (count: number) => `${plural(count, "token", "tokens")} can move`,
   lastRoll: (playerName: string, number: number) => `Last roll: ${playerName} rolled a ${number}`,
   lastMove: (playerName: string, move: Move) => {
     if (move.from.area === "yard") return `Last move: ${playerName} brought a token out.`;
