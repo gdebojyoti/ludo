@@ -43,8 +43,11 @@ export interface TestServer {
    * of `player`.
    */
   playerWithNoGame: (player?: Player) => Promise<Connection>;
-  /** A new Host waiting in the Lobby, shown as `playerName`, with everything sent so far already read. */
-  hostInLobby: (playerName?: string, player?: Player) => Promise<{ host: Connection; gameCode: string }>;
+  /**
+   * A Host waiting in the Lobby, with everything sent so far already read: a new Player, or `player`, shown as
+   * `playerName`.
+   */
+  hostInLobby: (options?: { playerName?: string; player?: Player }) => Promise<{ host: Connection; gameCode: string }>;
   /** The player ID the server gave each open connection, in no particular order. */
   connectedPlayerIds: () => Promise<string[]>;
   close: () => Promise<void>;
@@ -109,7 +112,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
     return tab;
   };
 
-  const hostInLobby = async (playerName = "Luna Lovegood", player = createPlayer()) => {
+  const hostInLobby = async ({ playerName = "Luna Lovegood", player = createPlayer() } = {}) => {
     const host = await playerWithNoGame(player);
     const reply = await host.createGame(playerName);
     if (!reply.ok || !reply.game.gameCode) throw new Error("The Game wasn't created");

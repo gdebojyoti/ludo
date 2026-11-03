@@ -11,6 +11,6 @@ export const toSnapshot = (game: Game, playerId: string): GameSnapshot => {
     state: game.state,
     gameCode: game.state === "lobby" ? game.gameCode : null,
     isHost: game.hostId === playerId,
-    players: game.players.map(({ playerName }) => ({ playerName })),
+    players: game.players.map((player) => ({ playerName: player.playerName, isHost: player.playerId === game.hostId })),
   };
 };

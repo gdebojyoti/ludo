@@ -2,7 +2,7 @@
 // publishes each change.
 import { randomInt as cryptoRandomInt, randomUUID } from "node:crypto";
 
-import { gameCodeLength, playerNameMaxLength, type RejectionReason } from "@ludo/shared";
+import { gameCodeLength, isValidPlayerName, type RejectionReason } from "@ludo/shared";
 
 import type { GameNotifier } from "./game-notifier.js";
 import type { Game, GameStore } from "./game-store.js";
@@ -12,7 +12,8 @@ export type CommandResult = { ok: true; game: Game } | { ok: false; reason: Reje
 /** Returns a random whole number from 0 up to, but not including, `max`. */
 export type RandomInt = (max: number) => number;
 
-// Every random choice the server makes goes through `randomInt`, so tests can script them.
+// Every random choice in a Game goes through `randomInt`, so tests can script them. A Game's ID isn't one: it plays no
+// part in the rules, and is never sent to a Player.
 export const createGameService = (
   store: GameStore,
   notifier: GameNotifier,
@@ -36,15 +37,14 @@ export const createGameService = (
 
   /** Creates a Game in the Lobby, with the Player as its Host. */
   const createGame = oneAtATime(async (playerId: string, playerName: string): Promise<CommandResult> => {
-    const trimmedName = playerName.trim();
-    if (!isValidPlayerName(trimmedName)) return { ok: false, reason: "invalidPlayerName" };
+    if (!isValidPlayerName(playerName)) return { ok: false, reason: "invalidPlayerName" };
     if (await store.findActiveGameByPlayer(playerId)) return { ok: false, reason: "alreadyInActiveGame" };
     const game: Game = {
       id: randomUUID(),
       state: "lobby",
       gameCode: await newGameCode(),
       hostId: playerId,
-      players: [{ playerId, playerName: trimmedName }],
+      players: [{ playerId, playerName: playerName.trim() }],
     };
     return { ok: true, game: await save(game) };
   });
@@ -65,12 +65,6 @@ export const createGameService = (
 };
 
 export type GameService = ReturnType<typeof createGameService>;
-
-/** Whether a trimmed Player name can be shown: not empty, and short enough. */
-const isValidPlayerName = (playerName: string) => {
-  const length = [...playerName].length;
-  return length > 0 && length <= playerNameMaxLength;
-};
 
 // Runs commands one at a time, each finishing before the next starts. Commands that run side by side could both pass
 // a check before either saves: a double click on Create would create two Games.

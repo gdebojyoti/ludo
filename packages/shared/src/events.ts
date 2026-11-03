@@ -14,13 +14,14 @@ export interface GameSnapshot {
   gameCode: string | null;
   /** Whether the Player viewing this snapshot is the Host. */
   isHost: boolean;
-  /** The Game's Players, in the order they joined, so the Host is first. */
+  /** The Game's Players, in the order they joined. */
   players: SnapshotPlayer[];
 }
 
 /** One of a Game's Players, as every Player sees them. Never their player ID: that's the only proof of who they are. */
 export interface SnapshotPlayer {
   playerName: string;
+  isHost: boolean;
 }
 
 /** Why the server refused a command. Each reason is added with the first command that can give it. */

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { GameSnapshot } from "@ludo/shared";
+import ErrorMessage from "./ErrorMessage";
 import { lobbyMessages } from "./messages";
 
 interface Props {
@@ -12,8 +13,7 @@ interface Props {
 export default function LobbyScreen({ game, disabled, error, onLeaveGame }: Props) {
   // Leave always asks first, so a misclick can't cancel the Game.
   const [confirmingLeave, setConfirmingLeave] = useState(false);
-  // The Players come in the order they joined, so the Host is first.
-  const [host] = game.players;
+  const host = game.players.find((player) => player.isHost);
 
   return (
     <section className="flex flex-col gap-4">
@@ -42,7 +42,7 @@ export default function LobbyScreen({ game, disabled, error, onLeaveGame }: Prop
               {lobbyMessages.leave}
             </button>
           )}
-      {error && <p className="m-0 text-sm" role="alert">{error}</p>}
+      <ErrorMessage error={error} />
     </section>
   );
 }

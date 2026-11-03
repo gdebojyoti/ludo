@@ -1,3 +1,4 @@
+import ErrorMessage from "./ErrorMessage";
 import { startMessages } from "./messages";
 
 interface Props {
@@ -16,7 +17,7 @@ export default function StartScreen({ playerName, disabled, error, onCreateGame 
       <button type="button" className="self-start border px-4 py-2" disabled={disabled} onClick={onCreateGame}>
         {startMessages.createGame}
       </button>
-      {error && <p className="m-0 text-sm" role="alert">{error}</p>}
+      <ErrorMessage error={error} />
     </section>
   );
 }

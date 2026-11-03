@@ -8,7 +8,7 @@ export interface Game {
   /** Shared by the Host so others can join. Unique among Games in the Lobby, and only used there. */
   gameCode: string;
   hostId: string;
-  /** The Players in the Game, in the order they joined, so the Host is first. */
+  /** The Players in the Game, in the order they joined. */
   players: GamePlayer[];
 }
 
@@ -45,7 +45,7 @@ export const createMemoryGameStore = (): GameStore => {
 };
 
 /** Whether the Game is still going, rather than ended. The Lobby counts. */
-export const isActive = (game: Game) => game.state === "lobby";
+const isActive = (game: Game) => game.state === "lobby";
 
 const isPlayerIn = (game: Game, playerId: string) => game.players.some((player) => player.playerId === playerId);
 

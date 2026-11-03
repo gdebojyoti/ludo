@@ -1,5 +1,5 @@
-// The rules of the game, as pure functions with no I/O. The server uses them to decide what's allowed, and is the
-// only authority on them; the web app holds no game logic.
+// The rules of the game, as constants and pure functions with no I/O. The server uses them to decide what's allowed,
+// and is the only authority on them; the web app holds no game logic.
 
 /** How many digits a Game code has. Leading zeros count, so it's kept as text. */
 export const gameCodeLength = 6;
@@ -9,3 +9,9 @@ export const gameCodeLength = 6;
  * Characters are counted as code points, so one outside the Basic Multilingual Plane, such as an emoji, counts once.
  */
 export const playerNameMaxLength = 30;
+
+/** Whether a Player name can be shown: once trimmed, it isn't empty, and has at most `playerNameMaxLength` characters. */
+export const isValidPlayerName = (playerName: string): boolean => {
+  const length = [...playerName.trim()].length;
+  return length > 0 && length <= playerNameMaxLength;
+};

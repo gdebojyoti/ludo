@@ -21,9 +21,9 @@ export const handleGameSockets = (io: GameIo, gameService: GameService, notifier
 
     socket.on("createGame", async (playerName, ack) => {
       // The check in server.ts only looks at the last argument, so a command sent with no Player name arrives here
-      // with its callback as the Player name, and nothing to reply to.
-      if (typeof ack !== "function") return;
-      if (typeof playerName !== "string") return ack({ ok: false, reason: "invalidPlayerName" });
+      // with its callback as the Player name. It's still answered, so the tab isn't left waiting.
+      const reply = typeof ack === "function" ? ack : (playerName as unknown as typeof ack);
+      if (typeof playerName !== "string") return reply({ ok: false, reason: "invalidPlayerName" });
       const result = await gameService.createGame(playerId, playerName);
       ack(result.ok ? { ok: true, game: toSnapshot(result.game, playerId) } : result);
     });
