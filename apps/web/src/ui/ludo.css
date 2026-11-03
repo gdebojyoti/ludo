@@ -131,8 +131,8 @@
   }
 
   /*
-   * The Board is drawn 360px across in the design. Everything on it is sized in --u, one design pixel, so it scales
-   * with the Board on narrower screens.
+   * The Board is drawn 360px across in the design, and fills the width the Player cards have. Everything on it is sized
+   * in --u, one design pixel, so it scales with the Board.
    */
   .ludo-board {
     container-type: inline-size;
@@ -141,7 +141,6 @@
     grid-template-rows: repeat(15, minmax(0, 1fr));
     gap: 1px;
     width: 100%;
-    max-width: 360px;
     aspect-ratio: 1;
     overflow: hidden;
     border-radius: 8px;
