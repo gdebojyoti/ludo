@@ -33,5 +33,6 @@ const toSnapshotBoard = (game: Game, board: GameBoard, playerId: string): Snapsh
     lastRoll: board.lastRoll,
     lastMove: board.lastMove,
     moves: rollToMove ? legalMoves(seat, ownTokens, rollToMove.number) : [],
+    winner: board.winner,
   };
 };

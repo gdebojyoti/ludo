@@ -16,6 +16,7 @@ export {
   dieFaces,
   gameCodeLength,
   giveOutSeats,
+  hasWon,
   isValidPlayerName,
   legalMoves,
   moveToken,

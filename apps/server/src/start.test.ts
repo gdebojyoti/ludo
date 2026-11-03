@@ -35,8 +35,8 @@ describe("the Host starting the Game", () => {
       { playerName: "Ginny Weasley", tokens: inYard },
       emptySeat,
     ];
-    // Nobody has Rolled yet.
-    const board = { seats, turn: 0, rolled: false, lastRoll: null, lastMove: null, moves: [] };
+    // Nobody has Rolled yet, or won.
+    const board = { seats, turn: 0, rolled: false, lastRoll: null, lastMove: null, moves: [], winner: null };
     expect(await host.nextMessage()).toEqual({
       event: "game",
       game: { state: "playing", gameCode: null, isHost: true, players, board: { ...board, seat: 0 } },

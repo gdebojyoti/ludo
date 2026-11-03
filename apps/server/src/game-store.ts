@@ -25,6 +25,8 @@ export interface GameBoard {
   lastRoll: Roll | null;
   /** The latest Move in the Game; null before the first. */
   lastMove: Move | null;
+  /** The Seat whose Player won the Game: set exactly when the Game's state is won, and otherwise null. */
+  winner: Seat | null;
 }
 
 export interface GamePlayer {

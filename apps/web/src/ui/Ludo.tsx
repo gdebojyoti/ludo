@@ -24,6 +24,7 @@ export default function Ludo() {
     leaveGame,
     roll,
     move,
+    backToStart,
   } = useGameServer(playerName);
   const noticeMessage = notice && noticeMessages[notice];
 
@@ -51,6 +52,7 @@ export default function Ludo() {
           error={error}
           onRoll={roll}
           onMove={move}
+          onBackToStart={backToStart}
         />
       );
     }

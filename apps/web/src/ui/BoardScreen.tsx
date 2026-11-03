@@ -12,21 +12,29 @@ interface Props {
   error: string | undefined;
   onRoll: () => void;
   onMove: (token: number) => void;
+  /** Leaves the Board once the Game has been won. */
+  onBackToStart: () => void;
 }
 
-export default function BoardScreen({ board, disabled, notice, error, onRoll, onMove }: Props) {
+export default function BoardScreen({ board, disabled, notice, error, onRoll, onMove, onBackToStart }: Props) {
   // Players are named by their Player name, never by colour, as each sees the Seats in different colours.
   const playerName = (seat: number) => board.seats[seat]?.playerName ?? "";
   const turnPlayerName = playerName(board.turn);
-  const isOwnTurn = board.turn === board.seat;
-  const { lastRoll, lastMove } = board;
+  const { lastRoll, lastMove, winner } = board;
+  const isWon = winner !== null;
+  const isOwnTurn = !isWon && board.turn === board.seat;
+
+  const status = () => {
+    if (isWon) {
+      return winner === board.seat ? boardMessages.youWon(playerName(winner)) : boardMessages.won(playerName(winner));
+    }
+    return isOwnTurn ? boardMessages.yourTurn(turnPlayerName) : boardMessages.turnOf(turnPlayerName);
+  };
 
   return (
     <section className="flex flex-col gap-4">
       <Notice notice={notice} />
-      <p className="m-0" aria-live="polite">
-        {isOwnTurn ? boardMessages.yourTurn(turnPlayerName) : boardMessages.turnOf(turnPlayerName)}
-      </p>
+      <p className="m-0" aria-live="polite">{status()}</p>
       {/* The Move first, as it came before the Roll it's shown with, unless a Roll with no legal Move followed. */}
       <div className="flex flex-col gap-1" aria-live="polite">
         {lastMove && <p className="m-0">{boardMessages.moved(playerName(lastMove.seat), lastMove)}</p>}
@@ -35,6 +43,11 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
       {isOwnTurn && !board.rolled && (
         <button type="button" className="self-start border px-4 py-2" disabled={disabled} onClick={onRoll}>
           {boardMessages.roll}
+        </button>
+      )}
+      {isWon && (
+        <button type="button" className="self-start border px-4 py-2" onClick={onBackToStart}>
+          {boardMessages.backToStart}
         </button>
       )}
       {board.moves.length > 0 && <p className="m-0">{boardMessages.pickToken}</p>}

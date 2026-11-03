@@ -87,6 +87,11 @@ export const moveToken = (seat: Seat, tokens: TokenPosition[], token: number, ro
   });
 };
 
+/** Whether a Seat with these Tokens has won: it has Tokens, and every one is Home. An empty Seat never wins. */
+export const hasWon = (tokens: TokenPosition[]): boolean => {
+  return tokens.length > 0 && tokens.every((position) => position.area === "home");
+};
+
 /**
  * The Seats given out when a Game starts, to its Players in the order they joined: the 1st gets Seat 0, the 2nd the
  * Seat opposite, so 2 Players always sit opposite each other, and the rest the Seats left, clockwise from Seat 0.

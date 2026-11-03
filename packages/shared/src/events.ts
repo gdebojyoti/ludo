@@ -3,10 +3,11 @@
 import type { Seat, TokenPosition } from "./rules.js";
 
 /**
- * Stages a Game goes through: in the Lobby, in play once it has started, or cancelled by its Host Leaving the Lobby.
- * A Game in the Lobby or in play is active; a cancelled one has ended.
+ * Stages a Game goes through: in the Lobby, in play once it has started, then won by the first Player to bring all
+ * their Tokens Home, or cancelled by its Host Leaving the Lobby. A Game in the Lobby or in play is active; a won or
+ * cancelled one has ended.
  */
-export type GameState = "lobby" | "playing" | "cancelled";
+export type GameState = "lobby" | "playing" | "won" | "cancelled";
 
 /** A Game as one Player sees it. The server sends a fresh one after every change, and it replaces the last. */
 export interface GameSnapshot {
@@ -40,6 +41,8 @@ export interface SnapshotBoard {
    * on their Turn. Empty for everyone else, and before they Roll.
    */
   moves: number[];
+  /** The Seat whose Player won the Game: set exactly when the Game's state is won, and otherwise null. */
+  winner: Seat | null;
 }
 
 /** A Roll, by the Seat whose Turn it was. */
@@ -78,7 +81,7 @@ export type RejectionReason =
   | "alreadyRolled"
   | "gameCodeNotFound"
   | "gameNotInLobby"
-  | "gameNotStarted"
+  | "gameNotInPlay"
   | "illegalMove"
   | "invalidPlayerName"
   | "noActiveGame"
@@ -123,13 +126,13 @@ export interface ClientToServerEvents {
   leaveGame: (ack: (reply: Acknowledgement) => void) => void;
   /**
    * Rolls the die for the Player on their Turn. If no Token can Move by the Roll, the Turn passes. Refused unless the
-   * Player's Game has started, it's their Turn, and they haven't Rolled yet.
+   * Player's Game is in play, it's their Turn, and they haven't Rolled yet.
    */
   roll: (ack: (reply: Acknowledgement) => void) => void;
   /**
-   * Moves the Player's Token, by its place in their Seat's list of Tokens, by their Roll, and passes the Turn.
-   * Refused unless the Player's Game has started, it's their Turn, they've Rolled, and the Move is one of their legal
-   * Moves.
+   * Moves the Player's Token, by its place in their Seat's list of Tokens, by their Roll, and passes the Turn. A Move
+   * that brings the Seat's last Token Home wins, and ends the Game. Refused unless the Player's Game is in play, it's
+   * their Turn, they've Rolled, and the Move is one of their legal Moves.
    */
   move: (token: number, ack: (reply: Acknowledgement) => void) => void;
 }

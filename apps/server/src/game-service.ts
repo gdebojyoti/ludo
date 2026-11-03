@@ -7,6 +7,7 @@ import {
   dieFaces,
   gameCodeLength,
   giveOutSeats,
+  hasWon,
   isValidPlayerName,
   legalMoves,
   moveToken,
@@ -61,7 +62,8 @@ export const createGameService = (
     });
     // `randomInt` is always below the number of Players, so this is one of their Seats.
     const turn = seatsInJoinOrder[randomInt(seatsInJoinOrder.length)] as Seat;
-    return { ...game, state: "playing", board: { seats, turn, rolled: false, lastRoll: null, lastMove: null } };
+    const board = { seats, turn, rolled: false, lastRoll: null, lastMove: null, winner: null };
+    return { ...game, state: "playing", board };
   };
 
   /** The Board with the Turn passed to the next taken Seat clockwise, not yet Rolled for. */
@@ -70,12 +72,12 @@ export const createGameService = (
     return { ...board, turn: nextTakenSeat(board.turn, takenSeats), rolled: false };
   };
 
-  /** The Player's started Game, with its Board and their Seat at it, if it's their Turn; otherwise why not. */
+  /** The Player's Game in play, with its Board and their Seat at it, if it's their Turn; otherwise why not. */
   const findTurn = async (playerId: string) => {
     const game = await store.findActiveGameByPlayer(playerId);
     if (!game) return { ok: false as const, reason: "noActiveGame" as const };
-    if (!game.board) return { ok: false as const, reason: "gameNotStarted" as const };
     const { board } = game;
+    if (game.state !== "playing" || !board) return { ok: false as const, reason: "gameNotInPlay" as const };
     if (board.seats[board.turn]?.playerId !== playerId) return { ok: false as const, reason: "notYourTurn" as const };
     return { ok: true as const, game, board, seat: board.turn };
   };
@@ -152,7 +154,10 @@ export const createGameService = (
     return { ok: true, game: await save({ ...game, board: canMove ? rolled : turnPassed(rolled) }) };
   });
 
-  /** The Player Moves one of their Tokens, by its place in their Seat's list of Tokens, by their Roll. */
+  /**
+   * The Player Moves one of their Tokens, by its place in their Seat's list of Tokens, by their Roll. A Move that
+   * brings the Seat's last Token Home wins, ending the Game, which frees every Player in it.
+   */
   const move = oneAtATime(async (playerId: string, token: number): Promise<CommandResult> => {
     const turn = await findTurn(playerId);
     if (!turn.ok) return turn;
@@ -165,6 +170,10 @@ export const createGameService = (
     // A legal Move is always one of the Seat's Tokens.
     const lastMove = { seat, token, from: tokens[token] as TokenPosition, to: moved[token] as TokenPosition };
     const seats = board.seats.map((other, index) => (index === seat ? { ...other, tokens: moved } : other));
+    if (hasWon(moved)) {
+      const won = { ...board, seats, lastMove, rolled: false, winner: seat };
+      return { ok: true, game: await save({ ...game, state: "won", board: won }) };
+    }
     return { ok: true, game: await save({ ...game, board: turnPassed({ ...board, seats, lastMove }) }) };
   });
 
