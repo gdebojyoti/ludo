@@ -134,7 +134,11 @@ export default function BoardScreen({
     );
   };
 
-  const lastMoveLine = lastMove && boardMessages.lastMove(playerName(lastMove.seat), lastMove);
+  const lastMoveLine = lastMove && boardMessages.lastMove(
+    playerName(lastMove.seat),
+    lastMove,
+    lastMove.captured.map(({ seat }) => ({ playerName: playerName(seat), isOwn: seat === viewer })),
+  );
   const lastRollLine = lastRoll && boardMessages.lastRoll(playerName(lastRoll.seat), lastRoll.number);
 
   // What's happening now, then what came before it.

@@ -3,6 +3,7 @@
 import { randomInt as cryptoRandomInt, randomUUID } from "node:crypto";
 
 import {
+  applyMove,
   classicRules,
   dieFaces,
   gameCodeLength,
@@ -10,7 +11,6 @@ import {
   hasWon,
   isValidPlayerName,
   legalMoves,
-  moveToken,
   nextTakenSeat,
   type RejectionReason,
   type Seat,
@@ -173,8 +173,9 @@ export const createGameService = (
   });
 
   /**
-   * The Player Moves one of their Tokens, by its place in their Seat's list of Tokens, by their Roll. A Move that
-   * brings the Seat's last Token Home wins, ending the Game, which frees every Player in it.
+   * The Player Moves one of their Tokens, by its place in their Seat's list of Tokens, by their Roll, Capturing any
+   * opponents' Tokens it can. A Move that brings the Seat's last Token Home wins, ending the Game, which frees every
+   * Player in it.
    */
   const move = oneAtATime(async (playerId: string, token: number): Promise<CommandResult> => {
     const turn = await findTurn(playerId);
@@ -184,10 +185,12 @@ export const createGameService = (
     const { number } = board.lastRoll;
     const tokens = board.seats[seat]?.tokens ?? [];
     if (!legalMoves(seat, tokens, number).includes(token)) return { ok: false, reason: "illegalMove" };
-    const moved = moveToken(seat, tokens, token, number);
+    const after = applyMove(board.seats.map((other) => other.tokens), seat, token, number);
+    const moved = after.seats[seat] ?? [];
     // A legal Move is always one of the Seat's Tokens.
-    const lastMove = { seat, token, from: tokens[token] as TokenPosition, to: moved[token] as TokenPosition };
-    const seats = board.seats.map((other, index) => (index === seat ? { ...other, tokens: moved } : other));
+    const from = tokens[token] as TokenPosition;
+    const lastMove = { seat, token, from, to: moved[token] as TokenPosition, captured: after.captured };
+    const seats = board.seats.map((other, index) => ({ ...other, tokens: after.seats[index] ?? other.tokens }));
     if (hasWon(moved)) {
       const won = { ...board, seats, lastMove, rolled: false, winner: seat };
       return { ok: true, game: await save({ ...game, state: "won", board: won }) };

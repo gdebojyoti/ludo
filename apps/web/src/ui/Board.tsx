@@ -25,9 +25,6 @@ const size = 15;
 /** How many Cells across each Yard is. */
 const yardSize = 6;
 
-/** How many Cells on from its Start cell each Star cell is, along the Track. */
-const starCellOffset = 8;
-
 // The viewer's own Seat sits bottom-left, with its Home column up the bottom arm, and its stretch of the Track
 // starting beside it: its Start cell, then each Cell clockwise up to the next Seat's Start cell. Each Seat clockwise
 // from theirs has these turned a quarter turn further clockwise about the centre.
@@ -36,7 +33,7 @@ const ownTrackStretch: Cell[] = [
   [13, 6], [12, 6], [11, 6], [10, 6], [9, 6], [8, 5], [8, 4], [8, 3], [8, 2], [8, 1], [8, 0], [7, 0], [6, 0],
 ];
 const ownStartCell = ownTrackStretch[0] as Cell;
-const ownStarCell = ownTrackStretch[starCellOffset] as Cell;
+const ownStarCell = ownTrackStretch[classicRules.starCellOffset] as Cell;
 
 const turnClockwise = ([row, column]: Cell, quarterTurns: number): Cell => {
   if (quarterTurns === 0) return [row, column];

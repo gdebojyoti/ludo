@@ -20,6 +20,8 @@ export const classicRules = {
   homeColumnCells: 5,
   /** The only Roll that brings a Token out of its Yard. */
   rollToLeaveYard: 6,
+  /** How many Cells on from each Start cell, along the Track, its Star cell is. */
+  starCellOffset: 8,
 };
 
 /** How many faces the die has: a Roll is a whole number from 1 up to this. */
@@ -38,8 +40,17 @@ export type TokenPosition =
   | { area: "homeColumn"; cell: number }
   | { area: "home" };
 
+/** How many Cells of the Track each Seat has, from its Start cell up to the next Seat's. */
+const trackStretch = classicRules.trackCells / classicRules.seats;
+
 /** The Seat's Start cell, on the Track. */
-export const startCell = (seat: Seat): number => seat * (classicRules.trackCells / classicRules.seats);
+export const startCell = (seat: Seat): number => seat * trackStretch;
+
+/** Whether the Track's Cell is a Safe cell, where no Token is Captured: a Start cell, or a Star cell. */
+const isSafeCell = (cell: number): boolean => {
+  const fromStart = cell % trackStretch;
+  return fromStart === 0 || fromStart === classicRules.starCellOffset;
+};
 
 // A Token's journey, counted in Cells from its Start cell: round the Track to the tip of its own arm, just short of
 // the Cell before its Start cell, then up its Home column, then Home.
@@ -85,6 +96,42 @@ export const moveToken = (seat: Seat, tokens: TokenPosition[], token: number, ro
   return tokens.map((position, index) => {
     return index === token ? positionAfter(seat, position, roll) ?? position : position;
   });
+};
+
+/** One of a Seat's Tokens, by its place in the Seat's list of Tokens. */
+export interface SeatToken {
+  seat: Seat;
+  token: number;
+}
+
+/**
+ * Every Seat's Tokens, by Seat, after one of this Seat's Moves by the Roll, which must be one of its legal Moves, and
+ * the opponents' Tokens it Captured, each now back in its Yard.
+ */
+export const applyMove = (
+  seats: TokenPosition[][],
+  seat: Seat,
+  token: number,
+  roll: number,
+): { seats: TokenPosition[][]; captured: SeatToken[] } => {
+  const moved = moveToken(seat, seats[seat] ?? [], token, roll);
+  const to = moved[token];
+  const captured = seats.flatMap((tokens, owner) => {
+    if (owner === seat || to?.area !== "track" || isSafeCell(to.cell)) return [];
+    const onCell = tokens.flatMap((position, ownToken) => {
+      return position.area === "track" && position.cell === to.cell ? [{ seat: owner, token: ownToken }] : [];
+    });
+    // Two or more of a Seat's Tokens on one Cell protect each other.
+    return onCell.length === 1 ? onCell : [];
+  });
+  const isCaptured = (owner: Seat, ownToken: number) => {
+    return captured.some((capture) => capture.seat === owner && capture.token === ownToken);
+  };
+  const seatsAfter = seats.map((tokens, owner) => {
+    if (owner === seat) return moved;
+    return tokens.map((position, ownToken) => (isCaptured(owner, ownToken) ? { area: "yard" as const } : position));
+  });
+  return { seats: seatsAfter, captured };
 };
 
 /** Whether a Seat with these Tokens has won: it has Tokens, and every one is Home. An empty Seat never wins. */

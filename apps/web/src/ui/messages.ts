@@ -7,12 +7,14 @@ import type { ConnectionStatus, Notice } from "./useGameServer";
 /** A Player name's first word, as Players are named in longer sentences. */
 const firstName = (playerName: string) => playerName.trim().split(/\s+/)[0] ?? playerName;
 
-/** Player names as a list in a sentence: "A", "A and B", or "A, B and C". */
-const nameList = (playerNames: string[]) => {
-  const names = playerNames.map(firstName);
-  if (names.length <= 1) return names.join("");
-  return `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+/** Things as a list in a sentence: "A", "A and B", or "A, B and C". */
+const list = (items: string[]) => {
+  if (items.length <= 1) return items.join("");
+  return `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
 };
+
+/** Player names as a list in a sentence, by their first names. */
+const nameList = (playerNames: string[]) => list(playerNames.map(firstName));
 
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
@@ -135,7 +137,12 @@ export const boardMessages = {
   tapToMove: "Tap a highlighted token to move it.",
   tokensCanMove: (count: number) => `${plural(count, "token", "tokens")} can move`,
   lastRoll: (playerName: string, number: number) => `Last roll: ${playerName} rolled a ${number}`,
-  lastMove: (playerName: string, move: Move) => {
+  // `captured` names the owner of each Token the Move Captured.
+  lastMove: (playerName: string, move: Move, captured: { playerName: string; isOwn: boolean }[]) => {
+    if (captured.length) {
+      const tokens = captured.map((owner) => owner.isOwn ? "your token" : `${firstName(owner.playerName)}'s token`);
+      return `Last move: ${playerName} sent ${list(tokens)} back to the Yard.`;
+    }
     if (move.from.area === "yard") return `Last move: ${playerName} brought a token out.`;
     if (move.to.area === "home") return `Last move: ${playerName} moved a token into Home.`;
     return `Last move: ${playerName} moved a token.`;
