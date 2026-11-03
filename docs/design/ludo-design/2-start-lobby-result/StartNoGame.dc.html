@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ludo · Start · No game found</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Figtree:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.yd{border-radius:18px;display:flex;align-items:center;justify-content:center}
+.yd span{width:58%;aspect-ratio:1/1;border-radius:50%;background:#F7F0DF;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:14px;box-sizing:border-box}
+.yd i{border-radius:50%;background:#EADBB9;display:block;aspect-ratio:1/1}
+.btn{width:100%;height:54px;border:none;border-radius:14px;background:#3B1218;color:#F3CF7E;font:600 16px Figtree,sans-serif;cursor:pointer}
+.btn2{height:54px;padding:0 20px;flex:none;border:1.5px solid #A8916A;border-radius:12px;background:transparent;color:#3B1218;font:600 16px Figtree,sans-serif;cursor:pointer}
+.code{flex:1;min-width:0;height:54px;box-sizing:border-box;border-radius:14px;border:1.5px solid #CDBB94;background:#FFFFFF;color:#3B1218;padding:0 16px;font:600 20px Figtree,sans-serif;letter-spacing:0.3em}
+.code.err{border:2px solid #B23A2A}
+.lbl{font-size:12px;font-weight:700;letter-spacing:0.1em;color:#6E5340}
+.regen{width:44px;height:44px;flex:none;border-radius:12px;border:1.5px solid #A8916A;background:transparent;color:#3B1218;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #3B1218; color: #3B1218; font-family: Figtree, sans-serif; display: flex; flex-direction: column">
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 40px 24px 32px">
+<div aria-hidden="true" style="width: 220px; height: 220px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 10px; box-sizing: border-box; border: 2px solid #E8B54A; border-radius: 26px">
+<div class="yd" style="background: #1F7A4D"><span><i></i><i></i><i></i><i></i></span></div>
+<div class="yd" style="background: #E3A21A"><span><i></i><i></i><i></i><i></i></span></div>
+<div class="yd" style="background: #D2462E"><span><i></i><i></i><i></i><i></i></span></div>
+<div class="yd" style="background: #2F4A9E"><span><i></i><i></i><i></i><i></i></span></div>
+</div>
+<div style="text-align: center">
+<h1 style="margin: 0; font-family: Marcellus, serif; font-weight: 400; font-size: 46px; letter-spacing: 0.14em; color: #F3CF7E">LUDO</h1>
+<p style="margin: 4px 0 0; font-size: 15px; color: #D9C3A5">Classic Ludo, with friends</p>
+</div>
+</div>
+<div style="background: #F7F0DF; border-radius: 28px 28px 0 0; padding: 26px 24px 36px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; gap: 12px">
+<span style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #FFF8E8; box-shadow: 0 0 0 2px #D2462E; box-sizing: border-box; background: #D2462E; color: #FFF8E8; display: flex; align-items: center; justify-content: center; font: 600 16px Marcellus, serif">N</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 12px; color: #6E5340">You’ll play as</span><span style="font-size: 17px; font-weight: 700">Neville Lovegood</span></span>
+<button class="regen" aria-label="Pick a different random name" title="Pick a different random name"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"></path><path d="M4 3v5h5"></path><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"></path><path d="M20 21v-5h-5"></path></svg></button>
+</div>
+<button class="btn">Create a game</button>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="code2" class="lbl">JOIN WITH A GAME CODE</label>
+<div style="display: flex; gap: 10px"><input id="code2" class="code err" inputmode="numeric" maxlength="6" value="482913" aria-invalid="true" aria-describedby="code2-err"><button class="btn2">Join</button></div>
+<p id="code2-err" style="margin: 2px 0 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.45; color: #A3301F"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="flex: none; margin-top: 1px" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5v.01"></path></svg><span>No game found with that code. Check it with your friend. Games that have started or are full can’t be joined.</span></p>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
