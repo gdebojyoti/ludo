@@ -109,6 +109,45 @@ describe("Moving", () => {
   });
 });
 
+describe("Capturing", () => {
+  it("sends the Token a Move lands on back to its Yard, showing everyone which, and passes the Turn", async () => {
+    // Each brings a Token out on a 6. Then the Host's 6s close in on the joiner's 1s, until the Host's Token lands on
+    // the joiner's, on Cell 30, which isn't a Safe cell.
+    const { host, joiner } = await gameInPlay(6, 6, 6, 1, 6, 1, 6, 1, 6, 1, 6);
+    for (let turn = 0; turn < 10; turn++) {
+      const player = turn % 2 === 0 ? host : joiner;
+      await player.roll();
+      expect(await player.move(0)).toEqual({ ok: true });
+    }
+    await host.roll();
+    await readMessages(host, 21);
+    await readMessages(joiner, 21);
+
+    await host.move(0);
+
+    const board = {
+      seats: [
+        { tokens: [{ area: "track", cell: 30 }, yard, yard, yard] },
+        {},
+        { tokens: [yard, yard, yard, yard] },
+        {},
+      ],
+      // No extra Roll for the Capture, yet.
+      turn: 2,
+      rolled: false,
+      lastMove: {
+        seat: 0,
+        token: 0,
+        from: { area: "track", cell: 24 },
+        to: { area: "track", cell: 30 },
+        captured: [{ seat: 2, token: 0 }],
+      },
+    };
+    expect(await host.nextMessage()).toMatchObject({ game: { board } });
+    expect(await joiner.nextMessage()).toMatchObject({ game: { board } });
+  });
+});
+
 describe("a Roll with no legal Move", () => {
   it("passes the Turn by itself, still showing everyone the Roll", async () => {
     const { host, joiner } = await gameInPlay(5);

@@ -12,6 +12,7 @@ export type {
   SnapshotSeat,
 } from "./events.js";
 export {
+  applyMove,
   classicRules,
   dieFaces,
   gameCodeLength,
@@ -19,10 +20,10 @@ export {
   hasWon,
   isValidPlayerName,
   legalMoves,
-  moveToken,
   nextTakenSeat,
   playerNameMaxLength,
   seatsClockwise,
   type Seat,
+  type SeatToken,
   type TokenPosition,
 } from "./rules.js";

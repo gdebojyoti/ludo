@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { giveOutSeats, hasWon, legalMoves, moveToken, nextTakenSeat, positionAfter, seatsClockwise } from "./rules.js";
+import {
+  applyMove,
+  giveOutSeats,
+  hasWon,
+  legalMoves,
+  moveToken,
+  nextTakenSeat,
+  positionAfter,
+  seatsClockwise,
+} from "./rules.js";
 
 describe("giving out Seats", () => {
   it.each([
@@ -119,6 +128,76 @@ describe("applying a Move", () => {
       { area: "track", cell: 36 },
       { area: "yard" },
     ]);
+  });
+});
+
+describe("Capturing", () => {
+  const yard = { area: "yard" } as const;
+  const track = (cell: number) => ({ area: "track", cell }) as const;
+
+  it("sends an opponent's Token on the Cell a Move ends on back to its Yard", () => {
+    const seats = [[track(10), yard], [], [track(14), track(20)], []];
+
+    expect(applyMove(seats, 0, 0, 4)).toEqual({
+      seats: [[track(14), yard], [], [yard, track(20)], []],
+      captured: [{ seat: 2, token: 0 }],
+    });
+  });
+
+  it.each([
+    ["Seat 1's Start cell", 13],
+    ["Seat 3's Start cell", 39],
+    ["the Star cell 8 Cells on from Seat 1's Start cell", 21],
+    ["the Star cell 8 Cells on from Seat 3's Start cell", 47],
+  ])("never happens on %s, a Safe cell, where the Tokens share the Cell", (_, cell) => {
+    const seats = [[track(cell - 3)], [track(cell)], [], []];
+
+    expect(applyMove(seats, 0, 0, 3)).toEqual({ seats: [[track(cell)], [track(cell)], [], []], captured: [] });
+  });
+
+  it("never takes Tokens of one Seat sharing a Cell, which protect each other", () => {
+    const seats = [[track(30)], [track(33), yard, track(33)], [], []];
+
+    expect(applyMove(seats, 0, 0, 3)).toEqual({
+      seats: [[track(33)], [track(33), yard, track(33)], [], []],
+      captured: [],
+    });
+  });
+
+  it("takes only the single Token on a Cell where another Seat has a protected pair", () => {
+    const seats = [[track(30)], [track(33), track(33)], [], [yard, track(33)]];
+
+    expect(applyMove(seats, 0, 0, 3)).toEqual({
+      seats: [[track(33)], [track(33), track(33)], [], [yard, yard]],
+      captured: [{ seat: 3, token: 1 }],
+    });
+  });
+
+  it("takes every single opponent's Token on the Cell, of each Seat there", () => {
+    const seats = [[track(30)], [track(33), track(36)], [], [yard, track(33)]];
+
+    expect(applyMove(seats, 0, 0, 3)).toEqual({
+      seats: [[track(33)], [yard, track(36)], [], [yard, yard]],
+      captured: [{ seat: 1, token: 0 }, { seat: 3, token: 1 }],
+    });
+  });
+
+  it("lets a Token pass protected Tokens", () => {
+    // A pair on Cell 32, and a single Token on Cell 34, a Star cell.
+    const seats = [[track(30)], [track(32), track(32)], [], [track(34)]];
+
+    expect(legalMoves(0, seats[0] ?? [], 5)).toEqual([0]);
+    expect(applyMove(seats, 0, 0, 5)).toEqual({
+      seats: [[track(35)], [track(32), track(32)], [], [track(34)]],
+      captured: [],
+    });
+  });
+
+  it("never takes a Token in its Home column", () => {
+    const homeColumn = { area: "homeColumn", cell: 2 } as const;
+    const seats = [[track(48)], [], [homeColumn], []];
+
+    expect(applyMove(seats, 0, 0, 5)).toEqual({ seats: [[homeColumn], [], [homeColumn], []], captured: [] });
   });
 });
 

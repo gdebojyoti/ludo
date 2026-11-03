@@ -1,6 +1,6 @@
 // The Socket.IO event contract between the web app and the server.
 // Both sides type their sockets with these, so a change here is checked on both.
-import type { Seat, TokenPosition } from "./rules.js";
+import type { Seat, SeatToken, TokenPosition } from "./rules.js";
 
 /**
  * Stages a Game goes through: in the Lobby, in play once it has started, then won by the first Player to bring all
@@ -59,6 +59,8 @@ export interface Move {
   token: number;
   from: TokenPosition;
   to: TokenPosition;
+  /** The opponents' Tokens the Move Captured, from the Cell it ended on, each now back in its Yard. */
+  captured: SeatToken[];
 }
 
 /** One of a Game's Players, as every Player sees them. Never their player ID: that's the only proof of who they are. */
@@ -133,9 +135,10 @@ export interface ClientToServerEvents {
    */
   roll: (ack: (reply: Acknowledgement) => void) => void;
   /**
-   * Moves the Player's Token, by its place in their Seat's list of Tokens, by their Roll, and passes the Turn. A Move
-   * that brings the Seat's last Token Home wins, and ends the Game. Refused unless the Player's Game is in play, it's
-   * their Turn, they've Rolled, and the Move is one of their legal Moves.
+   * Moves the Player's Token, by its place in their Seat's list of Tokens, by their Roll, Capturing any opponents'
+   * Tokens it can, and passes the Turn. A Move that brings the Seat's last Token Home wins, and ends the Game.
+   * Refused unless the Player's Game is in play, it's their Turn, they've Rolled, and the Move is one of their legal
+   * Moves.
    */
   move: (token: number, ack: (reply: Acknowledgement) => void) => void;
 }
