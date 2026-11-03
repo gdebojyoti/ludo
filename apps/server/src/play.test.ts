@@ -32,6 +32,10 @@ const gameInPlay = async (...rolls: number[]) => {
 };
 
 const yard = { area: "yard" };
+const track = (cell: number) => ({ area: "track", cell });
+
+// A Token's whole 56-Cell journey Home, out on a 6, then nine 6s and a 2, every one of which earns another Roll.
+const tokenJourney = [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 2];
 
 /** Reads the next `count` messages the connection has been sent, and returns them. */
 const readMessages = async (connection: Connection, count: number) => {
@@ -59,33 +63,36 @@ describe("Rolling", () => {
 
 describe("Moving", () => {
   it("takes the chosen Token by the Roll, shows everyone the Move, and passes the Turn clockwise", async () => {
-    const { host, joiner } = await gameInPlay(6);
+    // The Host brings a Token out on a 6, which earns another Roll, then Rolls a 3.
+    const { host, joiner } = await gameInPlay(6, 3);
     await host.roll();
-    await host.nextMessage();
-    await joiner.nextMessage();
+    await host.move(2);
+    await host.roll();
+    await readMessages(host, 3);
+    await readMessages(joiner, 3);
 
     const reply = await host.move(2);
 
     expect(reply).toEqual({ ok: true });
     const board = {
-      seats: [{ tokens: [yard, yard, { area: "track", cell: 0 }, yard] }, {}, { tokens: [yard, yard, yard, yard] }, {}],
+      seats: [{ tokens: [yard, yard, track(3), yard] }, {}, { tokens: [yard, yard, yard, yard] }, {}],
       turn: 2,
       rolled: false,
-      lastRoll: { seat: 0, number: 6 },
-      lastMove: { seat: 0, token: 2, from: yard, to: { area: "track", cell: 0 } },
+      lastRoll: { seat: 0, number: 3 },
+      lastMove: { seat: 0, token: 2, from: track(0), to: track(3) },
       moves: [],
+      extraRoll: false,
     };
     expect(await host.nextMessage()).toMatchObject({ game: { board } });
     expect(await joiner.nextMessage()).toMatchObject({ game: { board } });
   });
 
   it("is still the Player's choice when only one Move is legal", async () => {
-    // The Host brings a Token out on a 6, then the joiner's 2 can't Move any of theirs.
-    const { host, joiner } = await gameInPlay(6, 2, 3);
+    // The Host brings a Token out on a 6, which earns another Roll, then Rolls a 3, which can Move only that one.
+    const { host } = await gameInPlay(6, 3);
     await host.roll();
     await host.move(0);
-    await joiner.roll();
-    await readMessages(host, 3);
+    await readMessages(host, 2);
 
     await host.roll();
 
@@ -95,56 +102,106 @@ describe("Moving", () => {
   });
 
   it("takes a Token on from its Start cell along the Track", async () => {
-    const { host, joiner } = await gameInPlay(6, 1, 4);
+    const { host } = await gameInPlay(6, 4);
     await host.roll();
     await host.move(3);
-    await joiner.roll();
     await host.roll();
 
     await host.move(3);
 
-    const [message] = (await readMessages(host, 5)).slice(-1);
-    const tokens = [yard, yard, yard, { area: "track", cell: 4 }];
+    const [message] = (await readMessages(host, 4)).slice(-1);
+    const tokens = [yard, yard, yard, track(4)];
     expect(message).toMatchObject({ game: { board: { seats: [{ tokens }, {}, {}, {}] } } });
   });
 });
 
 describe("Capturing", () => {
-  it("sends the Token a Move lands on back to its Yard, showing everyone which, and passes the Turn", async () => {
-    // Each brings a Token out on a 6. Then the Host's 6s close in on the joiner's 1s, until the Host's Token lands on
-    // the joiner's, on Cell 30, which isn't a Safe cell.
-    const { host, joiner } = await gameInPlay(6, 6, 6, 1, 6, 1, 6, 1, 6, 1, 6);
-    for (let turn = 0; turn < 10; turn++) {
-      const player = turn % 2 === 0 ? host : joiner;
-      await player.roll();
-      expect(await player.move(0)).toEqual({ ok: true });
+  it("sends the Token a Move lands on back to its Yard, showing everyone which, and earns a Roll", async () => {
+    // The Host's 1 passes. The joiner brings a Token out on a 6, then on a 3, to Cell 29, which isn't a Safe cell.
+    // Then the Host brings a Token out on a 6, and on four more 6s, to Cell 24, and Rolls a 5.
+    const { host, joiner } = await gameInPlay(1, 6, 3, 6, 6, 6, 6, 6, 5);
+    await host.roll();
+    for (let move = 0; move < 2; move++) {
+      await joiner.roll();
+      await joiner.move(0);
+    }
+    for (let move = 0; move < 5; move++) {
+      await host.roll();
+      await host.move(0);
     }
     await host.roll();
-    await readMessages(host, 21);
-    await readMessages(joiner, 21);
+    await readMessages(host, 16);
+    await readMessages(joiner, 16);
 
     await host.move(0);
 
     const board = {
-      seats: [
-        { tokens: [{ area: "track", cell: 30 }, yard, yard, yard] },
-        {},
-        { tokens: [yard, yard, yard, yard] },
-        {},
-      ],
-      // No extra Roll for the Capture, yet.
-      turn: 2,
+      seats: [{ tokens: [track(29), yard, yard, yard] }, {}, { tokens: [yard, yard, yard, yard] }, {}],
+      turn: 0,
       rolled: false,
-      lastMove: {
-        seat: 0,
-        token: 0,
-        from: { area: "track", cell: 24 },
-        to: { area: "track", cell: 30 },
-        captured: [{ seat: 2, token: 0 }],
-      },
+      lastMove: { seat: 0, token: 0, from: track(24), to: track(29), captured: [{ seat: 2, token: 0 }] },
+      extraRoll: true,
     };
     expect(await host.nextMessage()).toMatchObject({ game: { board } });
     expect(await joiner.nextMessage()).toMatchObject({ game: { board } });
+  });
+});
+
+describe("extra Rolls", () => {
+  it("let a Player Roll again after each 6, with no limit, until a Move that earns none passes the Turn", async () => {
+    const { host, joiner } = await gameInPlay(6, 6, 6, 4);
+    const moves = [];
+    for (const token of [0, 1, 0, 0]) {
+      expect(await host.roll()).toEqual({ ok: true });
+      expect(await host.move(token)).toEqual({ ok: true });
+      moves.push((await readMessages(host, 2))[1]);
+    }
+
+    const afterEach = [[track(0), yard], [track(0), track(0)], [track(6), track(0)], [track(10), track(0)]];
+    expect(moves).toMatchObject(afterEach.map(([first, second], move) => {
+      const seats = [{ tokens: [first, second, yard, yard] }, {}, {}, {}];
+      return { game: { board: { seats, turn: move < 3 ? 0 : 2, rolled: false, extraRoll: move < 3 } } };
+    }));
+    expect((await readMessages(joiner, 8)).at(-1)).toMatchObject({ game: { board: { turn: 2, rolled: false } } });
+  });
+
+  it("show everyone the Player Rolls again, the Move's Seat still to Roll on its Turn", async () => {
+    const { host, joiner } = await gameInPlay(6);
+    await host.roll();
+    await joiner.nextMessage();
+
+    await host.move(0);
+
+    const board = { turn: 0, rolled: false, lastRoll: { seat: 0, number: 6 }, lastMove: { seat: 0 }, extraRoll: true };
+    expect(await joiner.nextMessage()).toMatchObject({ game: { board } });
+    expect(await joiner.roll()).toEqual({ ok: false, reason: "notYourTurn" });
+  });
+
+  it("come after a Move that brings a Token Home, but not after a 6 no Token can Move by", async () => {
+    // All in one Turn, as each Move earns another Roll: the Host brings three Tokens Home, each out on a 6, then nine
+    // 6s and a 2, then Token 3 out and on nine 6s, to 2 Cells short of Home. Then the 6 can't Move it.
+    const rolls = [...[0, 1, 2].flatMap(() => tokenJourney), ...tokenJourney.slice(0, -1), 6];
+    const { host, joiner } = await gameInPlay(...rolls);
+    for (const token of [0, 1, 2]) {
+      for (let roll = 0; roll < tokenJourney.length; roll++) {
+        await host.roll();
+        expect(await host.move(token)).toEqual({ ok: true });
+      }
+      expect((await readMessages(joiner, 2 * tokenJourney.length)).at(-1)).toMatchObject({
+        game: { board: { turn: 0, lastMove: { to: { area: "home" } }, extraRoll: true } },
+      });
+    }
+    for (let roll = 0; roll < tokenJourney.length - 1; roll++) {
+      await host.roll();
+      expect(await host.move(3)).toEqual({ ok: true });
+    }
+    await readMessages(joiner, 2 * (tokenJourney.length - 1));
+
+    expect(await host.roll()).toEqual({ ok: true });
+
+    expect(await joiner.nextMessage()).toMatchObject({
+      game: { board: { turn: 2, rolled: false, lastRoll: { seat: 0, number: 6 }, moves: [], extraRoll: false } },
+    });
   });
 });
 
@@ -202,11 +259,10 @@ describe("refusals", () => {
   });
 
   it("refuse a Move of a Token that can't Move by the Roll, leaving the Player to Move another", async () => {
-    // The Host brings Token 0 out on a 6, the joiner's 1 passes, then the Host's 3 can Move only Token 0.
-    const { host, joiner } = await gameInPlay(6, 1, 3);
+    // The Host brings Token 0 out on a 6, which earns another Roll, then the Host's 3 can Move only Token 0.
+    const { host } = await gameInPlay(6, 3);
     await host.roll();
     await host.move(0);
-    await joiner.roll();
     await host.roll();
 
     expect(await host.move(1)).toEqual({ ok: false, reason: "illegalMove" });
@@ -235,21 +291,19 @@ describe("refusals", () => {
 });
 
 describe("winning", () => {
-  // Each of the Host's Tokens comes out on a 6, then makes its 56-Cell journey Home in nine 6s and a 2. Every Roll
-  // of the joiner's is a 1, which can't bring a Token out, so the Turn comes straight back to the Host.
-  const tokenJourney = [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 2];
   const tokens = [0, 1, 2, 3];
 
-  /** A 2-Player Game in which the Host brings all their Tokens Home, with every message sent during it unread. */
+  /**
+   * A 2-Player Game in which the Host brings all their Tokens Home, one after another, in their first Turn, as each
+   * Move earns another Roll, with every message sent during it unread.
+   */
   const gameWonByHost = async () => {
-    const game = await gameInPlay(...tokens.flatMap(() => tokenJourney).flatMap((roll) => [roll, 1]));
-    const { host, joiner } = game;
+    const game = await gameInPlay(...tokens.flatMap(() => tokenJourney));
+    const { host } = game;
     for (const token of tokens) {
-      for (const [rollIndex] of tokenJourney.entries()) {
+      for (let roll = 0; roll < tokenJourney.length; roll++) {
         await host.roll();
         expect(await host.move(token)).toEqual({ ok: true });
-        const won = token === tokens.length - 1 && rollIndex === tokenJourney.length - 1;
-        if (!won) await joiner.roll();
       }
     }
     return game;

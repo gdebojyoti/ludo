@@ -34,6 +34,9 @@ const toSnapshotBoard = (game: Game, board: GameBoard, playerId: string): Snapsh
     lastRoll: board.lastRoll,
     lastMove: board.lastMove,
     moves: rollToMove ? legalMoves(seat, ownTokens, rollToMove.number) : [],
+    // A Roll that leaves no Move passes the Turn, and a Move that earns no Roll does too, so the only way the latest
+    // Roll is still the Seat's whose Turn it is, with no Move left to make, is a Move that earned another Roll.
+    extraRoll: game.state === "playing" && !board.rolled && board.lastRoll?.seat === board.turn,
     winner: board.winner,
   };
 };

@@ -73,7 +73,7 @@ export default function BoardScreen({
   // Players are named by their Player name, never by colour, as each sees the Seats in different colours.
   const playerName = (seat: Seat) => board.seats[seat]?.playerName ?? "";
   const viewer = board.seat;
-  const { turn, rolled, lastRoll, lastMove, moves } = board;
+  const { turn, rolled, lastRoll, lastMove, moves, extraRoll } = board;
   const isOwnTurn = turn === viewer;
   // A Roll that didn't go through, while the viewer can still Roll again.
   const failed = rollState === "failed" && isOwnTurn && !rolled;
@@ -106,17 +106,27 @@ export default function BoardScreen({
     setHeldBoard(undefined);
   };
 
+  // What the viewer should do now, if anything.
+  const viewerNow = () => {
+    if (!isOwnTurn) return "";
+    if (rolling) return boardMessages.rollingShort;
+    if (moves.length) return boardMessages.pickToken;
+    if (rolled) return "";
+    return extraRoll ? boardMessages.rollAgainShort : boardMessages.yourTurnShort;
+  };
+
+  // What another Seat's Player is doing now, if anything.
+  const otherNow = (seat: Seat) => {
+    if (seat !== turn) return "";
+    if (rolled && lastRoll?.seat === seat) return boardMessages.rolledShort(lastRoll.number);
+    return extraRoll ? boardMessages.rollsAgainShort : "";
+  };
+
   const cardDetail = (seat: Seat) => {
     const home = homeCount(seat) > 0 ? boardMessages.home(homeCount(seat)) : "";
-    if (seat === viewer) {
-      // What the viewer should do now, if anything, takes the place of their count Home, so the line stays short.
-      const now = !isOwnTurn
-        ? ""
-        : rolling ? boardMessages.rollingShort : moves.length ? boardMessages.pickToken : rolled ? "" : boardMessages.yourTurnShort;
-      return [commonMessages.you, now || home].filter(Boolean).join(" · ");
-    }
-    const now = seat === turn && rolled && lastRoll?.seat === seat ? boardMessages.rolledShort(lastRoll.number) : "";
-    return [now, home].filter(Boolean).join(" · ");
+    // What the viewer should do now, if anything, takes the place of their count Home, so the line stays short.
+    if (seat === viewer) return [commonMessages.you, viewerNow() || home].filter(Boolean).join(" · ");
+    return [otherNow(seat), home].filter(Boolean).join(" · ");
   };
 
   const card = (seatsFromViewer: number, mirrored: boolean) => {
@@ -150,9 +160,13 @@ export default function BoardScreen({
     if (isOwnTurn && rolled && lastRoll) {
       return { title: boardMessages.youRolled(lastRoll.number), detail: boardMessages.tapToMove, before: null };
     }
+    if (isOwnTurn && extraRoll) {
+      return { title: boardMessages.rollAgain, detail: boardMessages.youEarnedRoll, before: lastMoveLine };
+    }
     if (isOwnTurn) return { title: boardMessages.yourTurn, detail: lastRollLine ?? boardMessages.firstRoll, before: lastMoveLine };
     const title = boardMessages.turnOf(playerName(turn));
     if (rolled && lastRoll) return { title, detail: boardMessages.choosing(lastRoll.number), before: lastMoveLine };
+    if (extraRoll) return { title, detail: boardMessages.theyEarnedRoll, before: lastMoveLine };
     return { title, detail: lastRollLine ?? boardMessages.waitingToRoll, before: lastMoveLine };
   };
   const { title, detail, before } = status();
