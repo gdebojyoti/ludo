@@ -154,7 +154,8 @@ export default function Board({ board, disabled, onMove }: Props) {
       <button
         key={seat}
         type="button"
-        className={`${tokenClassName} cursor-pointer outline-3 outline-offset-1 outline-black`}
+        // Unlike the black outlines that mark the last Move, so the two can't be mixed up.
+        className={`${tokenClassName} cursor-pointer ring-3 ring-white ring-inset motion-safe:animate-bounce`}
         style={{ backgroundColor: colour }}
         aria-label={boardMessages.moveToken(tokens.length)}
         disabled={disabled}

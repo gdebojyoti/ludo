@@ -41,24 +41,26 @@ export type TokenPosition =
 /** The Seat's Start cell, on the Track. */
 export const startCell = (seat: Seat): number => seat * (classicRules.trackCells / classicRules.seats);
 
-// A Token's journey, counted in steps from its Start cell: round the Track to the tip of its own arm, just short of
+// A Token's journey, counted in Cells from its Start cell: round the Track to the tip of its own arm, just short of
 // the Cell before its Start cell, then up its Home column, then Home.
-const lastTrackStep = classicRules.trackCells - 2;
-const homeStep = lastTrackStep + classicRules.homeColumnCells + 1;
+const lastTrackDistance = classicRules.trackCells - 2;
+const homeDistance = lastTrackDistance + classicRules.homeColumnCells + 1;
 
-/** How many steps along its Seat's journey a Token out of the Yard is. */
-const stepOf = (seat: Seat, position: Exclude<TokenPosition, { area: "yard" }>): number => {
+/** How far along its Seat's journey a Token out of the Yard is, in Cells from its Start cell. */
+const distanceOf = (seat: Seat, position: Exclude<TokenPosition, { area: "yard" }>): number => {
   if (position.area === "track") {
     return (position.cell - startCell(seat) + classicRules.trackCells) % classicRules.trackCells;
   }
-  if (position.area === "homeColumn") return lastTrackStep + 1 + position.cell;
-  return homeStep;
+  if (position.area === "homeColumn") return lastTrackDistance + 1 + position.cell;
+  return homeDistance;
 };
 
-/** Where a Token of the Seat is, this many steps along its journey. */
-const positionAt = (seat: Seat, step: number): TokenPosition => {
-  if (step <= lastTrackStep) return { area: "track", cell: (startCell(seat) + step) % classicRules.trackCells };
-  if (step < homeStep) return { area: "homeColumn", cell: step - lastTrackStep - 1 };
+/** Where a Token of the Seat is, this many Cells along its journey. */
+const positionAt = (seat: Seat, distance: number): TokenPosition => {
+  if (distance <= lastTrackDistance) {
+    return { area: "track", cell: (startCell(seat) + distance) % classicRules.trackCells };
+  }
+  if (distance < homeDistance) return { area: "homeColumn", cell: distance - lastTrackDistance - 1 };
   return { area: "home" };
 };
 
@@ -68,9 +70,9 @@ const positionAt = (seat: Seat, step: number): TokenPosition => {
  */
 export const positionAfter = (seat: Seat, position: TokenPosition, roll: number): TokenPosition | null => {
   if (position.area === "yard") return roll === classicRules.rollToLeaveYard ? positionAt(seat, 0) : null;
-  const step = stepOf(seat, position) + roll;
-  if (position.area === "home" || step > homeStep) return null;
-  return positionAt(seat, step);
+  const distance = distanceOf(seat, position) + roll;
+  if (position.area === "home" || distance > homeDistance) return null;
+  return positionAt(seat, distance);
 };
 
 /** The Seat's Tokens that can Move by this Roll, by their place in its list of Tokens. */
@@ -80,7 +82,9 @@ export const legalMoves = (seat: Seat, tokens: TokenPosition[], roll: number): n
 
 /** The Seat's Tokens after this one Moves by the Roll, which must be one of its legal Moves. */
 export const moveToken = (seat: Seat, tokens: TokenPosition[], token: number, roll: number): TokenPosition[] => {
-  return tokens.map((position, index) => (index === token ? positionAfter(seat, position, roll) ?? position : position));
+  return tokens.map((position, index) => {
+    return index === token ? positionAfter(seat, position, roll) ?? position : position;
+  });
 };
 
 /**

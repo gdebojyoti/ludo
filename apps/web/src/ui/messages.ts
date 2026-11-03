@@ -67,7 +67,7 @@ export const boardMessages = {
   you: "you",
   emptySeat: "Empty seat",
   roll: "Roll",
-  pickToken: "Pick one of your outlined tokens to move.",
+  pickToken: "Pick one of your highlighted tokens to move.",
   rolled: (playerName: string, number: number) => `${playerName} rolled a ${number}.`,
   // The Move itself is marked on the Board.
   moved: (playerName: string, move: Move) => {
