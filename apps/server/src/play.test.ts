@@ -14,18 +14,21 @@ afterEach(async () => {
 
 /**
  * A 2-Player Game in play, the Host in Seat 0 and the joiner in Seat 2, with the Host's Turn first, the Rolls
- * scripted to be these in turn, then 1s, and everything sent so far already read.
+ * scripted to be these in turn, then 1s, and everything sent so far already read. Each Player comes with their
+ * browser, so they can open another tab.
  */
 const gameInPlay = async (...rolls: number[]) => {
   // The Game code, then the first Player, then each Roll.
   server = await server.restartWithRandomNumbers(42, 0, ...rolls.map((roll) => roll - 1));
-  const { host, gameCode } = await server.hostInLobby({ playerName: "Luna Lovegood" });
-  const joiner = await server.playerInLobby(gameCode, { playerName: "Ginny Weasley" });
+  const hostPlayer = server.createPlayer();
+  const joinerPlayer = server.createPlayer();
+  const { host, gameCode } = await server.hostInLobby({ playerName: "Luna Lovegood", player: hostPlayer });
+  const joiner = await server.playerInLobby(gameCode, { playerName: "Ginny Weasley", player: joinerPlayer });
   await host.nextMessage();
   await host.startGame();
   await host.nextMessage();
   await joiner.nextMessage();
-  return { host, joiner };
+  return { host, joiner, hostPlayer, joinerPlayer };
 };
 
 const yard = { area: "yard" };
@@ -183,11 +186,75 @@ describe("refusals", () => {
   it.each([
     ["Roll", (tab: Connection) => tab.roll()],
     ["Move", (tab: Connection) => tab.move(0)],
-  ])("refuse a %s in the Lobby, or with no active Game", async (_, command) => {
+  ])("refuse a %s in the Lobby, which isn't in play, or with no active Game", async (_, command) => {
     const { host } = await server.hostInLobby();
     const tab = await server.playerWithNoGame();
 
-    expect(await command(host)).toEqual({ ok: false, reason: "gameNotStarted" });
+    expect(await command(host)).toEqual({ ok: false, reason: "gameNotInPlay" });
     expect(await command(tab)).toEqual({ ok: false, reason: "noActiveGame" });
+  });
+});
+
+describe("winning", () => {
+  // Each of the Host's Tokens comes out on a 6, then makes its 56-Cell journey Home in nine 6s and a 2. Every Roll
+  // of the joiner's is a 1, which can't bring a Token out, so the Turn comes straight back to the Host.
+  const tokenJourney = [6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 2];
+  const tokens = [0, 1, 2, 3];
+
+  /** A 2-Player Game in which the Host brings all their Tokens Home, with every message sent during it unread. */
+  const gameWonByHost = async () => {
+    const game = await gameInPlay(...tokens.flatMap(() => tokenJourney).flatMap((roll) => [roll, 1]));
+    const { host, joiner } = game;
+    for (const token of tokens) {
+      for (const [rollIndex] of tokenJourney.entries()) {
+        await host.roll();
+        expect(await host.move(token)).toEqual({ ok: true });
+        const won = token === tokens.length - 1 && rollIndex === tokenJourney.length - 1;
+        if (!won) await joiner.roll();
+      }
+    }
+    return game;
+  };
+
+  /** Reads the connection's messages up to the one that ended the Game, and returns it. */
+  const endOfGame = async (connection: Connection) => {
+    for (;;) {
+      const message = await connection.nextMessage();
+      if (message.event === "game" && message.game.state !== "playing") return message;
+    }
+  };
+
+  it("ends the Game when a Seat's last Token reaches Home, showing everyone its Player as the winner", async () => {
+    const { host, joiner } = await gameWonByHost();
+
+    const home = { area: "home" };
+    const ended = {
+      state: "won",
+      board: {
+        seats: [{ playerName: "Luna Lovegood", tokens: [home, home, home, home] }, {}, {}, {}],
+        winner: 0,
+        lastMove: { seat: 0, token: 3, from: { area: "homeColumn", cell: 3 }, to: home },
+        moves: [],
+      },
+    };
+    expect(await endOfGame(host)).toMatchObject({ event: "game", game: ended });
+    expect(await endOfGame(joiner)).toMatchObject({ event: "game", game: ended });
+  });
+
+  it("leaves its Players with no active Game, so a Roll or a Move is refused, and they can start another", async () => {
+    const { host, joiner } = await gameWonByHost();
+
+    expect(await joiner.roll()).toEqual({ ok: false, reason: "noActiveGame" });
+    expect(await host.move(0)).toEqual({ ok: false, reason: "noActiveGame" });
+    const reply = await host.createGame("Luna Lovegood");
+    if (!reply.ok || !reply.game.gameCode) throw new Error("The Game wasn't created");
+    expect(await joiner.joinGame(reply.game.gameCode, "Ginny Weasley")).toMatchObject({ ok: true });
+  });
+
+  it("sends a Player reconnecting after it that they have no active Game", async () => {
+    const { hostPlayer, joinerPlayer } = await gameWonByHost();
+
+    expect(await (await hostPlayer.connect()).nextMessage()).toEqual({ event: "noActiveGame" });
+    expect(await (await joinerPlayer.connect()).nextMessage()).toEqual({ event: "noActiveGame" });
   });
 });

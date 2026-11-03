@@ -123,8 +123,15 @@ export const useGameServer = (playerName: string) => {
   // On success the server sends every Player the Game with the Roll, and the Turn passed if no Token can Move by it.
   const roll = () => send((socket) => socket.emitWithAck("roll"));
 
-  // On success the server sends every Player the Game with the Move made and the Turn passed.
+  // On success the server sends every Player the Game with the Move made and the Turn passed, or the Game won.
   const move = (token: number) => send((socket) => socket.emitWithAck("move", token));
+
+  // The server freed the Player when their Game ended, so going back to the start screen needs no command.
+  const backToStart = () => {
+    setError(undefined);
+    setNotice(undefined);
+    setGame(null);
+  };
 
   return {
     status,
@@ -139,5 +146,6 @@ export const useGameServer = (playerName: string) => {
     leaveGame,
     roll,
     move,
+    backToStart,
   };
 };

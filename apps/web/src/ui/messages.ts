@@ -14,7 +14,7 @@ export const rejectionMessages: Record<RejectionReason, string> = {
   alreadyRolled: "You've already rolled. Pick a token to move.",
   gameCodeNotFound: "No game found with that game code.",
   gameNotInLobby: "The game has already started.",
-  gameNotStarted: "The game hasn't started yet.",
+  gameNotInPlay: "The game isn't being played right now.",
   illegalMove: "That token can't move by your roll.",
   invalidPlayerName: `Your player name can't be used. It must be 1 to ${playerNameMaxLength} characters long.`,
   noActiveGame: "You're not in a game.",
@@ -64,6 +64,9 @@ export const lobbyMessages = {
 export const boardMessages = {
   yourTurn: (playerName: string) => `Your turn, ${playerName}`,
   turnOf: (playerName: string) => `${playerName}'s turn`,
+  youWon: (playerName: string) => `You won, ${playerName}!`,
+  won: (playerName: string) => `${playerName} won!`,
+  backToStart: "Back to the start",
   you: "you",
   emptySeat: "Empty seat",
   roll: "Roll",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { giveOutSeats, legalMoves, moveToken, nextTakenSeat, positionAfter, seatsClockwise } from "./rules.js";
+import { giveOutSeats, hasWon, legalMoves, moveToken, nextTakenSeat, positionAfter, seatsClockwise } from "./rules.js";
 
 describe("giving out Seats", () => {
   it.each([
@@ -119,5 +119,26 @@ describe("applying a Move", () => {
       { area: "track", cell: 36 },
       { area: "yard" },
     ]);
+  });
+});
+
+describe("winning", () => {
+  it("is a Move that brings the Seat's last Token Home", () => {
+    const tokens = [{ area: "home" }, { area: "homeColumn", cell: 3 }, { area: "home" }, { area: "home" }] as const;
+
+    const moved = moveToken(2, [...tokens], 1, 2);
+
+    expect(moved).toEqual([{ area: "home" }, { area: "home" }, { area: "home" }, { area: "home" }]);
+    expect(hasWon(moved)).toBe(true);
+  });
+
+  it("isn't a Move that brings a Token Home with another still out", () => {
+    const tokens = [{ area: "homeColumn", cell: 4 }, { area: "track", cell: 7 }, { area: "home" }] as const;
+
+    expect(hasWon(moveToken(0, [...tokens], 0, 1))).toBe(false);
+  });
+
+  it("isn't a Seat with no Tokens, such as an empty one", () => {
+    expect(hasWon([])).toBe(false);
   });
 });
