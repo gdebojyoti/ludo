@@ -22,6 +22,8 @@ export const classicRules = {
   rollToLeaveYard: 6,
   /** How many Cells on from each Start cell, along the Track, its Star cell is. */
   starCellOffset: 8,
+  /** The Roll whose Move earns the Player another Roll in the same Turn, however many times in a row. */
+  rollToRollAgain: 6,
 };
 
 /** How many faces the die has: a Roll is a whole number from 1 up to this. */
@@ -132,6 +134,14 @@ export const applyMove = (
     return tokens.map((position, ownToken) => (isCaptured(owner, ownToken) ? { area: "yard" as const } : position));
   });
   return { seats: seatsAfter, captured };
+};
+
+/**
+ * Whether a Move by this Roll, ending where it did and Capturing these Tokens, earns the Player another Roll in the
+ * same Turn: it used a 6, made a Capture, or brought a Token Home. It earns one, however many of these it did.
+ */
+export const earnsExtraRoll = (roll: number, move: { to: TokenPosition; captured: SeatToken[] }): boolean => {
+  return roll === classicRules.rollToRollAgain || move.captured.length > 0 || move.to.area === "home";
 };
 
 /** Whether a Seat with these Tokens has won: it has Tokens, and every one is Home. An empty Seat never wins. */

@@ -41,6 +41,11 @@ export interface SnapshotBoard {
    * on their Turn. Empty for everyone else, and before they Roll.
    */
   moves: number[];
+  /**
+   * Whether the Player whose Turn it is Rolls again in it, after a Move that earned another Roll, and is yet to.
+   * Shown to everyone.
+   */
+  extraRoll: boolean;
   /** The Seat whose Player won the Game: set exactly when the Game's state is won, and otherwise null. */
   winner: Seat | null;
 }
@@ -136,7 +141,8 @@ export interface ClientToServerEvents {
   roll: (ack: (reply: Acknowledgement) => void) => void;
   /**
    * Moves the Player's Token, by its place in their Seat's list of Tokens, by their Roll, Capturing any opponents'
-   * Tokens it can, and passes the Turn. A Move that brings the Seat's last Token Home wins, and ends the Game.
+   * Tokens it can. A Move that used a 6, made a Capture, or brought a Token Home lets the Player Roll again; any
+   * other passes the Turn. A Move that brings the Seat's last Token Home wins, and ends the Game.
    * Refused unless the Player's Game is in play, it's their Turn, they've Rolled, and the Move is one of their legal
    * Moves.
    */

@@ -15,6 +15,7 @@ export {
   applyMove,
   classicRules,
   dieFaces,
+  earnsExtraRoll,
   gameCodeLength,
   giveOutSeats,
   hasWon,

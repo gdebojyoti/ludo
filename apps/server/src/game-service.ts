@@ -6,6 +6,7 @@ import {
   applyMove,
   classicRules,
   dieFaces,
+  earnsExtraRoll,
   gameCodeLength,
   giveOutSeats,
   hasWon,
@@ -174,8 +175,9 @@ export const createGameService = (
 
   /**
    * The Player Moves one of their Tokens, by its place in their Seat's list of Tokens, by their Roll, Capturing any
-   * opponents' Tokens it can. A Move that brings the Seat's last Token Home wins, ending the Game, which frees every
-   * Player in it.
+   * opponents' Tokens it can. A Move that used a 6, made a Capture, or brought a Token Home earns them another Roll in
+   * the same Turn; any other passes the Turn. A Move that brings the Seat's last Token Home wins, ending the Game,
+   * which frees every Player in it.
    */
   const move = oneAtATime(async (playerId: string, token: number): Promise<CommandResult> => {
     const turn = await findTurn(playerId);
@@ -195,7 +197,10 @@ export const createGameService = (
       const won = { ...board, seats, lastMove, rolled: false, winner: seat };
       return { ok: true, game: await save({ ...game, state: "won", board: won }) };
     }
-    return { ok: true, game: await save({ ...game, board: turnPassed({ ...board, seats, lastMove }) }) };
+    const movedOn = { ...board, seats, lastMove };
+    // A Move that earns another Roll leaves the Turn with the Player, yet to Roll again.
+    const next = earnsExtraRoll(number, lastMove) ? { ...movedOn, rolled: false } : turnPassed(movedOn);
+    return { ok: true, game: await save({ ...game, board: next }) };
   });
 
   const findActiveGame = oneAtATime((playerId: string) => store.findActiveGameByPlayer(playerId));

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyMove,
+  earnsExtraRoll,
   giveOutSeats,
   hasWon,
   legalMoves,
@@ -198,6 +199,32 @@ describe("Capturing", () => {
     const seats = [[track(48)], [], [homeColumn], []];
 
     expect(applyMove(seats, 0, 0, 5)).toEqual({ seats: [[homeColumn], [], [homeColumn], []], captured: [] });
+  });
+});
+
+describe("an extra Roll", () => {
+  const track = (cell: number) => ({ area: "track", cell }) as const;
+  const home = { area: "home" } as const;
+  const capture = [{ seat: 2, token: 1 }];
+
+  it.each([
+    ["used a 6", 6, track(6), []],
+    ["brought a Token out of its Yard, on a 6", 6, track(0), []],
+    ["made a Capture", 3, track(33), capture],
+    ["made a Capture of more than one Token", 4, track(34), [{ seat: 1, token: 0 }, { seat: 3, token: 2 }]],
+    ["brought a Token Home", 2, home, []],
+    ["used a 6 and made a Capture", 6, track(36), capture],
+    ["used a 6 and brought a Token Home", 6, home, []],
+  ])("comes after a Move that %s", (_, roll, to, captured) => {
+    expect(earnsExtraRoll(roll, { to, captured })).toBe(true);
+  });
+
+  it.each([1, 2, 3, 4, 5])("doesn't come after a Move by a %i that neither Captured nor reached Home", (roll) => {
+    expect(earnsExtraRoll(roll, { to: track(20), captured: [] })).toBe(false);
+  });
+
+  it("doesn't come after a Move that reached its Home column, short of Home", () => {
+    expect(earnsExtraRoll(5, { to: { area: "homeColumn", cell: 4 }, captured: [] })).toBe(false);
   });
 });
 
