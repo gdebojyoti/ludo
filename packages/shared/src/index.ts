@@ -6,5 +6,16 @@ export type {
   RejectionReason,
   ServerToClientEvents,
   SnapshotPlayer,
+  SnapshotSeat,
+  TokenPosition,
 } from "./events.js";
-export { classicRules, gameCodeLength, isValidPlayerName, playerNameMaxLength } from "./rules.js";
+export {
+  classicRules,
+  gameCodeLength,
+  giveOutSeats,
+  isValidPlayerName,
+  nextTakenSeat,
+  playerNameMaxLength,
+  seatsClockwise,
+  type Seat,
+} from "./rules.js";

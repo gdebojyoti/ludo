@@ -1,4 +1,4 @@
-import { playerNameMaxLength, type RejectionReason } from "@ludo/shared";
+import { classicRules, playerNameMaxLength, type RejectionReason } from "@ludo/shared";
 import type { ConnectionStatus, Notice } from "./useGameServer";
 
 // Every piece of text the web app shows, in one place.
@@ -12,8 +12,11 @@ export const connectionMessages: Record<ConnectionStatus, string> = {
 export const rejectionMessages: Record<RejectionReason, string> = {
   alreadyInActiveGame: "You're already in a game.",
   gameCodeNotFound: "No game found with that game code.",
+  gameNotInLobby: "The game has already started.",
   invalidPlayerName: `Your player name can't be used. It must be 1 to ${playerNameMaxLength} characters long.`,
   noActiveGame: "You're not in a game.",
+  notEnoughPlayers: `The game needs at least ${classicRules.minPlayers} players to start.`,
+  notHost: "Only the host can start the game.",
 };
 
 export const noticeMessages: Record<Notice, string> = {
@@ -43,9 +46,19 @@ export const lobbyMessages = {
   copied: "Copied",
   playersHeading: "Players",
   host: "Host",
+  start: "Start the game",
+  waitingForPlayers: "You can start the game once someone joins.",
+  waitingForHost: "Waiting for the host to start the game.",
   leave: "Leave",
   confirmLeave: "Leave the game?",
   confirmLeaveAsHost: "Leave the game? As the host, leaving cancels it for everyone.",
   confirmLeaveYes: "Yes, leave",
   confirmLeaveNo: "Stay",
+};
+
+export const boardMessages = {
+  yourTurn: "Your turn",
+  turnOf: (playerName: string) => `${playerName}'s turn`,
+  you: "you",
+  emptySeat: "Empty seat",
 };

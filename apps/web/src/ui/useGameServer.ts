@@ -113,9 +113,12 @@ export const useGameServer = (playerName: string) => {
 
   const joinGame = (gameCode: string) => enterGame((socket) => socket.emitWithAck("joinGame", gameCode, playerName));
 
+  // On success the server sends every Player the started Game.
+  const startGame = () => send((socket) => socket.emitWithAck("startGame"));
+
   // On success the server sends the Host the cancelled Game, or any other Player that they have no active Game, and
   // either goes back to the start screen.
   const leaveGame = () => send((socket) => socket.emitWithAck("leaveGame"));
 
-  return { status, game, error, notice, busy, gameCodeFromLink, createGame, joinGame, leaveGame };
+  return { status, game, error, notice, busy, gameCodeFromLink, createGame, joinGame, startGame, leaveGame };
 };

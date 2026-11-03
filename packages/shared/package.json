@@ -11,8 +11,12 @@
     }
   },
   "scripts": {
-    "build": "tsc -b",
-    "dev": "tsc -b --watch --preserveWatchOutput",
-    "typecheck": "tsc -b"
+    "build": "tsc -b tsconfig.build.json",
+    "dev": "tsc -b tsconfig.build.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -b tsconfig.build.json && tsc --noEmit",
+    "test": "vitest run --dir src"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.4"
   }
 }
