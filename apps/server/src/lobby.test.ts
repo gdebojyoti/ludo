@@ -120,6 +120,35 @@ describe("the Player name sent when creating a Game", () => {
   });
 });
 
+describe("the Player name sent when joining a Game", () => {
+  it("is trimmed", async () => {
+    const { gameCode } = await server.hostInLobby();
+    const tab = await server.playerWithNoGame();
+
+    const reply = await tab.joinGame(gameCode, "  Neville Longbottom\n");
+
+    expect(reply).toMatchObject({ ok: true, game: { players: [{}, { playerName: "Neville Longbottom" }] } });
+  });
+
+  it.each([
+    ["empty", ""],
+    ["only spaces", "   "],
+    ["31 characters long", "A".repeat(31)],
+  ])("is refused when it's %s, and the Player isn't added", async (_, playerName) => {
+    const hostPlayer = server.createPlayer();
+    const { host, gameCode } = await server.hostInLobby({ playerName: "Luna Lovegood", player: hostPlayer });
+    const player = server.createPlayer();
+    const tab = await server.playerWithNoGame(player);
+
+    const reply = await tab.joinGame(gameCode, playerName);
+    await host.close();
+
+    expect(reply).toEqual({ ok: false, reason: "invalidPlayerName" });
+    expect(await messageOnReturn(player)).toEqual({ event: "noActiveGame" });
+    expect(await messageOnReturn(hostPlayer)).toMatchObject({ game: { players: [{ playerName: "Luna Lovegood" }] } });
+  });
+});
+
 describe("creating a Game in a way a well-behaved client wouldn't", () => {
   it.each([
     ["a number", 42],
@@ -153,6 +182,160 @@ describe("creating a Game in a way a well-behaved client wouldn't", () => {
   });
 });
 
+describe("joining a Game", () => {
+  it("puts the Player in the Lobby after the Host, and sends everyone the Players in join order", async () => {
+    const { host, gameCode } = await server.hostInLobby({ playerName: "Luna Lovegood" });
+    const tab = await server.playerWithNoGame();
+
+    const reply = await tab.joinGame(gameCode, "Ginny Weasley");
+
+    const players = [{ playerName: "Luna Lovegood", isHost: true }, { playerName: "Ginny Weasley", isHost: false }];
+    expect(reply).toEqual({ ok: true, game: { state: "lobby", gameCode, isHost: false, players } });
+    expect(await tab.nextMessage()).toEqual({ event: "game", game: reply.ok && reply.game });
+    expect(await host.nextMessage()).toEqual({
+      event: "game",
+      game: { state: "lobby", gameCode, isHost: true, players },
+    });
+  });
+
+  it("is refused when no Game in the Lobby has the Game code, and the Player stays without one", async () => {
+    await restartWithRandomNumbers(42);
+    await server.hostInLobby();
+    const player = server.createPlayer();
+    const tab = await server.playerWithNoGame(player);
+
+    const reply = await tab.joinGame("000043", "Ginny Weasley");
+
+    expect(reply).toEqual({ ok: false, reason: "gameCodeNotFound" });
+    expect(await messageOnReturn(player)).toEqual({ event: "noActiveGame" });
+  });
+
+  it.each([
+    ["the Host of this Game", "host"],
+    ["a Player who has joined it", "joiner"],
+    ["the Host of another Game", "otherHost"],
+  ] as const)("is refused for %s, as a Player can be in only one active Game", async (_, who) => {
+    const { host, gameCode } = await server.hostInLobby();
+    const joiner = await server.playerWithNoGame();
+    await joiner.joinGame(gameCode, "Ginny Weasley");
+    const { host: otherHost } = await server.hostInLobby();
+    const tabs = { host, joiner, otherHost };
+
+    const reply = await tabs[who].joinGame(gameCode, "Neville Longbottom");
+
+    expect(reply).toEqual({ ok: false, reason: "alreadyInActiveGame" });
+  });
+
+  it("is refused once the Lobby holds 4 Players, as if there were no Game with the Game code", async () => {
+    const { gameCode } = await server.hostInLobby({ playerName: "Luna Lovegood" });
+    await server.playerInLobby(gameCode, { playerName: "Ginny Weasley" });
+    await server.playerInLobby(gameCode, { playerName: "Neville Longbottom" });
+    const fourth = await server.playerWithNoGame();
+    const fifth = await server.playerWithNoGame();
+
+    const fourthReply = await fourth.joinGame(gameCode, "Hermione Granger");
+    const fifthReply = await fifth.joinGame(gameCode, "Ron Weasley");
+
+    expect(fourthReply).toMatchObject({
+      ok: true,
+      game: { players: [{}, {}, {}, { playerName: "Hermione Granger" }] },
+    });
+    expect(fifthReply).toEqual({ ok: false, reason: "gameCodeNotFound" });
+  });
+
+  it("gives the last place to only one of two Players joining at once", async () => {
+    const { gameCode } = await server.hostInLobby();
+    await server.playerInLobby(gameCode);
+    await server.playerInLobby(gameCode);
+    const first = await server.playerWithNoGame();
+    const second = await server.playerWithNoGame();
+
+    const replies = await Promise.all([
+      first.joinGame(gameCode, "Ron Weasley"),
+      second.joinGame(gameCode, "Draco Malfoy"),
+    ]);
+
+    expect(replies).toEqual([
+      { ok: true, game: expect.objectContaining({ state: "lobby" }) },
+      { ok: false, reason: "gameCodeNotFound" },
+    ]);
+  });
+
+  it("is refused once the Host has cancelled the Game", async () => {
+    const { host, gameCode } = await server.hostInLobby();
+    await host.leaveGame();
+    const tab = await server.playerWithNoGame();
+
+    expect(await tab.joinGame(gameCode, "Ginny Weasley")).toEqual({ ok: false, reason: "gameCodeNotFound" });
+  });
+});
+
+describe("joining a Game in a way a well-behaved client wouldn't", () => {
+  it.each([
+    ["too short", "00042"],
+    ["too long", "0000042"],
+    ["not only digits", "00004a"],
+    ["padded with spaces", " 000042"],
+  ])("is refused when the Game code is %s", async (_, gameCode) => {
+    await restartWithRandomNumbers(42);
+    await server.hostInLobby();
+    const tab = await server.playerWithNoGame();
+
+    expect(await tab.joinGame(gameCode, "Ginny Weasley")).toEqual({ ok: false, reason: "gameCodeNotFound" });
+  });
+
+  it.each([
+    ["a number", 42],
+    ["null", null],
+    ["an object", { gameCode: "000042" }],
+  ])("is refused when the Game code is %s", async (_, gameCode) => {
+    await restartWithRandomNumbers(42);
+    await server.hostInLobby();
+    const tab = await server.playerWithNoGame();
+
+    const reply = await new Promise((resolve) => tab.sendUnchecked("joinGame", gameCode, "Ginny Weasley", resolve));
+
+    expect(reply).toEqual({ ok: false, reason: "gameCodeNotFound" });
+  });
+
+  it.each([
+    ["a number", 42],
+    ["null", null],
+  ])("is refused when the Player name is %s", async (_, playerName) => {
+    const { gameCode } = await server.hostInLobby();
+    const tab = await server.playerWithNoGame();
+
+    const reply = await new Promise((resolve) => tab.sendUnchecked("joinGame", gameCode, playerName, resolve));
+
+    expect(reply).toEqual({ ok: false, reason: "invalidPlayerName" });
+  });
+
+  it.each([
+    ["a Game code but no Player name", ["000042"]],
+    ["nothing else", []],
+  ])("is refused when it has a callback and %s, and the server carries on", async (_, args) => {
+    await restartWithRandomNumbers(42);
+    const { gameCode } = await server.hostInLobby();
+    const tab = await server.playerWithNoGame();
+
+    const reply = await new Promise((resolve) => tab.sendUnchecked("joinGame", ...args, resolve));
+
+    expect(reply).toEqual({ ok: false, reason: "invalidPlayerName" });
+    expect(await tab.joinGame(gameCode, "Ginny Weasley")).toMatchObject({ ok: true });
+  });
+
+  it("is ignored when it has no callback", async () => {
+    const { gameCode } = await server.hostInLobby();
+    const player = server.createPlayer();
+    const firstVisit = await server.playerWithNoGame(player);
+
+    firstVisit.sendUnchecked("joinGame", gameCode, "Ginny Weasley");
+    await firstVisit.close();
+
+    expect(await messageOnReturn(player)).toEqual({ event: "noActiveGame" });
+  });
+});
+
 describe("connecting while in the Lobby", () => {
   it("brings a Host who comes back to the same Lobby, with the same Game code", async () => {
     const player = server.createPlayer();
@@ -170,6 +353,58 @@ describe("connecting while in the Lobby", () => {
     await server.hostInLobby();
 
     expect(await messageOnReturn(server.createPlayer())).toEqual({ event: "noActiveGame" });
+  });
+});
+
+describe("a Player who isn't the Host Leaving the Lobby", () => {
+  it("removes them, and sends the others the Lobby without them, in join order", async () => {
+    const { host, gameCode } = await server.hostInLobby({ playerName: "Luna Lovegood" });
+    const leaver = await server.playerInLobby(gameCode, { playerName: "Ginny Weasley" });
+    const stayer = await server.playerInLobby(gameCode, { playerName: "Neville Longbottom" });
+    await host.nextMessage();
+    await host.nextMessage();
+    await leaver.nextMessage();
+
+    const reply = await leaver.leaveGame();
+
+    expect(reply).toEqual({ ok: true });
+    const players = [
+      { playerName: "Luna Lovegood", isHost: true },
+      { playerName: "Neville Longbottom", isHost: false },
+    ];
+    expect(await host.nextMessage()).toEqual({
+      event: "game",
+      game: { state: "lobby", gameCode, isHost: true, players },
+    });
+    expect(await stayer.nextMessage()).toEqual({
+      event: "game",
+      game: { state: "lobby", gameCode, isHost: false, players },
+    });
+  });
+
+  it("tells every tab of theirs that they have no active Game, leaving them free to join again", async () => {
+    const { gameCode } = await server.hostInLobby();
+    const player = server.createPlayer();
+    const leaver = await server.playerInLobby(gameCode, { player });
+    const otherTab = await player.connect();
+    await otherTab.nextMessage();
+
+    await leaver.leaveGame();
+
+    expect(await leaver.nextMessage()).toEqual({ event: "noActiveGame" });
+    expect(await otherTab.nextMessage()).toEqual({ event: "noActiveGame" });
+    expect(await leaver.joinGame(gameCode, "Ginny Weasley")).toMatchObject({ ok: true });
+  });
+
+  it("opens up their place in a full Lobby", async () => {
+    const { gameCode } = await server.hostInLobby();
+    await server.playerInLobby(gameCode);
+    await server.playerInLobby(gameCode);
+    const leaver = await server.playerInLobby(gameCode);
+    await leaver.leaveGame();
+    const tab = await server.playerWithNoGame();
+
+    expect(await tab.joinGame(gameCode, "Ron Weasley")).toMatchObject({ ok: true });
   });
 });
 
@@ -194,6 +429,24 @@ describe("the Host Leaving the Lobby", () => {
     };
     expect(await host.nextMessage()).toEqual(cancelled);
     expect(await otherTab.nextMessage()).toEqual(cancelled);
+  });
+
+  it("sends every other Player the cancelled Game, so they know the Host cancelled it, and frees them", async () => {
+    const { host, gameCode } = await server.hostInLobby({ playerName: "Luna Lovegood" });
+    const joiner = await server.playerInLobby(gameCode, { playerName: "Ginny Weasley" });
+
+    await host.leaveGame();
+
+    expect(await joiner.nextMessage()).toEqual({
+      event: "game",
+      game: {
+        state: "cancelled",
+        gameCode: null,
+        isHost: false,
+        players: [{ playerName: "Luna Lovegood", isHost: true }, { playerName: "Ginny Weasley", isHost: false }],
+      },
+    });
+    expect(await joiner.createGame("Ginny Weasley")).toMatchObject({ ok: true, game: { state: "lobby" } });
   });
 
   it("leaves the Host with no active Game, free to create another", async () => {

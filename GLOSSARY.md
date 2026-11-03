@@ -36,6 +36,10 @@ _Avoid_: match, room
 The short code the **Host** shares so others can join their **Game**.
 _Avoid_: room code, invite code, game ID
 
+**Join link**:
+The web app's address with a **Game code**, `/ludo?join=<Game code>`, which any **Player** in the **Lobby** can copy and share so a friend can join by opening it, without typing the code. It joins as soon as it's opened, and works only while the **Game** is in the **Lobby** and has room, like the code itself.
+_Avoid_: invite link, share link
+
 **Lobby**:
 A **Game** before it starts, while **Players** are joining.
 _Avoid_: waiting room, pending game

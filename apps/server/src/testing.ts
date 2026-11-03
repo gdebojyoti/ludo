@@ -20,6 +20,7 @@ export interface Connection {
   nextMessage: () => Promise<Message>;
   ping: () => Promise<"pong">;
   createGame: (playerName: string) => Promise<Acknowledgement<{ game: GameSnapshot }>>;
+  joinGame: (gameCode: string, playerName: string) => Promise<Acknowledgement<{ game: GameSnapshot }>>;
   leaveGame: () => Promise<Acknowledgement>;
   /** Sends a command with any arguments, unchecked by the event types, as no well-behaved client would. */
   sendUnchecked: (event: keyof ClientToServerEvents, ...args: unknown[]) => void;
@@ -48,6 +49,11 @@ export interface TestServer {
    * `playerName`.
    */
   hostInLobby: (options?: { playerName?: string; player?: Player }) => Promise<{ host: Connection; gameCode: string }>;
+  /**
+   * A Player who has joined the Game with this Game code, with everything sent to them so far already read: a new
+   * Player, or `player`, shown as `playerName`. The other Players in the Lobby are each sent the change.
+   */
+  playerInLobby: (gameCode: string, options?: { playerName?: string; player?: Player }) => Promise<Connection>;
   /** The player ID the server gave each open connection, in no particular order. */
   connectedPlayerIds: () => Promise<string[]>;
   close: () => Promise<void>;
@@ -89,6 +95,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
         nextMessage: inbox.take,
         ping: () => socket.emitWithAck("ping"),
         createGame: (playerName) => socket.emitWithAck("createGame", playerName),
+        joinGame: (gameCode, playerName) => socket.emitWithAck("joinGame", gameCode, playerName),
         leaveGame: () => socket.emitWithAck("leaveGame"),
         sendUnchecked: (event, ...args) => {
           (socket.emit as (event: string, ...args: unknown[]) => void)(event, ...args);
@@ -120,6 +127,14 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
     return { host, gameCode: reply.game.gameCode };
   };
 
+  const playerInLobby = async (gameCode: string, { playerName = "Ginny Weasley", player = createPlayer() } = {}) => {
+    const tab = await playerWithNoGame(player);
+    const reply = await tab.joinGame(gameCode, playerName);
+    if (!reply.ok) throw new Error(`The Game wasn't joined: ${reply.reason}`);
+    await tab.nextMessage();
+    return tab;
+  };
+
   const connectedPlayerIds = async () => (await server.io.fetchSockets()).map((socket) => socket.data.playerId);
 
   const close = async () => {
@@ -127,7 +142,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
     await server.io.close();
   };
 
-  return { url, createPlayer, playerWithNoGame, hostInLobby, connectedPlayerIds, close };
+  return { url, createPlayer, playerWithNoGame, hostInLobby, playerInLobby, connectedPlayerIds, close };
 };
 
 /** Sends a Socket.IO handshake over plain HTTP, the first request a browser makes, so tests can read its headers. */

@@ -7,4 +7,4 @@ export type {
   ServerToClientEvents,
   SnapshotPlayer,
 } from "./events.js";
-export { gameCodeLength, isValidPlayerName, playerNameMaxLength } from "./rules.js";
+export { classicRules, gameCodeLength, isValidPlayerName, playerNameMaxLength } from "./rules.js";

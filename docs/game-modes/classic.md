@@ -7,7 +7,7 @@ Terms in bold are defined in [GLOSSARY.md](../../GLOSSARY.md). The rules never d
 ## Players and Seats
 
 - A **Game** has 2 to 4 **Players** _(may vary)_, each in their own **Seat**. One **Player** has one **Seat** _(may vary)_.
-- The **Host** creates the **Game** and shares its **Game code**. Others join with the code while the **Game** is in the **Lobby**.
+- The **Host** creates the **Game** and shares its **Game code**, or its **Join link**. Others join with either while the **Game** is in the **Lobby**.
 - **Seats** are given out when the **Game** starts, in the order the **Players** still in joined. The second **Player** sits opposite the first, so a 2-**Player** **Game** always uses opposite **Seats**. The third and fourth fill the other two.
 - The **Game** starts by itself when the fourth **Player** joins. With 2 or 3 **Players** in, the **Host** can start it sooner. Nobody can join after that, though **Players** already in can **Rejoin**. Once the **Game** starts, the **Host** is an ordinary **Player**.
 - There are no teams.

@@ -2,7 +2,7 @@
 // publishes each change.
 import { randomInt as cryptoRandomInt, randomUUID } from "node:crypto";
 
-import { gameCodeLength, isValidPlayerName, type RejectionReason } from "@ludo/shared";
+import { classicRules, gameCodeLength, isValidPlayerName, type RejectionReason } from "@ludo/shared";
 
 import type { GameNotifier } from "./game-notifier.js";
 import type { Game, GameStore } from "./game-store.js";
@@ -22,9 +22,9 @@ export const createGameService = (
   const oneAtATime = createQueue();
 
   // Published before the command returns, so each Player is sent the change before the reply to their command.
-  const save = async (game: Game): Promise<Game> => {
+  const save = async (game: Game, leaverId?: string): Promise<Game> => {
     await store.save(game);
-    notifier.publish(game);
+    notifier.publish(game, leaverId);
     return game;
   };
 
@@ -50,18 +50,40 @@ export const createGameService = (
   });
 
   /**
-   * Leave: the Player steps out of their active Game for good. Until others can join, the Host is the only Player in
-   * the Lobby, and their Leaving cancels the Game, which frees every Player in it and retires its Game code.
+   * Adds the Player to the Game in the Lobby with this Game code, after the Players already in it. A full Lobby is
+   * refused as if there were no such Game, as a Game that has started will be. Joins run one at a time, so two Players
+   * can't both take the last place.
+   */
+  const joinGame = oneAtATime(async (
+    playerId: string,
+    gameCode: string,
+    playerName: string,
+  ): Promise<CommandResult> => {
+    if (!isValidPlayerName(playerName)) return { ok: false, reason: "invalidPlayerName" };
+    // This also stops a Player joining a Game they're already in.
+    if (await store.findActiveGameByPlayer(playerId)) return { ok: false, reason: "alreadyInActiveGame" };
+    const game = await store.findLobbyGameByCode(gameCode);
+    if (!game || game.players.length >= classicRules.maxPlayers) return { ok: false, reason: "gameCodeNotFound" };
+    const players = [...game.players, { playerId, playerName: playerName.trim() }];
+    return { ok: true, game: await save({ ...game, players }) };
+  });
+
+  /**
+   * Leave: the Player steps out of their active Game for good. A Player who isn't the Host is taken out of the Lobby,
+   * opening up their place. The Host Leaving the Lobby cancels the Game, which frees every Player in it and retires
+   * its Game code.
    */
   const leaveGame = oneAtATime(async (playerId: string): Promise<CommandResult> => {
     const game = await store.findActiveGameByPlayer(playerId);
     if (!game) return { ok: false, reason: "noActiveGame" };
-    return { ok: true, game: await save({ ...game, state: "cancelled" }) };
+    if (game.hostId === playerId) return { ok: true, game: await save({ ...game, state: "cancelled" }) };
+    const players = game.players.filter((player) => player.playerId !== playerId);
+    return { ok: true, game: await save({ ...game, players }, playerId) };
   });
 
   const findActiveGame = oneAtATime((playerId: string) => store.findActiveGameByPlayer(playerId));
 
-  return { createGame, leaveGame, findActiveGame };
+  return { createGame, joinGame, leaveGame, findActiveGame };
 };
 
 export type GameService = ReturnType<typeof createGameService>;
