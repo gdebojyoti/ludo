@@ -51,6 +51,19 @@ export const handleGameSockets = (io: GameIo, gameService: GameService, notifier
       ack(result.ok ? { ok: true } : result);
     });
 
+    socket.on("roll", async (ack) => {
+      const result = await gameService.roll(playerId);
+      ack(result.ok ? { ok: true } : result);
+    });
+
+    socket.on("move", async (token, ack) => {
+      const reply = [ack, token].find(isCallback) as typeof ack;
+      // Any token that isn't one of the Player's legal Moves is refused by the game service.
+      if (typeof token !== "number") return reply({ ok: false, reason: "illegalMove" });
+      const result = await gameService.move(playerId, token);
+      ack(result.ok ? { ok: true } : result);
+    });
+
     // A Rejoin: only this tab is sent the Game, as nothing about it has changed for the Player's other tabs.
     const game = await gameService.findActiveGame(playerId);
     if (game) socket.emit("game", toSnapshot(game, playerId));

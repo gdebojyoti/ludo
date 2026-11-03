@@ -4,15 +4,20 @@ import { randomInt as cryptoRandomInt, randomUUID } from "node:crypto";
 
 import {
   classicRules,
+  dieFaces,
   gameCodeLength,
   giveOutSeats,
   isValidPlayerName,
+  legalMoves,
+  moveToken,
+  nextTakenSeat,
   type RejectionReason,
   type Seat,
+  type TokenPosition,
 } from "@ludo/shared";
 
 import type { GameNotifier } from "./game-notifier.js";
-import type { Game, GameSeat, GameStore } from "./game-store.js";
+import type { Game, GameBoard, GameSeat, GameStore } from "./game-store.js";
 
 export type CommandResult = { ok: true; game: Game } | { ok: false; reason: RejectionReason };
 
@@ -56,7 +61,23 @@ export const createGameService = (
     });
     // `randomInt` is always below the number of Players, so this is one of their Seats.
     const turn = seatsInJoinOrder[randomInt(seatsInJoinOrder.length)] as Seat;
-    return { ...game, state: "playing", board: { seats, turn } };
+    return { ...game, state: "playing", board: { seats, turn, rolled: false, lastRoll: null, lastMove: null } };
+  };
+
+  /** The Board with the Turn passed to the next taken Seat clockwise, not yet Rolled for. */
+  const turnPassed = (board: GameBoard): GameBoard => {
+    const takenSeats = board.seats.flatMap(({ playerId }, index) => (playerId === null ? [] : [index]));
+    return { ...board, turn: nextTakenSeat(board.turn, takenSeats), rolled: false };
+  };
+
+  /** The Player's started Game, with its Board and their Seat at it, if it's their Turn; otherwise why not. */
+  const findTurn = async (playerId: string) => {
+    const game = await store.findActiveGameByPlayer(playerId);
+    if (!game) return { ok: false as const, reason: "noActiveGame" as const };
+    if (!game.board) return { ok: false as const, reason: "gameNotStarted" as const };
+    const { board } = game;
+    if (board.seats[board.turn]?.playerId !== playerId) return { ok: false as const, reason: "notYourTurn" as const };
+    return { ok: true as const, game, board, seat: board.turn };
   };
 
   /** Creates a Game in the Lobby, with the Player as its Host. */
@@ -118,9 +139,38 @@ export const createGameService = (
     return { ok: true, game: await save({ ...game, players }, playerId) };
   });
 
+  /** The Player Rolls on their Turn. If no Token can Move by the Roll, the Turn passes, with the Roll still shown. */
+  const roll = oneAtATime(async (playerId: string): Promise<CommandResult> => {
+    const turn = await findTurn(playerId);
+    if (!turn.ok) return turn;
+    const { game, board, seat } = turn;
+    if (board.rolled) return { ok: false, reason: "alreadyRolled" };
+    const number = randomInt(dieFaces) + 1;
+    const rolled = { ...board, rolled: true, lastRoll: { seat, number } };
+    const tokens = board.seats[seat]?.tokens ?? [];
+    const canMove = legalMoves(seat, tokens, number).length > 0;
+    return { ok: true, game: await save({ ...game, board: canMove ? rolled : turnPassed(rolled) }) };
+  });
+
+  /** The Player Moves one of their Tokens, by its place in their Seat's list of Tokens, by their Roll. */
+  const move = oneAtATime(async (playerId: string, token: number): Promise<CommandResult> => {
+    const turn = await findTurn(playerId);
+    if (!turn.ok) return turn;
+    const { game, board, seat } = turn;
+    if (!board.rolled || !board.lastRoll) return { ok: false, reason: "notRolled" };
+    const { number } = board.lastRoll;
+    const tokens = board.seats[seat]?.tokens ?? [];
+    if (!legalMoves(seat, tokens, number).includes(token)) return { ok: false, reason: "illegalMove" };
+    const moved = moveToken(seat, tokens, token, number);
+    // A legal Move is always one of the Seat's Tokens.
+    const lastMove = { seat, token, from: tokens[token] as TokenPosition, to: moved[token] as TokenPosition };
+    const seats = board.seats.map((other, index) => (index === seat ? { ...other, tokens: moved } : other));
+    return { ok: true, game: await save({ ...game, board: turnPassed({ ...board, seats, lastMove }) }) };
+  });
+
   const findActiveGame = oneAtATime((playerId: string) => store.findActiveGameByPlayer(playerId));
 
-  return { createGame, joinGame, startGame, leaveGame, findActiveGame };
+  return { createGame, joinGame, startGame, leaveGame, roll, move, findActiveGame };
 };
 
 export type GameService = ReturnType<typeof createGameService>;

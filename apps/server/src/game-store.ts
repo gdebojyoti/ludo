@@ -1,6 +1,6 @@
 // Where Games are kept. The game service only knows this interface, so the in-memory store (ADR-0004) can be swapped
 // for a Postgres one without touching game logic.
-import type { GameState, Seat, TokenPosition } from "@ludo/shared";
+import type { GameState, Move, Roll, Seat, TokenPosition } from "@ludo/shared";
 
 export interface Game {
   id: string;
@@ -19,6 +19,12 @@ export interface GameBoard {
   seats: GameSeat[];
   /** The Seat whose Turn it is. */
   turn: Seat;
+  /** Whether the Player whose Turn it is has Rolled, and is yet to Move by `lastRoll`. */
+  rolled: boolean;
+  /** The latest Roll in the Game; null before the first. */
+  lastRoll: Roll | null;
+  /** The latest Move in the Game; null before the first. */
+  lastMove: Move | null;
 }
 
 export interface GamePlayer {

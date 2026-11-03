@@ -1,5 +1,5 @@
 // How a Game looks to one of its Players.
-import type { GameSnapshot, SnapshotBoard } from "@ludo/shared";
+import { legalMoves, type GameSnapshot, type SnapshotBoard } from "@ludo/shared";
 
 import type { Game, GameBoard } from "./game-store.js";
 
@@ -18,12 +18,20 @@ export const toSnapshot = (game: Game, playerId: string): GameSnapshot => {
 
 const toSnapshotBoard = (game: Game, board: GameBoard, playerId: string): SnapshotBoard => {
   const playerName = (id: string) => game.players.find((player) => player.playerId === id)?.playerName ?? null;
+  const seat = board.seats.findIndex((seat) => seat.playerId === playerId);
+  const ownTokens = board.seats[seat]?.tokens ?? [];
+  // Only the Player whose Turn it is has a Roll to Move by, once they've Rolled.
+  const rollToMove = board.rolled && board.turn === seat ? board.lastRoll : null;
   return {
-    seat: board.seats.findIndex((seat) => seat.playerId === playerId),
+    seat,
     seats: board.seats.map((seat) => ({
       playerName: seat.playerId === null ? null : playerName(seat.playerId),
       tokens: seat.tokens,
     })),
     turn: board.turn,
+    rolled: board.rolled,
+    lastRoll: board.lastRoll,
+    lastMove: board.lastMove,
+    moves: rollToMove ? legalMoves(seat, ownTokens, rollToMove.number) : [],
   };
 };

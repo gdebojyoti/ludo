@@ -35,13 +35,15 @@ describe("the Host starting the Game", () => {
       { playerName: "Ginny Weasley", tokens: inYard },
       emptySeat,
     ];
+    // Nobody has Rolled yet.
+    const board = { seats, turn: 0, rolled: false, lastRoll: null, lastMove: null, moves: [] };
     expect(await host.nextMessage()).toEqual({
       event: "game",
-      game: { state: "playing", gameCode: null, isHost: true, players, board: { seat: 0, seats, turn: 0 } },
+      game: { state: "playing", gameCode: null, isHost: true, players, board: { ...board, seat: 0 } },
     });
     expect(await joiner.nextMessage()).toEqual({
       event: "game",
-      game: { state: "playing", gameCode: null, isHost: false, players, board: { seat: 2, seats, turn: 0 } },
+      game: { state: "playing", gameCode: null, isHost: false, players, board: { ...board, seat: 2 } },
     });
   });
 
