@@ -6,6 +6,11 @@ import { commonMessages, startMessages } from "./messages";
 import { seatView } from "./seatView";
 
 interface Props {
+  /**
+   * Whether the server is yet to say if the Player has an active Game. Until it does, only the logo shows, as this
+   * may not be the screen they end up on.
+   */
+  waiting: boolean;
   playerName: string;
   disabled: boolean;
   error: string | undefined;
@@ -20,6 +25,7 @@ interface Props {
 const logoYards = [1, 2, 0, 3].map((seatsFromViewer) => seatView(seatsFromViewer).colour);
 
 export default function StartScreen({
+  waiting,
   playerName,
   disabled,
   error,
@@ -36,7 +42,9 @@ export default function StartScreen({
   };
 
   return (
-    <div className="flex min-h-full flex-1 flex-col text-maroon">
+    // Clipped, so the sheet sliding in from below the screen doesn't make the page scroll. Not hidden, which would
+    // also make this a scroll container.
+    <div className="flex min-h-full flex-1 flex-col overflow-clip text-maroon">
       <div className="flex flex-1 flex-col items-center justify-center gap-7 px-6 pt-10 pb-8">
         <div
           className="grid size-[220px] grid-cols-2 gap-2.5 rounded-[26px] border-2 border-gold p-2.5"
@@ -57,7 +65,13 @@ export default function StartScreen({
           <p className="mt-1 mb-0 text-[15px] text-tan">{startMessages.tagline}</p>
         </div>
       </div>
-      <div className="flex flex-col gap-5 rounded-t-[28px] bg-ivory px-6 pt-[26px] pb-9">
+      {/* Laid out but hidden while waiting, so the logo doesn't move when it slides in. */}
+      <div
+        className={`flex flex-col gap-5 rounded-t-[28px] bg-ivory px-6 pt-[26px] pb-9 ${
+          waiting ? "invisible" : "motion-safe:animate-sheet-in"
+        }`}
+        inert={waiting}
+      >
         <div className="flex items-center gap-3">
           <Avatar
             playerName={playerName}

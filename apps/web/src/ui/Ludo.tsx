@@ -31,8 +31,6 @@ export default function Ludo() {
   const noticeMessage = notice && noticeMessages[notice];
 
   const screen = () => {
-    // Nothing to show until the server says whether the Player has an active Game.
-    if (game === undefined) return null;
     if (game?.state === "lobby") {
       return (
         <LobbyScreen
@@ -64,8 +62,12 @@ export default function Ludo() {
     if (game?.state === "cancelled" && !game.isHost) {
       return <CancelledScreen game={game} onBackToStart={backToStart} />;
     }
+    // Shown, logo only, while the server is yet to say whether the Player has an active Game. Mounted afresh once it
+    // has, so a code from a Join link that didn't work is filled in.
     return (
       <StartScreen
+        key={game === undefined ? "waiting" : "ready"}
+        waiting={game === undefined}
         playerName={playerName}
         disabled={busy}
         error={error}

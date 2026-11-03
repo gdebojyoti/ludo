@@ -28,6 +28,14 @@
 
   --font-display: Marcellus, serif;
   --font-ui: Figtree, sans-serif;
+
+  --animate-sheet-in: sheet-in 0.2s ease-out;
+
+  @keyframes sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+  }
 }
 
 /* The buttons B1 to B6 from the design's style guide. */
