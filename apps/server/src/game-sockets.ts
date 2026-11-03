@@ -41,6 +41,11 @@ export const handleGameSockets = (io: GameIo, gameService: GameService, notifier
       enterGame(await gameService.joinGame(playerId, gameCode, playerName), ack);
     });
 
+    socket.on("startGame", async (ack) => {
+      const result = await gameService.startGame(playerId);
+      ack(result.ok ? { ok: true } : result);
+    });
+
     socket.on("leaveGame", async (ack) => {
       const result = await gameService.leaveGame(playerId);
       ack(result.ok ? { ok: true } : result);

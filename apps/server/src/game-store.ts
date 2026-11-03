@@ -1,6 +1,6 @@
 // Where Games are kept. The game service only knows this interface, so the in-memory store (ADR-0004) can be swapped
 // for a Postgres one without touching game logic.
-import type { GameState } from "@ludo/shared";
+import type { GameState, Seat, TokenPosition } from "@ludo/shared";
 
 export interface Game {
   id: string;
@@ -10,12 +10,28 @@ export interface Game {
   hostId: string;
   /** The Players in the Game, in the order they joined. */
   players: GamePlayer[];
+  /** The Board, once the Game has started; null in the Lobby. */
+  board: GameBoard | null;
+}
+
+export interface GameBoard {
+  /** Every Seat at the Board, by number. */
+  seats: GameSeat[];
+  /** The Seat whose Turn it is. */
+  turn: Seat;
 }
 
 export interface GamePlayer {
   playerId: string;
   /** The Player name they gave when they entered the Game, kept for the whole Game. */
   playerName: string;
+}
+
+export interface GameSeat {
+  /** The player ID of the Player in this Seat, or null if it's empty. */
+  playerId: string | null;
+  /** Where each of the Seat's Tokens is. An empty Seat has none. */
+  tokens: TokenPosition[];
 }
 
 export interface GameStore {
@@ -45,7 +61,7 @@ export const createMemoryGameStore = (): GameStore => {
 };
 
 /** Whether the Game is still going, rather than ended. The Lobby counts. */
-const isActive = (game: Game) => game.state === "lobby";
+const isActive = (game: Game) => game.state === "lobby" || game.state === "playing";
 
 const isPlayerIn = (game: Game, playerId: string) => game.players.some((player) => player.playerId === playerId);
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { GameSnapshot } from "@ludo/shared";
+import { classicRules, type GameSnapshot } from "@ludo/shared";
 import ErrorMessage from "./ErrorMessage";
 import { joinLinkFor } from "./joinLink";
 import Notice from "./Notice";
@@ -11,6 +11,7 @@ interface Props {
   /** Something that happened without the Player doing it, such as opening a Join link while in this Game. */
   notice: string | undefined;
   error: string | undefined;
+  onStartGame: () => void;
   onLeaveGame: () => void;
 }
 
@@ -20,7 +21,7 @@ type Copyable = "joinLink" | "gameCode";
 // How long a copy button shows that it worked.
 const copiedFor = 2000;
 
-export default function LobbyScreen({ game, disabled, notice, error, onLeaveGame }: Props) {
+export default function LobbyScreen({ game, disabled, notice, error, onStartGame, onLeaveGame }: Props) {
   const gameCode = game.gameCode ?? "";
   // Leave always asks first, so a misclick can't take the Player out, or cancel the Game.
   const [confirmingLeave, setConfirmingLeave] = useState(false);
@@ -40,6 +41,17 @@ export default function LobbyScreen({ game, disabled, notice, error, onLeaveGame
     } catch {
       // The browser refused. The code is on screen to copy by hand, and either button can be tried again.
     }
+  };
+
+  // Only the Host can start the Game, once someone else has joined. The fourth join starts it by itself.
+  const startPrompt = () => {
+    if (!game.isHost) return <p className="m-0">{lobbyMessages.waitingForHost}</p>;
+    if (game.players.length < classicRules.minPlayers) return <p className="m-0">{lobbyMessages.waitingForPlayers}</p>;
+    return (
+      <button type="button" className="self-start border px-4 py-2" disabled={disabled} onClick={onStartGame}>
+        {lobbyMessages.start}
+      </button>
+    );
   };
 
   return (
@@ -70,6 +82,7 @@ export default function LobbyScreen({ game, disabled, notice, error, onLeaveGame
           ))}
         </ol>
       </div>
+      {startPrompt()}
       {confirmingLeave
         ? (
             <div className="flex flex-wrap items-center gap-2">

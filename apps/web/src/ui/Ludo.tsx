@@ -1,4 +1,5 @@
 import { useState } from "react";
+import BoardScreen from "./BoardScreen";
 import LobbyScreen from "./LobbyScreen";
 import ServerStatus from "./ServerStatus";
 import StartScreen from "./StartScreen";
@@ -10,7 +11,7 @@ import "./ludo.css";
 // The whole game, as one component: run standalone by ../bootstrap.tsx, and exposed to the host app as `ludo/Ludo`.
 export default function Ludo() {
   const [playerName] = useState(loadPlayerName);
-  const { status, game, error, notice, busy, gameCodeFromLink, createGame, joinGame, leaveGame } =
+  const { status, game, error, notice, busy, gameCodeFromLink, createGame, joinGame, startGame, leaveGame } =
     useGameServer(playerName);
   const noticeMessage = notice && noticeMessages[notice];
 
@@ -19,9 +20,17 @@ export default function Ludo() {
     if (game === undefined) return null;
     if (game?.state === "lobby") {
       return (
-        <LobbyScreen game={game} disabled={busy} notice={noticeMessage} error={error} onLeaveGame={leaveGame} />
+        <LobbyScreen
+          game={game}
+          disabled={busy}
+          notice={noticeMessage}
+          error={error}
+          onStartGame={startGame}
+          onLeaveGame={leaveGame}
+        />
       );
     }
+    if (game?.board) return <BoardScreen board={game.board} notice={noticeMessage} error={error} />;
     // No active Game, or one the Host just cancelled by Leaving.
     return (
       <StartScreen
