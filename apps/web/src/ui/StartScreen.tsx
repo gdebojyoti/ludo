@@ -9,7 +9,7 @@ interface Props {
   disabled: boolean;
   notice: string | undefined;
   error: string | undefined;
-  /** The code to fill in at first, from a join link that didn't work. */
+  /** The code to fill in at first, from a Join link that didn't work. */
   initialGameCode: string;
   onCreateGame: () => void;
   onJoinGame: (gameCode: string) => void;

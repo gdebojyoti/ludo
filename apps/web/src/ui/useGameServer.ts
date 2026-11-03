@@ -8,7 +8,7 @@ export type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
 /**
  * Something that happened without the Player doing it, shown until they act again: the Host cancelled their Game, or
- * they opened a join link while already in a Game.
+ * they opened a Join link while already in a Game.
  */
 export type Notice = "hostCancelled" | "alreadyInGame";
 
@@ -22,7 +22,7 @@ export const useGameServer = (playerName: string) => {
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<Notice>();
   const [busy, setBusy] = useState(false);
-  // The code from a join link that didn't work, filled in on the start screen so it can be fixed by hand.
+  // The code from a Join link that didn't work, filled in on the start screen so it can be fixed by hand.
   const [gameCodeFromLink, setGameCodeFromLink] = useState("");
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export const useGameServer = (playerName: string) => {
     socket.on("connect_error", () => setStatus("disconnected"));
     socket.on("game", (game) => {
       gamesReceived++;
-      // A join link still in the address hasn't been used, as it's taken out before joining.
+      // A Join link still in the address hasn't been used, as it's taken out before joining.
       if (gameCodeInAddress() !== null) {
         setNotice("alreadyInGame");
         removeJoinLinkFromAddress();
@@ -48,7 +48,7 @@ export const useGameServer = (playerName: string) => {
       setGame(game);
     });
     socket.on("noActiveGame", async () => {
-      // A join link is used once. The start screen waits for the reply, so it doesn't flash up before the Lobby.
+      // A Join link is used once. The start screen waits for the reply, so it doesn't flash up before the Lobby.
       const gameCode = gameCodeInAddress();
       if (gameCode === null) return setGame(null);
       removeJoinLinkFromAddress();

@@ -18,7 +18,7 @@ export const rejectionMessages: Record<RejectionReason, string> = {
 
 export const noticeMessages: Record<Notice, string> = {
   hostCancelled: "The host cancelled the game.",
-  alreadyInGame: "You're already in a game, so here's yours.",
+  alreadyInGame: "You're already in a game, so the join link wasn't used. Here's your game.",
 };
 
 export const commonMessages = {

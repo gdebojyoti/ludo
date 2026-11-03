@@ -8,7 +8,7 @@ import { lobbyMessages } from "./messages";
 interface Props {
   game: GameSnapshot;
   disabled: boolean;
-  /** Something that happened without the Player doing it, such as opening a join link while in this Game. */
+  /** Something that happened without the Player doing it, such as opening a Join link while in this Game. */
   notice: string | undefined;
   error: string | undefined;
   onLeaveGame: () => void;
