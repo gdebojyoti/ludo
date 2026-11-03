@@ -5,10 +5,9 @@ import playerNames from "./player-names.json";
 const storageKey = "ludo-player-name";
 
 /**
- * The Player name this browser goes by: the one kept from an earlier visit, or on a first visit a new one made from a
- * random first and last name, which is then kept. This is the only random choice the web app makes. If the browser
- * won't keep it, as in some private windows, the name lasts until the page is closed. A kept name the server would
- * refuse, as one edited by hand might be, is replaced, since there's no other way to change it.
+ * The Player name this browser goes by: the one kept from an earlier visit, or on a first visit a new one, which is
+ * then kept. If the browser won't keep it, as in some private windows, the name lasts until the page is closed. A kept
+ * name the server would refuse, as one edited by hand might be, is replaced.
  */
 export const loadPlayerName = (): string => {
   try {
@@ -17,6 +16,14 @@ export const loadPlayerName = (): string => {
   } catch {
     // Storage is blocked, so there's nothing kept to read.
   }
+  return newPlayerName();
+};
+
+/**
+ * A new Player name, made from a random first and last name, kept in place of the old one. Making it is the only
+ * random choice the web app makes.
+ */
+export const newPlayerName = (): string => {
   const playerName = `${pick(playerNames.firstNames)} ${pick(playerNames.lastNames)}`;
   try {
     localStorage.setItem(storageKey, playerName);

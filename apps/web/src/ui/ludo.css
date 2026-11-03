@@ -1,8 +1,348 @@
+/* Must come before everything else in the file. Loaded from CSS, not index.html, so the host app gets it too. */
+@import url("https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
-/* Plain functional colours until the design step. */
+/* The Heritage design's colours and fonts (docs/design/ludo-design). The Seats' colours are in seatView.ts. */
 @theme {
+  --color-maroon: #3b1218;
+  --color-maroon-deep: #2a0c11;
+  --color-ivory: #f7f0df;
+  --color-cream: #fff8e8;
+  --color-parchment: #eadbb9;
+  --color-gold: #e8b54a;
+  --color-gold-light: #f3cf7e;
+  --color-gold-shade: #c9952e;
+  --color-tan: #d9c3a5;
+  --color-brown: #6e5340;
+  --color-tan-border: #a8916a;
+  --color-soft-brown: #9c7b68;
+  --color-board-line: #cdbb94;
+  --color-danger-line: #b23a2a;
+  --color-danger: #a3301f;
+  --color-notice: #efe3c8;
+  --color-notice-line: #d9c49a;
+  --color-die-shade: #e2d2ad;
   --color-conn-ok: #1fae5b;
   --color-conn-wait: #f5b700;
   --color-conn-down: #e5383b;
+
+  --font-display: Marcellus, serif;
+  --font-ui: Figtree, sans-serif;
+}
+
+/* The buttons B1 to B6 from the design's style guide. */
+@utility ludo-button-gold {
+  height: 54px;
+  width: 100%;
+  border-radius: 14px;
+  background: var(--color-gold);
+  color: var(--color-maroon);
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: inset 0 -4px 0 var(--color-gold-shade);
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+@utility ludo-button-maroon {
+  height: 54px;
+  width: 100%;
+  border-radius: 14px;
+  background: var(--color-maroon);
+  color: var(--color-gold-light);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+@utility ludo-button-outline {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 20px;
+  border: 1.5px solid var(--color-tan-border);
+  border-radius: 12px;
+  color: var(--color-maroon);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+@utility ludo-button-danger {
+  height: 54px;
+  width: 100%;
+  border: 1.5px solid var(--color-danger-line);
+  border-radius: 12px;
+  color: var(--color-danger);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+@utility ludo-button-icon {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid var(--color-soft-brown);
+  border-radius: 12px;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+@layer components {
+  .ludo-dialog::backdrop {
+    background: rgb(24 6 10 / 0.74);
+  }
+
+  /*
+   * The Board is drawn 360px across in the design. Everything on it is sized in --u, one design pixel, so it scales
+   * with the Board on narrower screens.
+   */
+  .ludo-board {
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: repeat(15, minmax(0, 1fr));
+    grid-template-rows: repeat(15, minmax(0, 1fr));
+    gap: 1px;
+    width: 100%;
+    max-width: 360px;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--color-board-line);
+    box-shadow: 0 0 0 4px var(--color-maroon), 0 0 0 5px rgb(232 181 74 / 0.45);
+  }
+
+  .ludo-board * {
+    --u: calc(100cqi / 360);
+  }
+
+  .ludo-cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: var(--color-ivory);
+  }
+
+  /* A Cell the viewer can Move one of their Tokens from. */
+  .ludo-cell-movable {
+    background: var(--color-gold-light);
+    box-shadow: inset 0 0 0 1.5px #b8892b;
+    cursor: pointer;
+  }
+
+  .ludo-star {
+    width: calc(15 * var(--u));
+    height: calc(15 * var(--u));
+    fill: none;
+    stroke: #9a8456;
+    stroke-width: 1.7;
+    stroke-linejoin: round;
+  }
+
+  .ludo-star-on-colour {
+    stroke: var(--color-ivory);
+  }
+
+  .ludo-yard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+  }
+
+  .ludo-yard-movable {
+    cursor: pointer;
+  }
+
+  .ludo-yard-inner {
+    display: grid;
+    grid-template-columns: repeat(2, calc(34 * var(--u)));
+    grid-template-rows: repeat(2, calc(34 * var(--u)));
+    place-content: center;
+    gap: calc(4 * var(--u));
+    width: calc(104 * var(--u));
+    height: calc(104 * var(--u));
+    border-radius: 50%;
+    background: var(--color-ivory);
+  }
+
+  .ludo-yard-empty {
+    background: #e3d3ae;
+  }
+
+  .ludo-yard-empty .ludo-yard-inner {
+    border: 2px dashed #b09a6c;
+    background: transparent;
+  }
+
+  .ludo-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--color-parchment);
+  }
+
+  .ludo-yard-empty .ludo-slot {
+    border: 1.5px dashed #b09a6c;
+    background: transparent;
+  }
+
+  .ludo-token {
+    position: relative;
+    display: block;
+    flex: none;
+    width: calc(17 * var(--u));
+    height: calc(17 * var(--u));
+    border: 2px solid var(--color-cream);
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgb(40 10 10 / 0.5);
+  }
+
+  .ludo-token::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border: 1.5px solid rgb(255 248 232 / 0.75);
+    border-radius: 50%;
+  }
+
+  .ludo-slot .ludo-token {
+    width: calc(22 * var(--u));
+    height: calc(22 * var(--u));
+  }
+
+  /* 2 to 4 Tokens in one Cell: smaller, in a diagonal pair, a triangle, or a square. */
+  .ludo-stack {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+  }
+
+  .ludo-stack .ludo-token {
+    position: absolute;
+    width: calc(11 * var(--u));
+    height: calc(11 * var(--u));
+    border-width: 1.5px;
+    box-shadow: 0 1px 2px rgb(40 10 10 / 0.55);
+  }
+
+  .ludo-stack .ludo-token::after {
+    inset: 1px;
+    border-width: 1px;
+  }
+
+  .ludo-stack-2 .ludo-token { left: 50%; top: 50%; }
+  .ludo-stack-2 .ludo-token:nth-child(1) { margin: calc(-11.4 * var(--u)) 0 0 calc(-8.45 * var(--u)); }
+  .ludo-stack-2 .ludo-token:nth-child(2) { margin: calc(0.4 * var(--u)) 0 0 calc(-2.55 * var(--u)); }
+  .ludo-stack-3 .ludo-token:nth-child(1) { left: 50%; top: 0; margin-left: calc(-5.5 * var(--u)); }
+  .ludo-stack-3 .ludo-token:nth-child(2) { left: 0; bottom: 0; }
+  .ludo-stack-3 .ludo-token:nth-child(3) { right: 0; bottom: 0; }
+  .ludo-stack-4 .ludo-token:nth-child(1) { left: 0; top: 0; }
+  .ludo-stack-4 .ludo-token:nth-child(2) { right: 0; top: 0; }
+  .ludo-stack-4 .ludo-token:nth-child(3) { left: 0; bottom: 0; }
+  .ludo-stack-4 .ludo-token:nth-child(4) { right: 0; bottom: 0; }
+
+  /* The viewer's Tokens that can Move: ringed and lifted. */
+  .ludo-token-movable {
+    box-shadow: 0 0 0 2px var(--color-maroon), 0 3px 4px rgb(40 10 10 / 0.55);
+    transform: translateY(-1.5px);
+  }
+
+  .ludo-stack .ludo-token-movable {
+    box-shadow: 0 0 0 1.5px var(--color-maroon), 0 2px 3px rgb(40 10 10 / 0.55);
+    transform: translateY(-1px);
+  }
+
+  .ludo-slot .ludo-token-movable {
+    box-shadow: 0 0 0 2px var(--color-maroon), 0 0 0 5px var(--color-gold-light), 0 5px 7px rgb(20 5 5 / 0.6);
+    transform: translateY(-2px);
+  }
+
+  /* 5 or more Tokens in one Cell: a count, ringed in each Seat's share. */
+  .ludo-chip {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(20 * var(--u));
+    height: calc(20 * var(--u));
+    margin: calc(-10 * var(--u)) 0 0 calc(-10 * var(--u));
+    border-radius: 50%;
+  }
+
+  .ludo-chip-count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% - 6 * var(--u));
+    height: calc(100% - 6 * var(--u));
+    border-radius: 50%;
+    background: var(--color-maroon);
+    color: var(--color-ivory);
+    font: 700 calc(9 * var(--u)) / 1 var(--font-ui);
+    letter-spacing: -0.02em;
+  }
+
+  .ludo-chip-count-movable {
+    background: #d2462e;
+    color: #fff;
+  }
+
+  .ludo-home {
+    position: relative;
+    grid-row: 7 / 10;
+    grid-column: 7 / 10;
+    background: var(--color-ivory);
+  }
+
+  .ludo-home .ludo-token {
+    position: absolute;
+    width: calc(10 * var(--u));
+    height: calc(10 * var(--u));
+    margin: calc(-5 * var(--u)) 0 0 calc(-5 * var(--u));
+    border-width: 1.5px;
+    box-shadow: 0 1px 2px rgb(40 10 10 / 0.55);
+  }
+
+  .ludo-home .ludo-token::after {
+    inset: 1px;
+    border-width: 1px;
+  }
 }

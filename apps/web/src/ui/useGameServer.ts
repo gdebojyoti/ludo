@@ -6,11 +6,9 @@ import { connectToServer, type GameSocket } from "./socket";
 
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
-/**
- * Something that happened without the Player doing it, shown until they act again: the Host cancelled their Game, or
- * they opened a Join link while already in a Game.
- */
-export type Notice = "hostCancelled" | "alreadyInGame";
+/** Something that happened without the Player doing it, shown until they act again: they opened a Join link while
+ * already in a Game. */
+export type Notice = "alreadyInGame";
 
 // The connection to the server, and the latest snapshot of the Player's Game. The web app holds no game logic: it
 // shows what the server last sent, and sends commands, with this Player name where they need one.
@@ -24,6 +22,12 @@ export const useGameServer = (playerName: string) => {
   const [busy, setBusy] = useState(false);
   // The code from a Join link that didn't work, filled in on the start screen so it can be fixed by hand.
   const [gameCodeFromLink, setGameCodeFromLink] = useState("");
+  // Read when a command is sent, so picking a new Player name doesn't reconnect.
+  const playerNameRef = useRef(playerName);
+
+  useEffect(() => {
+    playerNameRef.current = playerName;
+  }, [playerName]);
 
   useEffect(() => {
     const socket = connectToServer();
@@ -43,8 +47,6 @@ export const useGameServer = (playerName: string) => {
         setNotice("alreadyInGame");
         removeJoinLinkFromAddress();
       }
-      // The Host chose to cancel it; everyone else is told why they're back on the start screen.
-      if (game.state === "cancelled" && !game.isHost) setNotice("hostCancelled");
       setGame(game);
     });
     socket.on("noActiveGame", async () => {
@@ -56,7 +58,7 @@ export const useGameServer = (playerName: string) => {
         const gamesBefore = gamesReceived;
         // No reply if the connection drops first. If the server joined the Game anyway, it sends it when the
         // connection comes back.
-        const reply = await socket.emitWithAck("joinGame", gameCode, playerName).catch(() => undefined);
+        const reply = await socket.emitWithAck("joinGame", gameCode, playerNameRef.current).catch(() => undefined);
         if (reply?.ok) return setGame(reply.game);
         // A Game of the Player's own arrived meanwhile, such as one they created in another tab.
         if (gamesReceived !== gamesBefore) return;
@@ -85,7 +87,7 @@ export const useGameServer = (playerName: string) => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [playerName]);
+  }, []);
 
   const send = async <Result extends object>(command: (socket: GameSocket) => Promise<Acknowledgement<Result>>) => {
     const socket = socketRef.current;
@@ -109,9 +111,10 @@ export const useGameServer = (playerName: string) => {
     if (reply?.ok) setGame(reply.game);
   };
 
-  const createGame = () => enterGame((socket) => socket.emitWithAck("createGame", playerName));
+  const createGame = () => enterGame((socket) => socket.emitWithAck("createGame", playerNameRef.current));
 
-  const joinGame = (gameCode: string) => enterGame((socket) => socket.emitWithAck("joinGame", gameCode, playerName));
+  const joinGame = (gameCode: string) =>
+    enterGame((socket) => socket.emitWithAck("joinGame", gameCode, playerNameRef.current));
 
   // On success the server sends every Player the started Game.
   const startGame = () => send((socket) => socket.emitWithAck("startGame"));
