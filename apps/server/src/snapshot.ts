@@ -25,7 +25,8 @@ const toSnapshotBoard = (game: Game, board: GameBoard, playerId: string): Snapsh
   return {
     seat,
     seats: board.seats.map((seat) => ({
-      playerName: seat.playerId === null ? null : playerName(seat.playerId),
+      playerName: seat.playerId === null ? seat.leaverName : playerName(seat.playerId),
+      left: seat.leaverName !== null,
       tokens: seat.tokens,
     })),
     turn: board.turn,

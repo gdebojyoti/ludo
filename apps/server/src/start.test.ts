@@ -15,7 +15,7 @@ afterEach(async () => {
 /** A Seat's 4 Tokens, all in its Yard. */
 const inYard = Array.from({ length: 4 }, () => ({ area: "yard" }));
 
-const emptySeat = { playerName: null, tokens: [] };
+const emptySeat = { playerName: null, left: false, tokens: [] };
 
 describe("the Host starting the Game", () => {
   it("with 2 Players seats them opposite each other, and sends each of them the Board from their own Seat", async () => {
@@ -30,9 +30,9 @@ describe("the Host starting the Game", () => {
     expect(reply).toEqual({ ok: true });
     const players = [{ playerName: "Luna Lovegood", isHost: true }, { playerName: "Ginny Weasley", isHost: false }];
     const seats = [
-      { playerName: "Luna Lovegood", tokens: inYard },
+      { playerName: "Luna Lovegood", left: false, tokens: inYard },
       emptySeat,
-      { playerName: "Ginny Weasley", tokens: inYard },
+      { playerName: "Ginny Weasley", left: false, tokens: inYard },
       emptySeat,
     ];
     // Nobody has Rolled yet, or won.
@@ -177,21 +177,34 @@ describe("the fourth Player joining", () => {
 });
 
 describe("once the Game has started", () => {
-  it("gives the Host no extra commands: Start and Leave are refused, and the Game carries on", async () => {
+  it("can't be started again, by the Host or anyone else, and carries on", async () => {
     const hostPlayer = server.createPlayer();
     const { host, gameCode } = await server.hostInLobby({ player: hostPlayer });
     const joiner = await server.playerInLobby(gameCode);
     await host.startGame();
 
-    const replies = [await host.startGame(), await host.leaveGame(), await joiner.leaveGame()];
+    const replies = [await host.startGame(), await joiner.startGame()];
     await host.close();
 
     expect(replies).toEqual([
       { ok: false, reason: "gameNotInLobby" },
       { ok: false, reason: "gameNotInLobby" },
-      { ok: false, reason: "gameNotInLobby" },
     ]);
     expect(await (await hostPlayer.connect()).nextMessage()).toMatchObject({ game: { state: "playing" } });
+  });
+
+  it("doesn't cancel it when the Host Leaves: they forfeit like any other Player", async () => {
+    const { host, gameCode } = await server.hostInLobby();
+    const second = await server.playerInLobby(gameCode);
+    const third = await server.playerInLobby(gameCode);
+    await host.startGame();
+    await second.nextMessage();
+    await second.nextMessage();
+
+    expect(await host.leaveGame()).toEqual({ ok: true });
+    const seats = [{ left: true }, {}, {}, {}];
+    expect(await second.nextMessage()).toMatchObject({ game: { state: "playing", board: { seats } } });
+    expect(await third.leaveGame()).toEqual({ ok: true });
   });
 
   it("brings a Player who comes back to the Board as it is, from their own Seat", async () => {

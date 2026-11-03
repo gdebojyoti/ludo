@@ -1,8 +1,9 @@
 import type { SnapshotBoard } from "@ludo/shared";
 import Board from "./Board";
 import ErrorMessage from "./ErrorMessage";
+import LeaveButton from "./LeaveButton";
 import Notice from "./Notice";
-import { boardMessages } from "./messages";
+import { boardMessages, leaveMessages } from "./messages";
 
 interface Props {
   board: SnapshotBoard;
@@ -12,11 +13,22 @@ interface Props {
   error: string | undefined;
   onRoll: () => void;
   onMove: (token: number) => void;
+  /** Leaves the Game during play, forfeiting it. */
+  onLeaveGame: () => void;
   /** Leaves the Board once the Game has been won. */
   onBackToStart: () => void;
 }
 
-export default function BoardScreen({ board, disabled, notice, error, onRoll, onMove, onBackToStart }: Props) {
+export default function BoardScreen({
+  board,
+  disabled,
+  notice,
+  error,
+  onRoll,
+  onMove,
+  onLeaveGame,
+  onBackToStart,
+}: Props) {
   // Players are named by their Player name, never by colour, as each sees the Seats in different colours.
   const playerName = (seat: number) => board.seats[seat]?.playerName ?? "";
   const turnPlayerName = playerName(board.turn);
@@ -52,6 +64,7 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
       )}
       {board.moves.length > 0 && <p className="m-0">{boardMessages.pickToken}</p>}
       <Board board={board} disabled={disabled} onMove={onMove} />
+      {!isWon && <LeaveButton disabled={disabled} confirmMessage={leaveMessages.confirmInPlay} onLeave={onLeaveGame} />}
       <ErrorMessage error={error} />
     </section>
   );

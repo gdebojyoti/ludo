@@ -258,3 +258,121 @@ describe("winning", () => {
     expect(await (await joinerPlayer.connect()).nextMessage()).toEqual({ event: "noActiveGame" });
   });
 });
+
+describe("Leaving during play", () => {
+  /**
+   * A 3-Player Game in play: the Host in Seat 0, the second to join in Seat 2 and the third in Seat 1, with the
+   * Host's Turn first, the Rolls scripted to be these in turn, then 1s, and everything sent so far already read.
+   */
+  const gameOfThreeInPlay = async (...rolls: number[]) => {
+    server = await server.restartWithRandomNumbers(42, 0, ...rolls.map((roll) => roll - 1));
+    const thirdPlayer = server.createPlayer();
+    const { host, gameCode } = await server.hostInLobby({ playerName: "Luna Lovegood" });
+    const second = await server.playerInLobby(gameCode, { playerName: "Ginny Weasley" });
+    const third = await server.playerInLobby(gameCode, { playerName: "Neville Longbottom", player: thirdPlayer });
+    await host.startGame();
+    await readMessages(host, 3);
+    await readMessages(second, 2);
+    await third.nextMessage();
+    return { host, second, third, thirdPlayer };
+  };
+
+  it("takes the Leaver's Tokens off the Board and leaves their Seat empty, showing everyone", async () => {
+    const { host, second, third } = await gameOfThreeInPlay();
+
+    const reply = await third.leaveGame();
+
+    expect(reply).toEqual({ ok: true });
+    const game = {
+      state: "playing",
+      players: [{ playerName: "Luna Lovegood", isHost: true }, { playerName: "Ginny Weasley", isHost: false }],
+      board: {
+        seats: [
+          { playerName: "Luna Lovegood", left: false, tokens: [yard, yard, yard, yard] },
+          { playerName: "Neville Longbottom", left: true, tokens: [] },
+          { playerName: "Ginny Weasley", left: false, tokens: [yard, yard, yard, yard] },
+          { playerName: null, left: false, tokens: [] },
+        ],
+        turn: 0,
+        winner: null,
+      },
+    };
+    expect(await host.nextMessage()).toMatchObject({ event: "game", game });
+    expect(await second.nextMessage()).toMatchObject({ event: "game", game });
+  });
+
+  it("tells every tab of the Leaver's that they have no active Game, leaving them free to start another", async () => {
+    const { third, thirdPlayer } = await gameOfThreeInPlay();
+    const otherTab = await thirdPlayer.connect();
+    await otherTab.nextMessage();
+
+    await third.leaveGame();
+
+    expect(await third.nextMessage()).toEqual({ event: "noActiveGame" });
+    expect(await otherTab.nextMessage()).toEqual({ event: "noActiveGame" });
+    expect(await third.roll()).toEqual({ ok: false, reason: "noActiveGame" });
+    expect(await third.createGame("Neville Longbottom")).toMatchObject({ ok: true, game: { state: "lobby" } });
+  });
+
+  it.each([
+    ["before", false],
+    ["after", true],
+  ])("passes the Turn to the next taken Seat clockwise, if it was the Leaver's, %s they Rolled", async (_, rolled) => {
+    // A 6, so a Roll leaves the Host a Move to make.
+    const { host, second, third } = await gameOfThreeInPlay(6);
+    if (rolled) {
+      expect(await host.roll()).toEqual({ ok: true });
+      await second.nextMessage();
+    }
+
+    await host.leaveGame();
+
+    expect(await second.nextMessage()).toMatchObject({ game: { state: "playing", board: { turn: 1, rolled: false } } });
+    expect(await third.roll()).toEqual({ ok: true });
+  });
+
+  it("skips the Leaver's empty Seat in the Turns from then on", async () => {
+    // Every Roll is a 1, which can't bring a Token out, so each Turn passes.
+    const { host, second, third } = await gameOfThreeInPlay();
+    await third.leaveGame();
+
+    const replies = [await host.roll(), await second.roll(), await host.roll()];
+
+    expect(replies).toEqual([{ ok: true }, { ok: true }, { ok: true }]);
+  });
+
+  it("makes the last Player remaining the winner, even mid-Turn, and ends the Game, freeing them", async () => {
+    const { host, joiner, joinerPlayer } = await gameInPlay(6);
+    await host.roll();
+    await joiner.nextMessage();
+
+    await host.leaveGame();
+
+    expect(await joiner.nextMessage()).toMatchObject({
+      event: "game",
+      game: {
+        state: "won",
+        players: [{ playerName: "Ginny Weasley", isHost: false }],
+        board: {
+          seats: [{ playerName: "Luna Lovegood", left: true, tokens: [] }, {}, { playerName: "Ginny Weasley" }, {}],
+          turn: 2,
+          rolled: false,
+          moves: [],
+          winner: 2,
+        },
+      },
+    });
+    expect(await (await joinerPlayer.connect()).nextMessage()).toEqual({ event: "noActiveGame" });
+    expect(await joiner.createGame("Ginny Weasley")).toMatchObject({ ok: true, game: { state: "lobby" } });
+  });
+
+  it("goes on while 2 or more Players remain", async () => {
+    const { host, second, third } = await gameOfThreeInPlay();
+
+    await third.leaveGame();
+
+    expect(await host.nextMessage()).toMatchObject({ game: { state: "playing", board: { winner: null } } });
+    expect(await second.leaveGame()).toEqual({ ok: true });
+    expect(await host.nextMessage()).toMatchObject({ game: { state: "won", board: { winner: 0 } } });
+  });
+});

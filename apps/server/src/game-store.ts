@@ -38,6 +38,8 @@ export interface GamePlayer {
 export interface GameSeat {
   /** The player ID of the Player in this Seat, or null if it's empty. */
   playerId: string | null;
+  /** The Player name of the Player who Left this Seat during play, emptying it for the rest of the Game; else null. */
+  leaverName: string | null;
   /** Where each of the Seat's Tokens is. An empty Seat has none. */
   tokens: TokenPosition[];
 }
