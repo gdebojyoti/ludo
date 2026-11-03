@@ -54,11 +54,15 @@ export const lobbyMessages = {
   start: "Start the game",
   waitingForPlayers: "You can start the game once someone joins.",
   waitingForHost: "Waiting for the host to start the game.",
+};
+
+export const leaveMessages = {
   leave: "Leave",
-  confirmLeave: "Leave the game?",
-  confirmLeaveAsHost: "Leave the game? As the host, leaving cancels it for everyone.",
-  confirmLeaveYes: "Yes, leave",
-  confirmLeaveNo: "Stay",
+  confirmInLobby: "Leave the game?",
+  confirmAsHostInLobby: "Leave the game? As the host, leaving cancels it for everyone.",
+  confirmInPlay: "Leave the game? You'll forfeit, your tokens come off the board, and you can't come back.",
+  confirmYes: "Yes, leave",
+  confirmNo: "Stay",
 };
 
 export const boardMessages = {
@@ -69,6 +73,7 @@ export const boardMessages = {
   backToStart: "Back to the start",
   you: "you",
   emptySeat: "Empty seat",
+  left: "left",
   roll: "Roll",
   pickToken: "Pick one of your highlighted tokens to move.",
   rolled: (playerName: string, number: number) => `${playerName} rolled a ${number}.`,

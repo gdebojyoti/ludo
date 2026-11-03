@@ -56,9 +56,9 @@ export const createGameService = (
     const seatsInJoinOrder = giveOutSeats(game.players.length);
     const seats = Array.from({ length: classicRules.seats }, (_, seat): GameSeat => {
       const player = game.players[seatsInJoinOrder.indexOf(seat)];
-      if (!player) return { playerId: null, tokens: [] };
+      if (!player) return { playerId: null, leaverName: null, tokens: [] };
       const tokens = Array.from({ length: classicRules.tokensPerSeat }, () => ({ area: "yard" as const }));
-      return { playerId: player.playerId, tokens };
+      return { playerId: player.playerId, leaverName: null, tokens };
     });
     // `randomInt` is always below the number of Players, so this is one of their Seats.
     const turn = seatsInJoinOrder[randomInt(seatsInJoinOrder.length)] as Seat;
@@ -68,8 +68,7 @@ export const createGameService = (
 
   /** The Board with the Turn passed to the next taken Seat clockwise, not yet Rolled for. */
   const turnPassed = (board: GameBoard): GameBoard => {
-    const takenSeats = board.seats.flatMap(({ playerId }, index) => (playerId === null ? [] : [index]));
-    return { ...board, turn: nextTakenSeat(board.turn, takenSeats), rolled: false };
+    return { ...board, turn: nextTakenSeat(board.turn, takenSeats(board)), rolled: false };
   };
 
   /** The Player's Game in play, with its Board and their Seat at it, if it's their Turn; otherwise why not. */
@@ -130,16 +129,35 @@ export const createGameService = (
   /**
    * Leave: the Player steps out of their active Game for good. A Player who isn't the Host is taken out of the Lobby,
    * opening up their place. The Host Leaving the Lobby cancels the Game, which frees every Player in it and retires
-   * its Game code. Leaving a Game that has started is refused, until Players can forfeit.
+   * its Game code. Any Player Leaving during play forfeits: see `forfeited`.
    */
   const leaveGame = oneAtATime(async (playerId: string): Promise<CommandResult> => {
     const game = await store.findActiveGameByPlayer(playerId);
     if (!game) return { ok: false, reason: "noActiveGame" };
-    if (game.state !== "lobby") return { ok: false, reason: "gameNotInLobby" };
+    if (game.board) return { ok: true, game: await save(forfeited(game, game.board, playerId), playerId) };
     if (game.hostId === playerId) return { ok: true, game: await save({ ...game, state: "cancelled" }) };
     const players = game.players.filter((player) => player.playerId !== playerId);
     return { ok: true, game: await save({ ...game, players }, playerId) };
   });
+
+  /**
+   * The Game in play, with the Player gone from it: their Tokens off the Board, and their Seat empty for the rest of
+   * the Game, which Turns skip. If it was their Turn, it passes. If only one Player remains, they win, ending the Game.
+   * `board` is the Game's own, passed apart only because it's known not to be null.
+   */
+  const forfeited = (game: Game, board: GameBoard, playerId: string): Game => {
+    const leaver = board.seats.findIndex((seat) => seat.playerId === playerId);
+    const leaverName = game.players.find((player) => player.playerId === playerId)?.playerName ?? null;
+    const players = game.players.filter((player) => player.playerId !== playerId);
+    const emptied = { playerId: null, leaverName, tokens: [] };
+    const seats = board.seats.map((seat, index) => (index === leaver ? emptied : seat));
+    const withoutLeaver = { ...board, seats };
+    const [winner, ...others] = takenSeats(withoutLeaver);
+    if (winner !== undefined && others.length === 0) {
+      return { ...game, players, state: "won", board: { ...withoutLeaver, turn: winner, rolled: false, winner } };
+    }
+    return { ...game, players, board: board.turn === leaver ? turnPassed(withoutLeaver) : withoutLeaver };
+  };
 
   /** The Player Rolls on their Turn. If no Token can Move by the Roll, the Turn passes, with the Roll still shown. */
   const roll = oneAtATime(async (playerId: string): Promise<CommandResult> => {
@@ -183,6 +201,11 @@ export const createGameService = (
 };
 
 export type GameService = ReturnType<typeof createGameService>;
+
+/** The Seats with a Player in them, by number. */
+const takenSeats = (board: GameBoard): Seat[] => {
+  return board.seats.flatMap(({ playerId }, index) => (playerId === null ? [] : [index]));
+};
 
 // Runs commands one at a time, each finishing before the next starts. Commands that run side by side could both pass
 // a check before either saves: a double click on Create would create two Games.

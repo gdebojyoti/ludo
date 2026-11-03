@@ -52,6 +52,7 @@ export default function Ludo() {
           error={error}
           onRoll={roll}
           onMove={move}
+          onLeaveGame={leaveGame}
           onBackToStart={backToStart}
         />
       );

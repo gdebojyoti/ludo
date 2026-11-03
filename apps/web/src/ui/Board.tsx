@@ -1,5 +1,12 @@
 import type { CSSProperties } from "react";
-import { classicRules, seatsClockwise, type Seat, type SnapshotBoard, type TokenPosition } from "@ludo/shared";
+import {
+  classicRules,
+  seatsClockwise,
+  type Seat,
+  type SnapshotBoard,
+  type SnapshotSeat,
+  type TokenPosition,
+} from "@ludo/shared";
 import { boardMessages } from "./messages";
 import { seatView, type Cell } from "./seatView";
 
@@ -110,9 +117,13 @@ const gridArea = ([row, column]: Cell, span = 1): CSSProperties => ({
   gridColumn: `${column + 1} / span ${span}`,
 });
 
-/** What a Seat's Yard is labelled with: its Player name, marked if it's the viewer's own, or that it's empty. */
-const seatLabel = (playerName: string | null, isOwn: boolean) => {
+/**
+ * What a Seat's Yard is labelled with: its Player name, marked if it's the viewer's own or its Player Left, or that
+ * it's empty.
+ */
+const seatLabel = ({ playerName, left }: SnapshotSeat, isOwn: boolean) => {
   if (playerName === null) return boardMessages.emptySeat;
+  if (left) return `${playerName} (${boardMessages.left})`;
   return isOwn ? `${playerName} (${boardMessages.you})` : playerName;
 };
 
@@ -193,7 +204,8 @@ export default function Board({ board, disabled, onMove }: Props) {
       >
         {tokensHome(board).map((group) => <div key={group.seat} className="h-1/3">{tokenGroup(group)}</div>)}
       </div>
-      {board.seats.map(({ playerName, tokens }, seat: Seat) => {
+      {board.seats.map((snapshotSeat, seat: Seat) => {
+        const { tokens } = snapshotSeat;
         const { colour, yardCorner } = seatView(seatsClockwise(board.seat, seat));
         return (
           <div key={seat} className="flex p-[8%]" style={{ ...gridArea(yardCorner, yardSize), backgroundColor: colour }}>
@@ -204,7 +216,7 @@ export default function Board({ board, disabled, onMove }: Props) {
               }`}
             >
               <p className="m-0 text-center text-xs leading-tight wrap-anywhere">
-                {seatLabel(playerName, seat === board.seat)}
+                {seatLabel(snapshotSeat, seat === board.seat)}
               </p>
               {/* The Tokens still in the Yard, each on its own. */}
               <div className="grid grid-cols-2 gap-1">

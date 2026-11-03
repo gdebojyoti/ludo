@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { classicRules, type GameSnapshot } from "@ludo/shared";
 import ErrorMessage from "./ErrorMessage";
 import { joinLinkFor } from "./joinLink";
+import LeaveButton from "./LeaveButton";
 import Notice from "./Notice";
-import { lobbyMessages } from "./messages";
+import { leaveMessages, lobbyMessages } from "./messages";
 
 interface Props {
   game: GameSnapshot;
@@ -23,8 +24,6 @@ const copiedFor = 2000;
 
 export default function LobbyScreen({ game, disabled, notice, error, onStartGame, onLeaveGame }: Props) {
   const gameCode = game.gameCode ?? "";
-  // Leave always asks first, so a misclick can't take the Player out, or cancel the Game.
-  const [confirmingLeave, setConfirmingLeave] = useState(false);
   // Which of the copy buttons last worked, while it shows that it did.
   const [copied, setCopied] = useState<Copyable>();
 
@@ -83,23 +82,11 @@ export default function LobbyScreen({ game, disabled, notice, error, onStartGame
         </ol>
       </div>
       {startPrompt()}
-      {confirmingLeave
-        ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="m-0">{game.isHost ? lobbyMessages.confirmLeaveAsHost : lobbyMessages.confirmLeave}</p>
-              <button type="button" className="border px-4 py-2" disabled={disabled} onClick={onLeaveGame}>
-                {lobbyMessages.confirmLeaveYes}
-              </button>
-              <button type="button" className="border px-4 py-2" onClick={() => setConfirmingLeave(false)}>
-                {lobbyMessages.confirmLeaveNo}
-              </button>
-            </div>
-          )
-        : (
-            <button type="button" className="self-start border px-4 py-2" onClick={() => setConfirmingLeave(true)}>
-              {lobbyMessages.leave}
-            </button>
-          )}
+      <LeaveButton
+        disabled={disabled}
+        confirmMessage={game.isHost ? leaveMessages.confirmAsHostInLobby : leaveMessages.confirmInLobby}
+        onLeave={onLeaveGame}
+      />
       <ErrorMessage error={error} />
     </section>
   );

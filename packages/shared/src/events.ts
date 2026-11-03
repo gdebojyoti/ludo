@@ -69,8 +69,10 @@ export interface SnapshotPlayer {
 
 /** One of the Seats at the Board, as every Player sees it. */
 export interface SnapshotSeat {
-  /** The Player name of the Player in this Seat, or null if it's empty. */
+  /** The Player name of the Player in this Seat, or of the Player who Left it; null if nobody has sat in it. */
   playerName: string | null;
+  /** Whether the Seat's Player Left during play, emptying it for the rest of the Game. */
+  left: boolean;
   /** Where each of the Seat's Tokens is. An empty Seat has none. */
   tokens: TokenPosition[];
 }
@@ -120,8 +122,9 @@ export interface ClientToServerEvents {
    */
   startGame: (ack: (reply: Acknowledgement) => void) => void;
   /**
-   * Leaves the Player's Game in the Lobby. A Host Leaving it cancels the Game. Refused if they have no active Game,
-   * or it has started.
+   * Leaves the Player's active Game. A Host Leaving the Lobby cancels the Game. Leaving during play forfeits: the
+   * Player's Tokens come off the Board, their Seat stays empty, the Turn passes if it was theirs, and if only one
+   * Player remains, they win. Refused if they have no active Game.
    */
   leaveGame: (ack: (reply: Acknowledgement) => void) => void;
   /**

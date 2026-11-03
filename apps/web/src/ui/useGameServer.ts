@@ -116,8 +116,8 @@ export const useGameServer = (playerName: string) => {
   // On success the server sends every Player the started Game.
   const startGame = () => send((socket) => socket.emitWithAck("startGame"));
 
-  // On success the server sends the Host the cancelled Game, or any other Player that they have no active Game, and
-  // either goes back to the start screen.
+  // On success the server sends a Host who Leaves the Lobby the cancelled Game. Any other Leaver, in the Lobby or in
+  // play, is sent that they have no active Game. Either goes back to the start screen.
   const leaveGame = () => send((socket) => socket.emitWithAck("leaveGame"));
 
   // On success the server sends every Player the Game with the Roll, and the Turn passed if no Token can Move by it.
