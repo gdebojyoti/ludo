@@ -14,10 +14,74 @@ export const classicRules = {
   seats: 4,
   /** How many Tokens each Seat has, all in its Yard when the Game starts. */
   tokensPerSeat: 4,
+  /** How many Cells the Track has. The Seats' Start cells are spaced evenly round it. */
+  trackCells: 52,
+  /** How many Cells each Home column has, leading from the Track to Home. */
+  homeColumnCells: 5,
+  /** The only Roll that brings a Token out of its Yard. */
+  rollToLeaveYard: 6,
 };
+
+/** How many faces the die has: a Roll is a whole number from 1 up to this. */
+export const dieFaces = 6;
 
 /** A place at the Board, numbered clockwise from 0. A Seat is never a colour (ADR-0006). */
 export type Seat = number;
+
+/**
+ * Where a Token is. Cells are numbered by Seat, never by colour (ADR-0006): the Track's clockwise from Seat 0's Start
+ * cell, and each Home column's from the Track towards Home.
+ */
+export type TokenPosition =
+  | { area: "yard" }
+  | { area: "track"; cell: number }
+  | { area: "homeColumn"; cell: number }
+  | { area: "home" };
+
+/** The Seat's Start cell, on the Track. */
+export const startCell = (seat: Seat): number => seat * (classicRules.trackCells / classicRules.seats);
+
+// A Token's journey, counted in steps from its Start cell: round the Track to the tip of its own arm, just short of
+// the Cell before its Start cell, then up its Home column, then Home.
+const lastTrackStep = classicRules.trackCells - 2;
+const homeStep = lastTrackStep + classicRules.homeColumnCells + 1;
+
+/** How many steps along its Seat's journey a Token out of the Yard is. */
+const stepOf = (seat: Seat, position: Exclude<TokenPosition, { area: "yard" }>): number => {
+  if (position.area === "track") {
+    return (position.cell - startCell(seat) + classicRules.trackCells) % classicRules.trackCells;
+  }
+  if (position.area === "homeColumn") return lastTrackStep + 1 + position.cell;
+  return homeStep;
+};
+
+/** Where a Token of the Seat is, this many steps along its journey. */
+const positionAt = (seat: Seat, step: number): TokenPosition => {
+  if (step <= lastTrackStep) return { area: "track", cell: (startCell(seat) + step) % classicRules.trackCells };
+  if (step < homeStep) return { area: "homeColumn", cell: step - lastTrackStep - 1 };
+  return { area: "home" };
+};
+
+/**
+ * Where a Token of the Seat ends up if it Moves by this Roll, or null if it can't: it's in the Yard and the Roll
+ * isn't the one that brings it out, it's already Home, or the Roll would take it past Home.
+ */
+export const positionAfter = (seat: Seat, position: TokenPosition, roll: number): TokenPosition | null => {
+  if (position.area === "yard") return roll === classicRules.rollToLeaveYard ? positionAt(seat, 0) : null;
+  const step = stepOf(seat, position) + roll;
+  if (position.area === "home" || step > homeStep) return null;
+  return positionAt(seat, step);
+};
+
+/** The Seat's Tokens that can Move by this Roll, by their place in its list of Tokens. */
+export const legalMoves = (seat: Seat, tokens: TokenPosition[], roll: number): number[] => {
+  return tokens.flatMap((position, token) => (positionAfter(seat, position, roll) ? [token] : []));
+};
+
+/** The Seat's Tokens after this one Moves by the Roll, which must be one of its legal Moves. */
+export const moveToken = (seat: Seat, tokens: TokenPosition[], token: number, roll: number): TokenPosition[] => {
+  return tokens.map((position, index) => (index === token ? positionAfter(seat, position, roll) ?? position : position));
+};
 
 /**
  * The Seats given out when a Game starts, to its Players in the order they joined: the 1st gets Seat 0, the 2nd the

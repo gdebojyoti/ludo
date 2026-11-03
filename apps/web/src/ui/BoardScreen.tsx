@@ -6,22 +6,39 @@ import { boardMessages } from "./messages";
 
 interface Props {
   board: SnapshotBoard;
+  disabled: boolean;
   /** Something that happened without the Player doing it, such as opening a Join link while in this Game. */
   notice: string | undefined;
   error: string | undefined;
+  onRoll: () => void;
+  onMove: (token: number) => void;
 }
 
-export default function BoardScreen({ board, notice, error }: Props) {
+export default function BoardScreen({ board, disabled, notice, error, onRoll, onMove }: Props) {
   // Players are named by their Player name, never by colour, as each sees the Seats in different colours.
-  const turnPlayerName = board.seats[board.turn]?.playerName ?? "";
+  const playerName = (seat: number) => board.seats[seat]?.playerName ?? "";
+  const turnPlayerName = playerName(board.turn);
+  const isOwnTurn = board.turn === board.seat;
+  const { lastRoll, lastMove } = board;
 
   return (
     <section className="flex flex-col gap-4">
       <Notice notice={notice} />
       <p className="m-0" aria-live="polite">
-        {board.turn === board.seat ? boardMessages.yourTurn(turnPlayerName) : boardMessages.turnOf(turnPlayerName)}
+        {isOwnTurn ? boardMessages.yourTurn(turnPlayerName) : boardMessages.turnOf(turnPlayerName)}
       </p>
-      <Board board={board} />
+      {/* The Move first, as it came before the Roll it's shown with, unless a Roll with no legal Move followed. */}
+      <div className="flex flex-col gap-1" aria-live="polite">
+        {lastMove && <p className="m-0">{boardMessages.moved(playerName(lastMove.seat), lastMove)}</p>}
+        {lastRoll && <p className="m-0">{boardMessages.rolled(playerName(lastRoll.seat), lastRoll.number)}</p>}
+      </div>
+      {isOwnTurn && !board.rolled && (
+        <button type="button" className="self-start border px-4 py-2" disabled={disabled} onClick={onRoll}>
+          {boardMessages.roll}
+        </button>
+      )}
+      {board.moves.length > 0 && <p className="m-0">{boardMessages.pickToken}</p>}
+      <Board board={board} disabled={disabled} onMove={onMove} />
       <ErrorMessage error={error} />
     </section>
   );
