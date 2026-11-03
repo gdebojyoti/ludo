@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ludo · Board &amp; tokens</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.card{border-radius:20px;padding:22px 24px;box-sizing:border-box;background:#3B1218;border:1px solid rgba(247,240,223,.12);display:flex;flex-direction:column;gap:14px}
+.k{font:700 13px Figtree,sans-serif;letter-spacing:0.04em;color:#F3CF7E}
+.spec{font:400 12px/1.5 Figtree,sans-serif;color:#D9C3A5}
+.row{display:flex;gap:22px;align-items:flex-end;flex-wrap:wrap}
+.fig{display:flex;flex-direction:column;align-items:center;gap:8px;width:92px}
+.fc{font:500 11px/1.3 Figtree,sans-serif;color:#F7F0DF;text-align:center}
+.z{zoom:2}
+.tile{display:grid;grid-template-columns:23px;grid-template-rows:23px;padding:1px;background:#CDBB94;border-radius:2px}
+.cell{background:#F7F0DF;position:relative;display:flex;align-items:center;justify-content:center}
+.c-s0,.y-s0,.t-s0{background:#D2462E}.c-s1,.y-s1,.t-s1{background:#1F7A4D}.c-s2,.y-s2,.t-s2{background:#E3A21A}.c-s3,.y-s3,.t-s3{background:#2F4A9E}
+.star{width:15px;height:15px;fill:none;stroke:#9A8456;stroke-width:1.7;stroke-linejoin:round}
+.c-s0 .star,.c-s1 .star,.c-s2 .star,.c-s3 .star{stroke:#F7F0DF}
+.cell.mv{background:#F3CF7E;box-shadow:inset 0 0 0 1.5px #B8892B}
+.yard{width:143px;height:143px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:4px}
+.yard.empty{background:#E3D3AE}
+.yin{width:104px;height:104px;flex:none;box-sizing:border-box;background:#F7F0DF;border-radius:50%;display:grid;grid-template-columns:repeat(2,34px);grid-template-rows:repeat(2,34px);place-content:center;gap:4px}
+.yard.empty .yin{background:transparent;border:2px dashed #B09A6C}
+.slot{width:34px;height:34px;border-radius:50%;background:#EADBB9;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+.yard.empty .slot{background:transparent;border:1.5px dashed #B09A6C}
+.tok{flex:none;width:17px;height:17px;border-radius:50%;box-sizing:border-box;border:2px solid #FFF8E8;box-shadow:0 1px 2px rgba(40,10,10,.5);position:relative;display:block}
+.tok::after{content:"";position:absolute;inset:2px;border-radius:50%;border:1.5px solid rgba(255,248,232,.75)}
+.slot .tok{width:22px;height:22px}
+.grp{position:absolute;inset:0;z-index:2}
+.grp .tok{position:absolute;border-width:1.5px;box-shadow:0 1px 2px rgba(40,10,10,.55)}
+.g2 .tok,.g3 .tok,.g4 .tok{width:11px;height:11px}
+.g2 .tok::after,.g3 .tok::after,.g4 .tok::after{inset:1px;border-width:1px}
+.g2 .tok{left:50%;top:50%}
+.g2 .tok:nth-child(1){margin:-11.4px 0 0 -8.45px}.g2 .tok:nth-child(2){margin:0.4px 0 0 -2.55px}
+.g3 .tok:nth-child(1){left:50%;top:0;margin-left:-5.5px}.g3 .tok:nth-child(2){left:0;bottom:0}.g3 .tok:nth-child(3){right:0;bottom:0}
+.g4 .tok:nth-child(1){left:0;top:0}.g4 .tok:nth-child(2){right:0;top:0}.g4 .tok:nth-child(3){left:0;bottom:0}.g4 .tok:nth-child(4){right:0;bottom:0}
+.chipring{position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:2}
+.chip-in{width:calc(100% - 6px);height:calc(100% - 6px);border-radius:50%;background:#3B1218;color:#F7F0DF;font:700 9px/1 Figtree,sans-serif;letter-spacing:-0.02em;display:flex;align-items:center;justify-content:center}
+.chip-in.mine{background:#D2462E;color:#FFFFFF}
+.tok.go{box-shadow:0 0 0 2px #3B1218,0 3px 4px rgba(40,10,10,.55);transform:translateY(-1.5px)}
+.grp .tok.go{box-shadow:0 0 0 1.5px #3B1218,0 2px 3px rgba(40,10,10,.55);transform:translateY(-1px)}
+.slot .tok.go{box-shadow:0 0 0 2px #3B1218,0 0 0 5px #F3CF7E,0 5px 7px rgba(20,5,5,.6);transform:translateY(-2px)}
+.ctr{width:70px;height:70px;position:relative;background:#F7F0DF}
+.htok{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;box-sizing:border-box;border:1.5px solid #FFF8E8;box-shadow:0 1px 2px rgba(40,10,10,.55)}
+.htok::after{content:"";position:absolute;inset:1px;border-radius:50%;border:1px solid rgba(255,248,232,.75)}
+</style>
+</helmet>
+<div style="width: 760px; height: 1380px; box-sizing: border-box; background: #2A0C11; font-family: Figtree, sans-serif; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: baseline; justify-content: space-between">
+<h1 style="margin: 0; font-family: Marcellus, serif; font-weight: 400; font-size: 28px; color: #F7F0DF">Board &amp; tokens</h1>
+<span style="font-size: 13px; color: #D9C3A5">Cells and tokens shown at 2× · yards at 1×</span>
+</div>
+
+<section class="card">
+<span class="k">Cells</span>
+<div class="row">
+<div class="fig"><div class="z"><div class="tile"><div class="cell"></div></div></div><span class="fc">Track</span></div>
+<div class="fig"><div class="z"><div class="tile"><div class="cell"><svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"></path></svg></div></div></div><span class="fc">Star cell (safe)</span></div>
+<div class="fig"><div class="z"><div class="tile"><div class="cell c-s0"><svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"></path></svg></div></div></div><span class="fc">Start cell (safe)</span></div>
+<div class="fig"><div class="z"><div class="tile"><div class="cell c-s1"></div></div></div><span class="fc">Home column</span></div>
+<div class="fig"><div class="z"><div class="tile"><div class="cell mv"></div></div></div><span class="fc">Can move from here</span></div>
+</div>
+<span class="spec">About 22.7px square on a 360px board · 1px board lines · star 15px, brown on ivory and ivory on seat colours · move cells only appear on your turn, after your roll.</span>
+</section>
+
+<section class="card">
+<span class="k">Tokens</span>
+<div class="row">
+<div class="fig"><div class="z"><div class="slot"><span class="tok t-s0"></span></div></div><span class="fc">In the Yard · 22</span></div>
+<div class="fig"><div class="z"><div class="tile"><div class="cell"><span class="tok t-s1"></span></div></div></div><span class="fc">On the track · 17</span></div>
+<div class="fig"><div class="z"><div class="tile"><div class="cell mv"><span class="tok t-s0 go"></span></div></div></div><span class="fc">Yours, can move</span></div>
+<div class="fig"><div class="z"><div class="slot"><span class="tok t-s0 go"></span></div></div><span class="fc">Yours in Yard, can move</span></div>
+<div class="fig"><div class="z"><div class="tile"><div class="cell" style="background: #D2462E"><span class="htok t-s0" style="left: 50%; top: 50%"></span></div></div></div><span class="fc">In Home · 10</span></div>
+</div>
+<span class="spec">Seat colour fill · cream rim (2px, 1.5px on small tokens) · inner ring · always fully opaque · your movable tokens get a maroon ring and lift slightly.</span>
+</section>
+
+<section class="card">
+<span class="k">Stacks · two or more tokens on one cell</span>
+<div class="row">
+<div class="fig"><div class="z"><div class="tile"><div class="cell"><div class="grp g2"><span class="tok t-s0"></span><span class="tok t-s0"></span></div></div></div></div><span class="fc">2 · diagonal pair</span></div>
+<div class="fig"><div class="z"><div class="tile"><div class="cell"><div class="grp g3"><span class="tok t-s1"></span><span class="tok t-s1"></span><span class="tok t-s3"></span></div></div></div></div><span class="fc">3 · triangle</span></div>
+<div class="fig"><div class="z"><div class="tile"><div class="cell"><div class="grp g4"><span class="tok t-s0"></span><span class="tok t-s0"></span><span class="tok t-s1"></span><span class="tok t-s1"></span></div></div></div></div><span class="fc">4 · 2×2</span></div>
+<div class="fig"><div class="z"><div class="tile"><div class="cell"><div class="chipring" style="background: conic-gradient(#1F7A4D 0% 40%, #E3A21A 40% 60%, #2F4A9E 60% 100%)"><span class="chip-in">5</span></div></div></div></div><span class="fc">5+ · count chip</span></div>
+<div class="fig"><div class="z"><div class="tile"><div class="cell mv"><div class="chipring" style="background: conic-gradient(#D2462E 0% 20%, #E3A21A 20% 60%, #2F4A9E 60% 100%)"><span class="chip-in mine">5</span></div></div></div></div><span class="fc">5+ with yours, can move</span></div>
+</div>
+<span class="spec">2–4 tokens shrink to 11px · 5 or more become a 20px chip whose ring is split by each player’s share · nothing ever draws outside its cell · players tap the cell, not a single token.</span>
+</section>
+
+<div style="display: flex; gap: 16px; flex: 1">
+<section class="card" style="flex: 1">
+<span class="k">Yards</span>
+<div class="row" style="gap: 18px">
+<div class="fig" style="width: auto"><div class="yard y-s2"><div class="yin"><div class="slot"><span class="tok t-s2"></span></div><div class="slot"><span class="tok t-s2"></span></div><div class="slot"></div><div class="slot"></div></div></div><span class="fc">2 tokens still in the Yard</span></div>
+<div class="fig" style="width: auto"><div class="yard empty"><div class="yin"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div></div></div><span class="fc">Empty seat</span></div>
+</div>
+<span class="spec">104px ivory circle with four 34px slots · an empty seat drops its colour from the Yard, Home column, start cell and Home triangle.</span>
+</section>
+<section class="card" style="flex: 1">
+<span class="k">Home</span>
+<div class="row" style="gap: 18px; align-items: center">
+<div class="z"><div class="ctr" role="img" aria-label="Home with 4, 3, 2 and 1 tokens"><svg viewBox="0 0 3 3" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,0 1.5,1.5 0,3" fill="#1F7A4D"></polygon><polygon points="0,0 3,0 1.5,1.5" fill="#E3A21A"></polygon><polygon points="3,0 3,3 1.5,1.5" fill="#2F4A9E"></polygon><polygon points="0,3 3,3 1.5,1.5" fill="#D2462E"></polygon><circle cx="1.5" cy="1.5" r="0.32" fill="#F7F0DF" stroke="#E8B54A" stroke-width="0.08"></circle></svg>
+<span class="htok t-s1" style="left: 10%; top: 32.86%"></span><span class="htok t-s1" style="left: 10%; top: 50%"></span><span class="htok t-s1" style="left: 10%; top: 67.14%"></span><span class="htok t-s1" style="left: 27.14%; top: 50%"></span>
+<span class="htok t-s0" style="left: 32.86%; top: 90%"></span><span class="htok t-s0" style="left: 50%; top: 90%"></span><span class="htok t-s0" style="left: 67.14%; top: 90%"></span>
+<span class="htok t-s2" style="left: 41.43%; top: 10%"></span><span class="htok t-s2" style="left: 58.57%; top: 10%"></span>
+<span class="htok t-s3" style="left: 90%; top: 50%"></span>
+</div></div>
+<div style="display: flex; flex-direction: column; gap: 4px; font: 500 11px/1.5 Figtree, sans-serif; color: #F7F0DF"><span>Left · 4</span><span>Bottom · 3</span><span>Top · 2</span><span>Right · 1</span></div>
+</div>
+<span class="spec">Finished tokens sit in their seat’s triangle: up to 3 along the base, the 4th above the middle one · the player card also says “N Home”.</span>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":1380}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

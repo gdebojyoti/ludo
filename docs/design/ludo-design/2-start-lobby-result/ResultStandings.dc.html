@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ludo · Result · Final board count</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Figtree:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.btn{width:100%;height:54px;border:none;border-radius:14px;background:#E8B54A;color:#3B1218;font:600 16px Figtree,sans-serif;box-shadow:inset 0 -4px 0 #C9952E;cursor:pointer}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(247,240,223,.07);border:1px solid rgba(247,240,223,.16)}
+.av{width:36px;height:36px;flex:none;border-radius:50%;border:2px solid #F7F0DF;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font:600 15px Marcellus,serif;color:#FFF8E8}
+.nm{font-size:15px;font-weight:600;line-height:1.2;overflow-wrap:anywhere}
+.sub{font-size:12px;color:#D9C3A5}
+.pips{display:flex;gap:4px;flex:none}
+.pips span{width:12px;height:12px;border-radius:50%;box-sizing:border-box;border:1.5px solid #F7F0DF}
+.t-s0{background:#D2462E}.t-s1{background:#1F7A4D}.t-s2{background:#E3A21A}.t-s3{background:#2F4A9E}
+.pips .no{background:transparent;border:1.5px solid rgba(247,240,223,.4)}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #3B1218; color: #F7F0DF; font-family: Figtree, sans-serif; display: flex; flex-direction: column; padding: 14px 20px 36px; gap: 22px">
+<header style="display: flex; align-items: center; gap: 12px; height: 44px">
+<span style="font-family: Marcellus, serif; font-size: 22px; letter-spacing: 0.08em">LUDO</span>
+<span style="width: 1px; height: 20px; background: rgba(247,240,223,.3)"></span>
+<span style="font-size: 13px; color: #D9C3A5">Game over</span>
+</header>
+<section style="border-radius: 22px; background: #F7F0DF; color: #3B1218; padding: 26px 22px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; border-top: 8px solid #1F7A4D">
+<span style="font-size: 12px; font-weight: 700; letter-spacing: 0.14em; color: #6E5340">THE GAME IS WON</span>
+<span style="width: 72px; height: 72px; border-radius: 50%; background: #1F7A4D; border: 3px solid #FFF8E8; box-shadow: 0 0 0 3px #E8B54A; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font: 400 30px Marcellus, serif; color: #FFF8E8">H</span>
+<h1 style="margin: 0; font-family: Marcellus, serif; font-weight: 400; font-size: 30px; line-height: 1.15">Hermione Weasley wins</h1>
+<p style="margin: 0; font-size: 14px; color: #6E5340">All four tokens reached Home first.</p>
+</section>
+<section style="display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: #D9C3A5">TOKENS HOME AT THE END</span>
+<div class="row"><span class="av t-s0">N</span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span class="nm">Neville Lovegood</span><span class="sub">You</span></span><span class="pips" role="img" aria-label="2 of 4 tokens Home"><span class="t-s0"></span><span class="t-s0"></span><span class="no"></span><span class="no"></span></span></div>
+<div class="row"><span class="av t-s2" style="color: #3B1218">B</span><span style="flex: 1; min-width: 0"><span class="nm">Bartemius Shacklebolt</span></span><span class="pips" role="img" aria-label="1 of 4 tokens Home"><span class="t-s2"></span><span class="no"></span><span class="no"></span><span class="no"></span></span></div>
+<div class="row"><span class="av t-s3">L</span><span style="flex: 1; min-width: 0"><span class="nm">Luna Diggory</span></span><span class="pips" role="img" aria-label="0 of 4 tokens Home"><span class="no"></span><span class="no"></span><span class="no"></span><span class="no"></span></span></div>
+</section>
+<div style="flex: 1"></div>
+<button class="btn">Back to start</button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

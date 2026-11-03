@@ -4,11 +4,10 @@ import {
   seatsClockwise,
   type Seat,
   type SnapshotBoard,
-  type SnapshotSeat,
   type TokenPosition,
 } from "@ludo/shared";
 import { boardMessages } from "./messages";
-import { seatView, type Cell } from "./seatView";
+import { emptySeatColour, seatView, type Cell } from "./seatView";
 
 interface Props {
   board: SnapshotBoard;
@@ -26,6 +25,9 @@ const size = 15;
 /** How many Cells across each Yard is. */
 const yardSize = 6;
 
+/** How many Cells on from its Start cell each Star cell is, along the Track. */
+const starCellOffset = 8;
+
 // The viewer's own Seat sits bottom-left, with its Home column up the bottom arm, and its stretch of the Track
 // starting beside it: its Start cell, then each Cell clockwise up to the next Seat's Start cell. Each Seat clockwise
 // from theirs has these turned a quarter turn further clockwise about the centre.
@@ -34,6 +36,7 @@ const ownTrackStretch: Cell[] = [
   [13, 6], [12, 6], [11, 6], [10, 6], [9, 6], [8, 5], [8, 4], [8, 3], [8, 2], [8, 1], [8, 0], [7, 0], [6, 0],
 ];
 const ownStartCell = ownTrackStretch[0] as Cell;
+const ownStarCell = ownTrackStretch[starCellOffset] as Cell;
 
 const turnClockwise = ([row, column]: Cell, quarterTurns: number): Cell => {
   if (quarterTurns === 0) return [row, column];
@@ -47,22 +50,19 @@ const isOnArm = (index: number) => index >= yardSize && index < size - yardSize;
 const crossCells = Array.from({ length: size * size }, (_, index): Cell => [Math.floor(index / size), index % size])
   .filter(([row, column]) => isOnArm(row) !== isOnArm(column));
 
-/** The Home columns and Start cells, each in its Seat's colour. */
-const colouredCells = Array.from({ length: classicRules.seats }, (_, quarterTurns) => {
-  const { colour } = seatView(quarterTurns);
-  return [...ownHomeColumn, ownStartCell].map((cell) => ({ cell: turnClockwise(cell, quarterTurns), colour }));
-}).flat();
+const cellKey = ([row, column]: Cell) => `${row},${column}`;
 
-const sameCell = (cell: Cell | null, other: Cell) => cell?.[0] === other[0] && cell[1] === other[1];
+const quarterTurns = Array.from({ length: classicRules.seats }, (_, turns) => turns);
 
-const cellColour = (cell: Cell) => colouredCells.find((coloured) => sameCell(coloured.cell, cell))?.colour ?? "white";
+/** The Home columns and Start cells, each in the colour of the Seat this many Seats clockwise from the viewer's. */
+const colouredCells = new Map(quarterTurns.flatMap((turns) =>
+  [...ownHomeColumn, ownStartCell].map((cell) => [cellKey(turnClockwise(cell, turns)), turns] as const),
+));
 
-// Home's four quarters, clockwise from the top, each in the colour of the Seat whose Home column leads into it. The
-// viewer's own comes in from the bottom, two quarters on from the top, and each Seat clockwise from theirs one more.
-const homeColours = Array.from({ length: 4 }, (_, quarter) => seatView((quarter + 2) % 4).colour);
-const homeBackground = `conic-gradient(from -45deg, ${
-  homeColours.map((colour, index) => `${colour} ${index * 25}% ${(index + 1) * 25}%`).join(", ")
-})`;
+/** The Cells drawn with a star: the Start cells, and the Star cells. */
+const starredCells = new Set(quarterTurns.flatMap((turns) =>
+  [ownStartCell, ownStarCell].map((cell) => cellKey(turnClockwise(cell, turns))),
+));
 
 /** Where a Token of the Seat is drawn, if it's on the Track or in its Home column, for a viewer in this Seat. */
 const gridCell = (position: TokenPosition, seat: Seat, viewer: Seat): Cell | null => {
@@ -78,38 +78,11 @@ const gridCell = (position: TokenPosition, seat: Seat, viewer: Seat): Cell | nul
   return null;
 };
 
-/** One Seat's Tokens that share a place on the Board, by their place in the Seat's list of Tokens. */
-interface TokenGroup {
+/** One Token, by its Seat and its place in the Seat's list of Tokens. */
+interface PlacedToken {
   seat: Seat;
-  tokens: number[];
+  token: number;
 }
-
-/** The Tokens on each Cell of the cross, grouped by Seat. */
-const tokensOnCross = (board: SnapshotBoard) => {
-  const places: { cell: Cell; groups: TokenGroup[] }[] = [];
-  board.seats.forEach(({ tokens }, seat) => {
-    tokens.forEach((position, token) => {
-      const cell = gridCell(position, seat, board.seat);
-      if (!cell) return;
-      let place = places.find((place) => sameCell(place.cell, cell));
-      if (!place) places.push(place = { cell, groups: [] });
-      const group = place.groups.find((group) => group.seat === seat);
-      if (group) group.tokens.push(token);
-      else place.groups.push({ seat, tokens: [token] });
-    });
-  });
-  return places;
-};
-
-/** The Tokens Home, grouped by Seat. */
-const tokensHome = (board: SnapshotBoard): TokenGroup[] => {
-  return board.seats
-    .map(({ tokens }, seat) => ({
-      seat,
-      tokens: tokens.flatMap((position, token) => (position.area === "home" ? [token] : [])),
-    }))
-    .filter((group) => group.tokens.length > 0);
-};
 
 /** Where a square of Cells goes in the grid, from its top-left Cell. */
 const gridArea = ([row, column]: Cell, span = 1): CSSProperties => ({
@@ -117,117 +90,222 @@ const gridArea = ([row, column]: Cell, span = 1): CSSProperties => ({
   gridColumn: `${column + 1} / span ${span}`,
 });
 
-/**
- * What a Seat's Yard is labelled with: its Player name, marked if it's the viewer's own or its Player Left, or that
- * it's empty.
- */
-const seatLabel = ({ playerName, left }: SnapshotSeat, isOwn: boolean) => {
-  if (playerName === null) return boardMessages.emptySeat;
-  if (left) return `${playerName} (${boardMessages.left})`;
-  return isOwn ? `${playerName} (${boardMessages.you})` : playerName;
-};
+// Home's quarters, each a triangle pointing in from the side its Seat's Home column comes from, by how many Seats
+// clockwise from the viewer's that Seat is: the viewer's own from the bottom, then left, top and right.
+const homeTriangles = ["0,3 3,3 1.5,1.5", "0,0 1.5,1.5 0,3", "0,0 3,0 1.5,1.5", "3,0 3,3 1.5,1.5"];
 
-/** Marks the Cell the last Move came from with a dotted outline, and the one it went to with a dashed one. */
-const lastMoveOutline = (isFrom: boolean, isTo: boolean) => {
-  if (isTo) return "outline-3 -outline-offset-3 outline-dashed outline-black";
-  if (isFrom) return "outline-2 -outline-offset-2 outline-dotted outline-black";
-  return "";
-};
+// Where Tokens Home sit in their Seat's quarter, in a 70-unit square: across it, then in from its outer edge.
+const homeSpots: [across: number, inFromEdge: number][][] = [
+  [],
+  [[35, 7]],
+  [[29, 7], [41, 7]],
+  [[23, 7], [35, 7], [47, 7]],
+  [[23, 7], [35, 7], [47, 7], [35, 19]],
+];
+const homeSpotTurns: ((across: number, inFromEdge: number) => [x: number, y: number])[] = [
+  (across, inFromEdge) => [across, 70 - inFromEdge],
+  (across, inFromEdge) => [inFromEdge, across],
+  (across, inFromEdge) => [across, inFromEdge],
+  (across, inFromEdge) => [70 - inFromEdge, across],
+];
+const homePercent = (units: number) => `${(units / 70) * 100}%`;
 
-const tokenClassName = "flex aspect-square h-full max-h-6 items-center justify-center rounded-full border " +
-  "border-black p-0 text-[10px] leading-none font-bold";
+const starIcon = (onColour: boolean) => (
+  <svg className={`ludo-star ${onColour ? "ludo-star-on-colour" : ""}`} viewBox="0 0 24 24" aria-hidden>
+    <path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" />
+  </svg>
+);
 
 export default function Board({ board, disabled, onMove }: Props) {
-  const { lastMove } = board;
-  const lastMoveFrom = lastMove && gridCell(lastMove.from, lastMove.seat, board.seat);
-  const lastMoveTo = lastMove && gridCell(lastMove.to, lastMove.seat, board.seat);
+  const viewer = board.seat;
+  const fromViewer = (seat: Seat) => seatsClockwise(viewer, seat);
+  const colourOf = (seat: Seat) => seatView(fromViewer(seat)).colour;
+  const playerName = (seat: Seat) => board.seats[seat]?.playerName ?? "";
+  const isMovable = ({ seat, token }: PlacedToken) => seat === viewer && board.moves.includes(token);
+  // The Seat this many Seats clockwise from the viewer's.
+  const seatAt = (seatsFromViewer: number) => (viewer + seatsFromViewer) % classicRules.seats;
+  const isEmptySeat = (seat: Seat) => {
+    const snapshotSeat = board.seats[seat];
+    return !snapshotSeat || snapshotSeat.playerName === null || snapshotSeat.left;
+  };
 
-  // A Seat's Tokens in one place, shown as one Token with how many there are. The viewer's own are a button while
-  // any of them can Move: they'd all end up in the same place, so it Moves the first.
-  const tokenGroup = ({ seat, tokens }: TokenGroup) => {
-    const { colour } = seatView(seatsClockwise(board.seat, seat));
-    const count = tokens.length > 1 ? tokens.length : null;
-    const movable = seat === board.seat ? tokens.find((token) => board.moves.includes(token)) : undefined;
-    if (movable === undefined) {
-      const playerName = board.seats[seat]?.playerName ?? "";
-      return (
-        <span
-          key={seat}
-          className={tokenClassName}
-          style={{ backgroundColor: colour }}
-          title={boardMessages.tokens(playerName, tokens.length)}
-        >
-          {count}
-        </span>
-      );
-    }
+  // The Tokens on each Cell of the cross, in Seat order clockwise from the viewer's.
+  const tokensOnCells = new Map<string, PlacedToken[]>();
+  board.seats.forEach(({ tokens }, seat) => tokens.forEach((position, token) => {
+    const cell = gridCell(position, seat, viewer);
+    if (!cell) return;
+    const key = cellKey(cell);
+    tokensOnCells.set(key, [...(tokensOnCells.get(key) ?? []), { seat, token }]);
+  }));
+  tokensOnCells.forEach((placed) => placed.sort((a, b) => fromViewer(a.seat) - fromViewer(b.seat)));
+
+  // Players tap a Cell, not a Token, so it's the Cell that's described.
+  const describe = (placed: PlacedToken[]) => {
+    const seats = [...new Set(placed.map(({ seat }) => seat))];
+    return boardMessages.tokensHere(seats.map((seat) => ({
+      playerName: playerName(seat),
+      isOwn: seat === viewer,
+      count: placed.filter((token) => token.seat === seat).length,
+    })));
+  };
+
+  const tokenSpan = (placed: PlacedToken, index: number) => (
+    <span
+      key={index}
+      className={`ludo-token ${isMovable(placed) ? "ludo-token-movable" : ""}`}
+      style={{ backgroundColor: colourOf(placed.seat) }}
+    />
+  );
+
+  // 1 Token full size; 2 to 4 smaller, together; 5 or more as a count, ringed in each Seat's share.
+  const tokensDrawing = (placed: PlacedToken[], movable: boolean) => {
+    if (placed.length === 1) return tokenSpan(placed[0] as PlacedToken, 0);
+    if (placed.length <= 4) return <div className={`ludo-stack ludo-stack-${placed.length}`}>{placed.map(tokenSpan)}</div>;
+    let from = 0;
+    const shares = placed.reduce<{ seat: Seat; count: number }[]>((shares, { seat }) => {
+      const last = shares.at(-1);
+      if (last?.seat === seat) last.count++;
+      else shares.push({ seat, count: 1 });
+      return shares;
+    }, []);
+    const ring = shares.map(({ seat, count }) => {
+      const to = from + (count / placed.length) * 100;
+      const stop = `${colourOf(seat)} ${from}% ${to}%`;
+      from = to;
+      return stop;
+    });
     return (
-      <button
-        key={seat}
-        type="button"
-        // Unlike the black outlines that mark the last Move, so the two can't be mixed up.
-        className={`${tokenClassName} cursor-pointer ring-3 ring-white ring-inset motion-safe:animate-bounce`}
-        style={{ backgroundColor: colour }}
-        aria-label={boardMessages.moveToken(tokens.length)}
-        disabled={disabled}
-        onClick={() => onMove(movable)}
-      >
-        {count}
-      </button>
+      <div className="ludo-chip" style={{ background: `conic-gradient(${ring.join(", ")})` }}>
+        <span className={`ludo-chip-count ${movable ? "ludo-chip-count-movable" : ""}`}>{placed.length}</span>
+      </div>
     );
   };
 
-  return (
-    <div
-      className="grid aspect-square w-full max-w-lg border"
-      style={{ gridTemplateColumns: `repeat(${size}, 1fr)`, gridTemplateRows: `repeat(${size}, 1fr)` }}
-    >
-      {crossCells.map((cell) => (
-        <div
-          key={cell.join()}
-          className={`border border-black/30 ${
-            lastMoveOutline(sameCell(lastMoveFrom, cell), sameCell(lastMoveTo, cell))
-          }`}
-          style={{ ...gridArea(cell), backgroundColor: cellColour(cell) }}
-        />
-      ))}
-      {tokensOnCross(board).map(({ cell, groups }) => (
-        <div key={cell.join()} className="flex items-center justify-center gap-px p-[10%]" style={gridArea(cell)}>
-          {groups.map(tokenGroup)}
-        </div>
-      ))}
+  const crossCell = (cell: Cell) => {
+    const key = cellKey(cell);
+    const placed = tokensOnCells.get(key) ?? [];
+    const colourTurns = colouredCells.get(key);
+    // An empty Seat's Home column and Start cell are neutral, like its Yard.
+    const seatColour = colourTurns === undefined
+      ? undefined
+      : isEmptySeat(seatAt(colourTurns)) ? emptySeatColour : seatView(colourTurns).colour;
+    const style = { ...gridArea(cell), ...(seatColour ? { backgroundColor: seatColour } : {}) };
+    const content = (
+      <>
+        {placed.length < 2 && starredCells.has(key) && starIcon(seatColour !== undefined && seatColour !== emptySeatColour)}
+        {placed.length > 0 && tokensDrawing(placed, placed.some(isMovable))}
+      </>
+    );
+    // Any of the viewer's Tokens here that can Move would end up in the same place, so the Cell Moves the first.
+    const movable = placed.find(isMovable);
+    if (movable) {
+      return (
+        <button
+          key={key}
+          type="button"
+          // Its own colour gives way to gold, which marks a place the viewer can Move from.
+          className="ludo-cell ludo-cell-movable"
+          style={{ ...style, backgroundColor: undefined }}
+          aria-label={boardMessages.moveFromHere(describe(placed))}
+          disabled={disabled}
+          onClick={() => onMove(movable.token)}
+        >
+          {content}
+        </button>
+      );
+    }
+    return (
       <div
-        className={`flex flex-wrap content-center items-center justify-center gap-1 border border-black/30 p-[10%] ${
-          lastMoveOutline(false, lastMove?.to.area === "home")
-        }`}
-        style={{ ...gridArea([yardSize, yardSize], size - 2 * yardSize), background: homeBackground }}
+        key={key}
+        className="ludo-cell"
+        style={style}
+        role={placed.length ? "img" : undefined}
+        aria-label={placed.length ? describe(placed) : undefined}
       >
-        {tokensHome(board).map((group) => <div key={group.seat} className="h-1/3">{tokenGroup(group)}</div>)}
+        {content}
       </div>
-      {board.seats.map((snapshotSeat, seat: Seat) => {
-        const { tokens } = snapshotSeat;
-        const { colour, yardCorner } = seatView(seatsClockwise(board.seat, seat));
-        return (
-          <div key={seat} className="flex p-[8%]" style={{ ...gridArea(yardCorner, yardSize), backgroundColor: colour }}>
-            {/* The Seat whose Turn it is is outlined. */}
-            <div
-              className={`flex flex-1 flex-col items-center justify-center gap-2 bg-white p-1 ${
-                board.turn === seat ? "outline-4 outline-black" : ""
-              }`}
-            >
-              <p className="m-0 text-center text-xs leading-tight wrap-anywhere">
-                {seatLabel(snapshotSeat, seat === board.seat)}
-              </p>
-              {/* The Tokens still in the Yard, each on its own. */}
-              <div className="grid grid-cols-2 gap-1">
-                {tokens.map((position, token) => position.area === "yard" && (
-                  <div key={token} className="size-4 sm:size-6">{tokenGroup({ seat, tokens: [token] })}</div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-      })}
+    );
+  };
+
+  const yard = (seat: Seat) => {
+    const { colour, yardCorner } = seatView(fromViewer(seat));
+    const inYard = (board.seats[seat]?.tokens ?? []).flatMap((position, token) =>
+      position.area === "yard" ? [{ seat, token }] : [],
+    );
+    const empty = isEmptySeat(seat);
+    const label = empty
+      ? boardMessages.emptySeat
+      : boardMessages.yardOf(playerName(seat), seat === viewer, inYard.length);
+    const slots = (
+      <div className="ludo-yard-inner">
+        {quarterTurns.map((slot) => (
+          <div key={slot} className="ludo-slot">{inYard[slot] && tokenSpan(inYard[slot], slot)}</div>
+        ))}
+      </div>
+    );
+    const className = `ludo-yard ${empty ? "ludo-yard-empty" : ""}`;
+    const style = { ...gridArea(yardCorner, yardSize), ...(empty ? {} : { backgroundColor: colour }) };
+    const movable = inYard.find(isMovable);
+    if (movable) {
+      return (
+        <button
+          key={`yard-${seat}`}
+          type="button"
+          className={`${className} ludo-yard-movable`}
+          style={style}
+          aria-label={boardMessages.moveFromHere(label)}
+          disabled={disabled}
+          onClick={() => onMove(movable.token)}
+        >
+          {slots}
+        </button>
+      );
+    }
+    return <div key={`yard-${seat}`} className={className} style={style} role="img" aria-label={label}>{slots}</div>;
+  };
+
+  const homeCounts = quarterTurns.map((turns) => {
+    const seat = seatAt(turns);
+    return {
+      seat,
+      turns,
+      count: (board.seats[seat]?.tokens ?? []).filter((position) => position.area === "home").length,
+    };
+  });
+  const homeLabel = boardMessages.homeLabel(
+    homeCounts
+      .filter(({ seat }) => !isEmptySeat(seat))
+      .map(({ seat, count }) => ({ playerName: playerName(seat), isOwn: seat === viewer, count })),
+  );
+
+  return (
+    <div className="ludo-board">
+      {quarterTurns.map((turns) => yard(seatAt(turns)))}
+      <div className="ludo-home" role="img" aria-label={homeLabel}>
+        <svg viewBox="0 0 3 3" width="100%" height="100%" preserveAspectRatio="none" aria-hidden>
+          {homeTriangles.map((points, turns) => (
+            <polygon
+              key={points}
+              points={points}
+              fill={isEmptySeat(seatAt(turns)) ? emptySeatColour : seatView(turns).colour}
+            />
+          ))}
+          <circle cx="1.5" cy="1.5" r="0.32" fill="#f7f0df" stroke="#e8b54a" strokeWidth="0.08" />
+        </svg>
+        {homeCounts.flatMap(({ seat, turns, count }) =>
+          (homeSpots[count] ?? []).map(([across, inFromEdge], index) => {
+            const [x, y] = (homeSpotTurns[turns] as (typeof homeSpotTurns)[number])(across, inFromEdge);
+            return (
+              <span
+                key={`${seat}-${index}`}
+                className="ludo-token"
+                style={{ left: homePercent(x), top: homePercent(y), backgroundColor: colourOf(seat) }}
+              />
+            );
+          }),
+        )}
+      </div>
+      {crossCells.map(crossCell)}
     </div>
   );
 }

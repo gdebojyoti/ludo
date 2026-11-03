@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ludo · Components</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.panel{flex:1;min-width:0;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:22px;box-sizing:border-box}
+.item{display:flex;flex-direction:column;gap:10px}
+.k{font:700 13px Figtree,sans-serif;letter-spacing:0.04em}
+.spec{font:400 12px/1.5 Figtree,sans-serif}
+.cap{font:600 12px Figtree,sans-serif;letter-spacing:0.1em}
+.dark .k{color:#F3CF7E}.dark .spec,.dark .cap{color:#D9C3A5}
+.light .k{color:#3B1218}.light .spec,.light .cap{color:#6E5340}
+.icon{width:44px;height:44px;border-radius:12px;border:1.5px solid #9C7B68;background:transparent;color:#F7F0DF;display:flex;align-items:center;justify-content:center;padding:0}
+.plq{min-width:0;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:rgba(247,240,223,.07);border:1px solid rgba(247,240,223,.16);box-sizing:border-box;height:64px;color:#F7F0DF}
+.plq.turn{border:2px solid #E8B54A;background:rgba(232,181,74,.14)}
+.plq.turn .av{box-shadow:0 0 0 3px #E8B54A}
+.plq.empty{background:transparent;border:1.5px dashed rgba(247,240,223,.3)}
+.av{width:36px;height:36px;flex:none;border-radius:50%;border:2px solid #F7F0DF;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font:600 15px Marcellus,serif;color:#FFF8E8}
+.av.away{border-style:dashed}
+.av.none{background:transparent;border:2px dashed rgba(247,240,223,.45)}
+.t-s0{background:#D2462E}.t-s1{background:#1F7A4D}.t-s2{background:#E3A21A;color:#3B1218}.t-s3{background:#2F4A9E}
+.pt{display:flex;flex-direction:column;gap:3px;min-width:0;align-items:flex-start}
+.nm{font-size:14px;font-weight:600;line-height:1.2}
+.sub{font-size:12px;color:#D9C3A5}
+.sub.on{color:#F3CF7E;font-weight:600}
+.tag{flex:none;display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 9px;border-radius:11px;font-size:12px;font-weight:700}
+.tag.gold{background:#E8B54A;color:#3B1218}
+.tag.muted{background:#D9C3A5;color:#3B1218}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgba(247,240,223,.07);border:1px solid rgba(247,240,223,.16);color:#F7F0DF}
+.row.open{background:transparent;border:1px dashed rgba(247,240,223,.3)}
+.lav{width:36px;height:36px;flex:none;border-radius:50%;background:#F7F0DF;color:#3B1218;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font:600 15px Marcellus,serif}
+.lav.none{background:transparent;border:2px dashed rgba(247,240,223,.35)}
+.die{width:72px;height:72px;flex:none;border-radius:16px;background:#FFF8E8;box-shadow:inset 0 -5px 0 #E2D2AD,0 6px 14px rgba(0,0,0,.4);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));padding:12px;box-sizing:border-box;gap:2px}
+.die.mine{box-shadow:inset 0 -5px 0 #E2D2AD,0 0 0 3px #E8B54A,0 6px 14px rgba(0,0,0,.4)}
+.pip{width:11px;height:11px;border-radius:50%;background:#3B1218;justify-self:center;align-self:center}
+.off{visibility:hidden}
+.roll{width:72px;height:72px;border:none;border-radius:18px;background:#FFF8E8;color:#3B1218;font:400 20px Marcellus,serif;letter-spacing:0.06em;box-shadow:inset 0 -6px 0 #E2D2AD,0 0 0 3px #E8B54A,0 8px 16px rgba(0,0,0,.45)}
+.code{width:100%;height:54px;box-sizing:border-box;border-radius:14px;border:1.5px solid #CDBB94;background:#FFFFFF;color:#3B1218;padding:0 16px;font:600 20px Figtree,sans-serif;letter-spacing:0.3em}
+.code.err{border:2px solid #B23A2A}
+.regen{width:44px;height:44px;flex:none;border-radius:12px;border:1.5px solid #A8916A;background:transparent;color:#3B1218;display:flex;align-items:center;justify-content:center;padding:0}
+.b2{width:100%;height:54px;border:none;border-radius:14px;background:#3B1218;color:#F3CF7E;font:600 16px Figtree,sans-serif}
+.danger{width:100%;height:54px;border:1.5px solid #B23A2A;border-radius:12px;background:transparent;color:#A3301F;font:600 16px Figtree,sans-serif}
+</style>
+</helmet>
+<div style="width: 760px; height: 1380px; box-sizing: border-box; background: #2A0C11; font-family: Figtree, sans-serif; padding: 28px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: baseline; justify-content: space-between">
+<h1 style="margin: 0; font-family: Marcellus, serif; font-weight: 400; font-size: 28px; color: #F7F0DF">Components</h1>
+<span style="font-size: 13px; color: #D9C3A5">Buttons are on their own sheet (B1–B6)</span>
+</div>
+<div style="flex: 1; display: flex; gap: 20px">
+
+<section class="panel dark" style="background: #3B1218; border: 1px solid rgba(247,240,223,.12)">
+<span class="cap">ON MAROON</span>
+
+<div class="item">
+<span class="k">Header 1 · game and lobby</span>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #F7F0DF">
+<div style="display: flex; align-items: center; gap: 12px"><span style="font-family: Marcellus, serif; font-size: 22px; letter-spacing: 0.08em">LUDO</span><span style="width: 1px; height: 20px; background: rgba(247,240,223,.3)"></span><span style="font-size: 13px; color: #D9C3A5">Classic · 4 players</span></div>
+<span class="icon" role="img" aria-label="Leave"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4H5v16h5M14 16l4-4-4-4M18 12H9"></path></svg></span>
+</div>
+<span class="spec">Wordmark · divider · mode and player count (“Lobby · Classic” in the Lobby) · Leave is a B6 icon button.</span>
+</div>
+
+<div class="item">
+<span class="k">Player cards</span>
+<div class="plq"><span class="av t-s1">H</span><span class="pt"><span class="nm">Hermione Weasley</span><span class="sub">3 Home</span></span></div>
+<div class="plq turn"><span class="av t-s0">N</span><span class="pt"><span class="nm">Neville Lovegood</span><span class="sub on">You · pick a token</span></span></div>
+<div class="plq"><span class="av t-s2 away">B</span><span class="pt"><span class="nm">Bartemius Shacklebolt</span><span class="tag muted" style="height: 18px; padding: 0 7px; font-size: 11px">Away</span></span></div>
+<div class="plq empty"><span class="av none"></span><span class="pt"><span class="nm" style="font-weight: 400; color: #D9C3A5">Empty seat</span></span></div>
+<span class="spec">64 high · radius 14 · names wrap to 2 lines · whose turn: 2px gold border and gold ring on the avatar · Away: dashed avatar and tag · cards on the right mirror (avatar on the right).</span>
+</div>
+
+<div class="item">
+<span class="k">Die and Roll</span>
+<div style="display: flex; gap: 18px; align-items: center">
+<div class="die" role="img" aria-label="Die showing 4"><span class="pip"></span><span class="pip off"></span><span class="pip"></span><span class="pip off"></span><span class="pip off"></span><span class="pip off"></span><span class="pip"></span><span class="pip off"></span><span class="pip"></span></div>
+<div class="die mine" role="img" aria-label="Die showing 6"><span class="pip"></span><span class="pip off"></span><span class="pip"></span><span class="pip"></span><span class="pip off"></span><span class="pip"></span><span class="pip"></span><span class="pip off"></span><span class="pip"></span></div>
+<button class="roll">ROLL</button>
+</div>
+<span class="spec">Someone else’s roll · your roll (gold ring) · Roll button, only on your turn (88px on the game screen).</span>
+</div>
+
+<div class="item">
+<span class="k">Lobby rows and tags</span>
+<div class="row"><span class="lav">N</span><span style="flex: 1; min-width: 0; font-size: 15px; font-weight: 600">Neville Lovegood</span><span class="tag gold">Host</span></div>
+<div class="row open"><span class="lav none"></span><span style="flex: 1; font-size: 15px; color: #D9C3A5">Waiting for a player…</span></div>
+</div>
+
+<div class="item">
+<span class="k">Waiting status</span>
+<div style="display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 16px; border: 1.5px dashed rgba(232,181,74,.6); color: #F7F0DF">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F3CF7E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex: none" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 15px; font-weight: 600">Waiting for Neville Lovegood to start</span><span style="font-size: 13px; color: #D9C3A5">Or it starts by itself when a 4th player joins.</span></div>
+</div>
+</div>
+</section>
+
+<section class="panel light" style="background: #F7F0DF">
+<span class="cap">ON IVORY</span>
+
+<div class="item">
+<span class="k">Your name</span>
+<div style="display: flex; align-items: center; gap: 12px; color: #3B1218">
+<span style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #FFF8E8; box-shadow: 0 0 0 2px #D2462E; box-sizing: border-box; background: #D2462E; color: #FFF8E8; display: flex; align-items: center; justify-content: center; font: 600 16px Marcellus, serif">N</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 12px; color: #6E5340">You’ll play as</span><span style="font-size: 17px; font-weight: 700">Neville Lovegood</span></span>
+<span class="regen" role="img" aria-label="New name"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"></path><path d="M4 3v5h5"></path><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"></path><path d="M20 21v-5h-5"></path></svg></span>
+</div>
+</div>
+
+<div class="item">
+<span class="k">Code input</span>
+<input class="code" value="4829" aria-label="Game code" readonly>
+<input class="code err" value="482913" aria-label="Game code with error" aria-invalid="true" readonly>
+<p style="margin: 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.45; color: #A3301F"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="flex: none; margin-top: 1px" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5v.01"></path></svg><span>No game found with that code.</span></p>
+<span class="spec">54 high · radius 14 · white fill · 1.5px board-line border · error: 2px red border plus a message with an icon underneath.</span>
+</div>
+
+<div class="item">
+<span class="k">Notice</span>
+<div style="display: flex; gap: 12px; align-items: flex-start; padding: 16px; border-radius: 16px; background: #EFE3C8; border: 1.5px solid #D9C49A; color: #3B1218">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6E5340" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 1px" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5.5M12 7.5v.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 15px; font-weight: 700">You’re already in a game</span><span style="font-size: 14px; line-height: 1.45; color: #6E5340">You can only be in one game at a time.</span></div>
+</div>
+</div>
+
+<div class="item">
+<span class="k">Game code</span>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 8px">
+<span style="font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: #6E5340">GAME CODE</span>
+<div role="img" aria-label="Game code 4 8 2 9 1 3" style="font-family: Marcellus, serif; font-size: 50px; letter-spacing: 0.14em; line-height: 1; color: #3B1218">482 913</div>
+</div>
+<span class="spec">Plain numerals, no box, so it doesn’t read as editable.</span>
+</div>
+
+<div class="item">
+<span class="k">Dialog</span>
+<div style="background: #18060A; border-radius: 18px; padding: 16px">
+<div role="dialog" aria-label="Example dialog" style="background: #F7F0DF; color: #3B1218; border-radius: 22px; padding: 22px 18px 18px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+<span style="width: 52px; height: 52px; border-radius: 50%; background: #EADBB9; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4H5v16h5M14 16l4-4-4-4M18 12H9"></path></svg></span>
+<span style="font-family: Marcellus, serif; font-size: 24px">Leave this game?</span>
+<span style="font-size: 14px; line-height: 1.5; color: #6E5340">One line of consequence.</span>
+<div style="width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 4px"><button class="b2">Stay in the game</button><button class="danger">Leave and forfeit</button></div>
+</div>
+</div>
+<span class="spec">Shown smaller here · ivory card, radius 22, 64px icon, 26px title, on a 74% maroon-black scrim · safe choice first (B2), destructive second (B4).</span>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":1380}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

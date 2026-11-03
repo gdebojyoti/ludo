@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ludo · Buttons B1–B6</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.panel{flex:1;min-width:0;border-radius:20px;padding:28px 24px;display:flex;flex-direction:column;gap:28px;box-sizing:border-box}
+.item{display:flex;flex-direction:column;gap:10px}
+.k{font:700 13px Figtree,sans-serif;letter-spacing:0.04em}
+.spec{font:400 12px/1.5 Figtree,sans-serif}
+.dark .k{color:#F3CF7E}.dark .spec{color:#D9C3A5}
+.light .k{color:#3B1218}.light .spec{color:#6E5340}
+.b1{width:100%;height:54px;border:none;border-radius:14px;background:#E8B54A;color:#3B1218;font:600 16px Figtree,sans-serif;box-shadow:inset 0 -4px 0 #C9952E;cursor:pointer}
+.b2{width:100%;height:54px;border:none;border-radius:14px;background:#3B1218;color:#F3CF7E;font:600 16px Figtree,sans-serif;cursor:pointer}
+.b3{height:54px;padding:0 20px;border:1.5px solid #A8916A;border-radius:12px;background:transparent;color:#3B1218;display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 16px Figtree,sans-serif;cursor:pointer}
+.b3.h48{height:48px}
+.b8{width:100%;height:54px;border:1.5px solid #B23A2A;border-radius:12px;background:transparent;color:#A3301F;font:600 16px Figtree,sans-serif;cursor:pointer}
+.b4{height:48px;padding:0 6px;border:none;background:transparent;color:#6E5340;display:inline-flex;align-items:center;gap:6px;font:500 13px Figtree,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.b5{width:88px;height:88px;border:none;border-radius:20px;background:#FFF8E8;color:#3B1218;font:400 24px Marcellus,serif;letter-spacing:0.06em;box-shadow:inset 0 -6px 0 #E2D2AD,0 0 0 3px #E8B54A,0 8px 16px rgba(0,0,0,.45);cursor:pointer}
+.b6{width:44px;height:44px;border-radius:12px;border:1.5px solid #9C7B68;background:transparent;color:#F7F0DF;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+.b7{width:44px;height:44px;border-radius:12px;border:1.5px solid #A8916A;background:transparent;color:#3B1218;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 760px; height: 1160px; box-sizing: border-box; background: #2A0C11; font-family: Figtree, sans-serif; padding: 28px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: baseline; justify-content: space-between">
+<h1 style="margin: 0; font-family: Marcellus, serif; font-weight: 400; font-size: 28px; color: #F7F0DF">Buttons</h1>
+<span style="font-size: 13px; color: #D9C3A5">Game screens (A–A5) and Start, lobby &amp; result</span>
+</div>
+<div style="flex: 1; display: flex; gap: 20px">
+<section class="panel dark" style="background: #3B1218; border: 1px solid rgba(247,240,223,.12)">
+<span class="spec" style="letter-spacing: 0.1em; font-weight: 600">ON MAROON</span>
+<div class="item">
+<span class="k">B1 · Gold primary</span>
+<button class="b1">Start with 3 players</button>
+<span class="spec">Gold fill, maroon text · Figtree 16 semi-bold · 54 high, full width · radius 14 · raised bottom edge<br>Used in: Lobby 3 Host (Start), Result 2 &amp; 3 (Back to start)</span>
+</div>
+<div class="item">
+<span class="k">B6 · Icon button · on maroon</span>
+<button class="b6" aria-label="Leave the game"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4H5v16h5M14 16l4-4-4-4M18 12H9"></path></svg></button>
+<span class="spec">No fill, ivory icon · 44 × 44 · radius 12 · 1.5px soft brown border<br>Used in: A–A5, Lobby 3 Host &amp; Guest, Leave 1, 1b &amp; 2 (Leave)</span>
+</div>
+</section>
+<section class="panel light" style="background: #F7F0DF">
+<span class="spec" style="letter-spacing: 0.1em; font-weight: 600">ON IVORY</span>
+<div class="item">
+<span class="k">B2 · Maroon primary</span>
+<button class="b2">Create a game</button>
+<span class="spec">Maroon fill, gold text · Figtree 16 semi-bold · 54 high, full width · radius 14 · flat<br>Used in: Start 2 (Create a game), Start 2 · Already in a game (Back to your game), Leave 1, 1b &amp; 2 (Keep the game open, Stay in the lobby, Stay in the game)</span>
+</div>
+<div class="item">
+<span class="k">B3 · Secondary outline</span>
+<div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
+<button class="b3">Join</button>
+<button class="b3 h48"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"></path><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"></path></svg>Share join link</button>
+</div>
+<span class="spec">No fill, maroon text · Figtree 16 semi-bold · 1.5px tan border · radius 12 · 54 high (Join) or 48 high (Share)<br>Used in: Start 2 &amp; No game found (Join), Lobby 3 Host &amp; Guest (Share join link)</span>
+</div>
+<div class="item">
+<span class="k">B4 · Danger outline</span>
+<button class="b8">Leave and forfeit</button>
+<span class="spec">No fill, red text · Figtree 16 semi-bold · 1.5px red border · radius 12 · 54 high, full width<br>Used in: Leave 1 (Leave and cancel), Leave 1b (Leave lobby), Leave 2 (Leave and forfeit)</span>
+</div>
+<div class="item">
+<span class="k">B5 · Text link</span>
+<div><button class="b4"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a1 1 0 0 1 1-1h10"></path></svg>Copy code</button></div>
+<span class="spec">No fill, muted brown text · Figtree 13 medium, underlined · 48 tap height<br>Used in: Lobby 3 Host &amp; Guest (Copy code)</span>
+</div>
+<div class="item">
+<span class="k">B6 · Icon button · on ivory</span>
+<button class="b7" aria-label="Pick a different random name"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"></path><path d="M4 3v5h5"></path><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"></path><path d="M20 21v-5h-5"></path></svg></button>
+<span class="spec">No fill, maroon icon · 44 × 44 · radius 12 · 1.5px tan border<br>Used in: Start 2 and both error versions (New name)</span>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":1160}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

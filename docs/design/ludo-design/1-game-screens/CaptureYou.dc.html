@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ludo · Heritage · You sent a token back</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Figtree:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.icon{width:44px;height:44px;border-radius:12px;border:1.5px solid #9C7B68;background:transparent;color:#F7F0DF;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+.leave{height:44px;padding:0 14px 0 10px;border-radius:12px;border:1px solid rgba(247,240,223,.25);background:transparent;color:#F7F0DF;display:flex;align-items:center;gap:6px;font:600 14px Figtree,sans-serif;cursor:pointer}
+.board{width:360px;height:360px;box-sizing:border-box;display:grid;grid-template-columns:repeat(15,minmax(0,1fr));grid-template-rows:repeat(15,minmax(0,1fr));gap:1px;background:#CDBB94;border-radius:8px;overflow:hidden;position:relative;box-shadow:0 0 0 4px #3B1218,0 0 0 5px rgba(232,181,74,.45)}
+.yard-tl{grid-row:1/7;grid-column:1/7}.yard-tr{grid-row:1/7;grid-column:10/16}.yard-br{grid-row:10/16;grid-column:10/16}.yard-bl{grid-row:10/16;grid-column:1/7}
+.ctr{grid-row:7/10;grid-column:7/10;background:#F7F0DF}
+.cell{background:#F7F0DF;position:relative;display:flex;align-items:center;justify-content:center}
+.c-s0,.y-s0,.t-s0{background:#D2462E}.c-s1,.y-s1,.t-s1{background:#1F7A4D}.c-s2,.y-s2,.t-s2{background:#E3A21A}.c-s3,.y-s3,.t-s3{background:#2F4A9E}
+.star{width:15px;height:15px;fill:none;stroke:#9A8456;stroke-width:1.7;stroke-linejoin:round}
+.c-s0 .star,.c-s1 .star,.c-s2 .star,.c-s3 .star{stroke:#F7F0DF}
+.yard{display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
+.yin{width:104px;height:104px;flex:none;box-sizing:border-box;background:#F7F0DF;border-radius:50%;display:grid;grid-template-columns:repeat(2,34px);grid-template-rows:repeat(2,34px);place-content:center;gap:4px}
+.slot{width:34px;height:34px;border-radius:50%;background:#EADBB9;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+.tok{flex:none;width:17px;height:17px;border-radius:50%;box-sizing:border-box;border:2px solid #FFF8E8;box-shadow:0 1px 2px rgba(40,10,10,.5);position:relative;display:block}
+.tok::after{content:"";position:absolute;inset:2px;border-radius:50%;border:1.5px solid rgba(255,248,232,.75)}
+.slot .tok{width:22px;height:22px}
+.grp{position:absolute;inset:0;z-index:2}
+.grp .tok{position:absolute;border-width:1.5px;box-shadow:0 1px 2px rgba(40,10,10,.55)}
+.g2 .tok,.g3 .tok,.g4 .tok{width:11px;height:11px}
+.g2 .tok::after,.g3 .tok::after,.g4 .tok::after{inset:1px;border-width:1px}
+.g2 .tok{left:50%;top:50%}
+.g2 .tok:nth-child(1){margin:-11.4px 0 0 -8.45px}.g2 .tok:nth-child(2){margin:0.4px 0 0 -2.55px}
+.g3 .tok:nth-child(1){left:50%;top:0;margin-left:-5.5px}.g3 .tok:nth-child(2){left:0;bottom:0}.g3 .tok:nth-child(3){right:0;bottom:0}
+.g4 .tok:nth-child(1){left:0;top:0}.g4 .tok:nth-child(2){right:0;top:0}.g4 .tok:nth-child(3){left:0;bottom:0}.g4 .tok:nth-child(4){right:0;bottom:0}
+.chipring{position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:2}
+.chip-in{width:calc(100% - 6px);height:calc(100% - 6px);border-radius:50%;background:#3B1218;color:#F7F0DF;font:700 9px/1 Figtree,sans-serif;letter-spacing:-0.02em;display:flex;align-items:center;justify-content:center}
+.plq{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:rgba(247,240,223,.07);border:1px solid rgba(247,240,223,.16);box-sizing:border-box;height:64px}
+.plq.r{flex-direction:row-reverse;text-align:right}
+.plq.turn{border:2px solid #E8B54A;background:rgba(232,181,74,.14)}
+.plq.turn .av{box-shadow:0 0 0 3px #E8B54A}
+.av{width:36px;height:36px;flex:none;border-radius:50%;border:2px solid #F7F0DF;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font:600 15px Marcellus,serif;color:#FFF8E8}
+.av.t-s2{color:#3B1218}
+.pt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.nm{font-size:14px;font-weight:600;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.sub{font-size:12px;color:#D9C3A5}
+.sub.on{color:#F3CF7E;font-weight:600}
+.die3{width:72px;height:72px;flex:none;border-radius:16px;background:#FFF8E8;box-shadow:inset 0 -5px 0 #E2D2AD,0 6px 14px rgba(0,0,0,.4);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));padding:12px;box-sizing:border-box;gap:2px}
+.pip{width:11px;height:11px;border-radius:50%;background:#3B1218;justify-self:center;align-self:center}
+.off{visibility:hidden}
+.slot .tok.back{box-shadow:0 0 0 2px #3B1218,0 0 0 4.5px #E8B54A,0 3px 5px rgba(20,5,5,.55)}
+.flyx{position:absolute;width:17px;height:17px;margin:-8.5px 0 0 -8.5px;z-index:4;animation:flyx 900ms cubic-bezier(.45,0,.25,1) both}
+@keyframes flyx{from{transform:translate(0,0)}to{transform:translate(var(--dx),var(--dy))}}
+.flyy{display:block;width:17px;height:17px;animation:flyy 900ms linear both}
+@keyframes flyy{0%{transform:translateY(0);animation-timing-function:cubic-bezier(.25,.55,.45,1)}50%{transform:translateY(-38px);animation-timing-function:cubic-bezier(.55,0,.75,.45)}100%{transform:translateY(0)}}
+.flys{animation:flys 900ms ease-in-out both}
+@keyframes flys{from{transform:scale(1)}to{transform:scale(1.294)}}
+.replay{height:44px;padding:0 4px;border:none;background:transparent;color:#D9C3A5;font:500 13px Figtree,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;align-self:flex-start}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #3B1218; color: #F7F0DF; font-family: Figtree, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 14px 15px 28px; gap: 14px">
+<header style="width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<div style="display: flex; align-items: center; gap: 12px; min-width: 0">
+<span style="font-family: Marcellus, serif; font-size: 22px; letter-spacing: 0.08em">LUDO</span>
+<span style="width: 1px; height: 20px; background: rgba(247,240,223,.3)"></span>
+<span style="font-size: 13px; color: #D9C3A5">Classic · 4 players</span>
+</div>
+<button class="icon" aria-label="Leave the game"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4H5v16h5M14 16l4-4-4-4M18 12H9"></path></svg></button>
+</header>
+<div style="width: 100%; display: flex; gap: 10px">
+<div class="plq"><span class="av t-s1">H</span><span class="pt"><span class="nm">Hermione Weasley</span></span></div>
+<div class="plq r"><span class="av t-s2">B</span><span class="pt"><span class="nm">Bartemius Shacklebolt</span></span></div>
+</div>
+<div class="board">
+<sc-for list="{{yards}}" as="y" hint-placeholder-count="4">
+<div class="{{y.cls}}"><div class="yin">
+<sc-for list="{{y.slots}}" as="s" hint-placeholder-count="4"><div class="slot"><sc-if value="{{s.tok}}" hint-placeholder-val="{{ true }}"><span class="{{s.cls}}"></span></sc-if></div></sc-for>
+</div></div>
+</sc-for>
+<div class="ctr"><svg viewBox="0 0 3 3" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,0 1.5,1.5 0,3" fill="#1F7A4D"></polygon><polygon points="0,0 3,0 1.5,1.5" fill="#E3A21A"></polygon><polygon points="3,0 3,3 1.5,1.5" fill="#2F4A9E"></polygon><polygon points="0,3 3,3 1.5,1.5" fill="#D2462E"></polygon><circle cx="1.5" cy="1.5" r="0.32" fill="#F7F0DF" stroke="#E8B54A" stroke-width="0.08"></circle></svg></div>
+<sc-for list="{{cells}}" as="cell" hint-placeholder-count="72">
+<div class="{{cell.cls}}">
+<sc-if value="{{cell.star}}" hint-placeholder-val="{{ false }}"><svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"></path></svg></sc-if>
+<sc-for list="{{cell.tokens}}" as="t" hint-placeholder-count="0"><span class="{{t.cls}}"></span></sc-for>
+<sc-if value="{{cell.group}}" hint-placeholder-val="{{ false }}">
+<div class="{{cell.gcls}}" role="img" aria-label="{{cell.label}}"><sc-for list="{{cell.gtoks}}" as="g" hint-placeholder-count="2"><span class="{{g.cls}}"></span></sc-for></div>
+</sc-if>
+<sc-if value="{{cell.chip}}" hint-placeholder-val="{{ false }}">
+<div class="chipring" style="background: {{cell.ring}}" role="img" aria-label="{{cell.label}}"><span class="chip-in">{{cell.count}}</span></div>
+</sc-if>
+</div>
+</sc-for>
+<sc-if value="{{flying}}" hint-placeholder-val="{{ false }}"><span class="flyx" aria-hidden="true" style="left: {{fx0}}px; top: {{fy0}}px; --dx: {{fdx}}px; --dy: {{fdy}}px"><span class="flyy"><span class="tok t-s1 flys"></span></span></span></sc-if>
+</div>
+<div style="width: 100%; display: flex; gap: 10px">
+<div class="plq turn"><span class="av t-s0">N</span><span class="pt"><span class="nm">Neville Lovegood</span><span class="sub on">You · your turn</span></span></div>
+<div class="plq r"><span class="av t-s3">L</span><span class="pt"><span class="nm">Luna Diggory</span></span></div>
+</div>
+<div style="flex: 1; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 6px; box-sizing: border-box">
+<div role="status" style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
+<div style="font-family: Marcellus, serif; font-size: 24px; line-height: 1.15">You sent Hermione Weasley’s token back</div>
+<div style="font-size: 14px; color: #D9C3A5; line-height: 1.4">It’s back in her Yard.</div>
+<div style="font-size: 12px; color: #D9C3A5; line-height: 1.4; margin-top: 4px; padding-top: 8px; border-top: 1px solid rgba(247,240,223,.16)">You rolled a 4 and moved onto her token.</div>
+<button class="replay" onClick="{{replay}}">Replay the move back (prototype)</button>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center; gap: 6px"><div class="die3" role="img" aria-label="You rolled a 4"><span class="pip"></span><span class="pip off"></span><span class="pip"></span><span class="pip off"></span><span class="pip off"></span><span class="pip off"></span><span class="pip"></span><span class="pip off"></span><span class="pip"></span></div><span style="font-size: 12px; color: #D9C3A5">You</span></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  componentDidMount() { this.st = setTimeout(() => this.play(), 700); }
+  componentWillUnmount() { clearTimeout(this.st); clearTimeout(this.ft); }
+  play() {
+    clearTimeout(this.ft);
+    const reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (reduce) { this.setState({ phase: 'done' }); return; }
+    this.setState({ phase: 'fly' });
+    this.ft = setTimeout(() => this.setState({ phase: 'done' }), 920);
+  }
+  renderVals() {
+    // The sent-back token hops from the cell it was on to its slot in the Yard; the Yard slot fills when it lands.
+    const phase = (this.state || {}).phase || 'done';
+    // Seats, numbered clockwise from the viewer, never colours (ADR-0006):
+    // s0 = you, bottom-left, red · s1 = top-left, green · s2 = top-right, yellow · s3 = bottom-right, blue.
+    const NAMES = { s1: 'Hermione', s2: 'Bartemius', s3: 'Luna' };
+    const home = (r, c) => (r === 7 && c >= 1 && c <= 5) ? 's1' : (c === 7 && r >= 1 && r <= 5) ? 's2' : (r === 7 && c >= 9 && c <= 13) ? 's3' : (c === 7 && r >= 9 && r <= 13) ? 's0' : '';
+    const starts = { '6,1': 's1', '1,8': 's2', '8,13': 's3', '13,6': 's0' };
+    const stars = { '2,6': 1, '6,12': 1, '12,8': 1, '8,2': 1 };
+    // A realistic mid-game: every seat has exactly 4 tokens. Mixed seats share only a safe cell.
+    const toks = {"8,3": ["s0"], "10,6": ["s0"], "6,4": ["s1"], "0,8": ["s1"], "6,12": ["s2"], "13,8": ["s2"], "7,11": ["s3"], "12,8": ["s3"]};
+    const yardN = {"s0": 2, "s1": 2, "s2": 2, "s3": 2};
+    const BACK = 's1';
+    const tok = (x) => ({ cls: 'tok t-' + x });
+    const hex = { s0: '#D2462E', s1: '#1F7A4D', s2: '#E3A21A', s3: '#2F4A9E' };
+    const ringOf = (list) => {
+      let at = 0; const stops = [];
+      ['s0', 's1', 's2', 's3'].forEach(x => { const n = list.filter(y => y === x).length; if (!n) return; const to = at + n / list.length * 100; stops.push(hex[x] + ' ' + at.toFixed(2) + '% ' + to.toFixed(2) + '%'); at = to; });
+      return 'conic-gradient(' + stops.join(', ') + ')';
+    };
+    const labelOf = (list) => {
+      const n = {}; list.forEach(x => { n[x] = (n[x] || 0) + 1; });
+      return list.length + ' tokens here: ' + Object.keys(n).map(x => n[x] + ' ' + (x === 's0' ? 'yours' : NAMES[x] + '’s')).join(', ');
+    };
+    const cells = [];
+    for (let r = 0; r < 15; r++) for (let c = 0; c < 15; c++) {
+      if ((r >= 6 && r <= 8) === (c >= 6 && c <= 8)) continue;
+      const k = r + ',' + c;
+      const col = home(r, c) || starts[k] || '';
+      const list = toks[k] || [];
+      const n = list.length;
+      cells.push({
+        cls: 'cell' + (col ? ' c-' + col : ''),
+        star: n < 2 && !!(stars[k] || starts[k]),
+        tokens: n === 1 ? list.map(tok) : [],
+        group: n >= 2 && n <= 4, gcls: 'grp g' + n, gtoks: list.map(tok),
+        chip: n >= 5, count: n, ring: n >= 5 ? ringOf(list) : '',
+        label: labelOf(list)
+      });
+    }
+    const yards = [['s1', 'tl'], ['s2', 'tr'], ['s3', 'br'], ['s0', 'bl']].map(([s, pos]) => ({ cls: 'yard yard-' + pos + ' y-' + s, slots: [0, 1, 2, 3].map(i => ({ tok: i < yardN[s] - (s === BACK && phase === 'fly' ? 1 : 0), cls: 'tok t-' + s + (s === BACK && i === yardN[s] - 1 ? ' back' : '') })) }));
+    const cs = (360 - 14) / 15, ctr = (n) => n * (cs + 1) + cs / 2;
+    const yw = 6 * cs + 5, org = { tl: [0, 0], tr: [9 * (cs + 1), 0], br: [9 * (cs + 1), 9 * (cs + 1)], bl: [0, 9 * (cs + 1)] }['tl'];
+    const slot = yardN[BACK] - 1, sx = org[0] + (yw - 72) / 2 + 17 + (slot % 2) * 38, sy = org[1] + (yw - 72) / 2 + 17 + Math.floor(slot / 2) * 38;
+    const fx0 = ctr(3), fy0 = ctr(8);
+    return { cells, yards, flying: phase === 'fly', fx0: fx0.toFixed(1), fy0: fy0.toFixed(1), fdx: (sx - fx0).toFixed(1), fdy: (sy - fy0).toFixed(1), replay: () => this.play() };
+  }
+}
+</script>
+</body>
+</html>

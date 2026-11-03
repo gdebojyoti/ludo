@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ludo · Colours &amp; type</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.panel{border-radius:20px;padding:24px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px}
+.cap{font:600 12px Figtree,sans-serif;letter-spacing:0.1em}
+.k{font:700 13px Figtree,sans-serif;letter-spacing:0.04em;color:#3B1218}
+.grp{display:flex;flex-direction:column;gap:10px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 14px}
+.sw{display:flex;gap:10px;align-items:center;min-width:0}
+.chip{width:44px;height:44px;border-radius:10px;flex:none;box-shadow:inset 0 0 0 1px rgba(59,18,24,.18)}
+.st{display:flex;flex-direction:column;gap:1px;min-width:0}
+.sn{font:600 13px Figtree,sans-serif;color:#3B1218}
+.sh{font:500 12px Figtree,sans-serif;color:#6E5340}
+.sr{font:400 11px/1.3 Figtree,sans-serif;color:#6E5340}
+.note{font:400 12px/1.5 Figtree,sans-serif;color:#6E5340}
+.tcol{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
+.tr{display:flex;flex-direction:column;gap:3px}
+.ts{font:400 11px/1.4 Figtree,sans-serif;color:#D9C3A5}
+</style>
+</helmet>
+<div style="width: 760px; height: 1480px; box-sizing: border-box; background: #2A0C11; font-family: Figtree, sans-serif; padding: 28px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: baseline; justify-content: space-between">
+<h1 style="margin: 0; font-family: Marcellus, serif; font-weight: 400; font-size: 28px; color: #F7F0DF">Colours &amp; type</h1>
+<span style="font-size: 13px; color: #D9C3A5">Heritage · values used in the current screens</span>
+</div>
+
+<section class="panel" style="background: #F7F0DF">
+<span class="cap" style="color: #6E5340">COLOURS</span>
+
+<div class="grp">
+<span class="k">Surfaces</span>
+<div class="grid">
+<div class="sw"><span class="chip" style="background: #3B1218"></span><span class="st"><span class="sn">Maroon</span><span class="sh">#3B1218</span><span class="sr">Page background</span></span></div>
+<div class="sw"><span class="chip" style="background: #F7F0DF"></span><span class="st"><span class="sn">Ivory</span><span class="sh">#F7F0DF</span><span class="sr">Sheets, cards, board cells</span></span></div>
+<div class="sw"><span class="chip" style="background: #FFF8E8"></span><span class="st"><span class="sn">Cream</span><span class="sh">#FFF8E8</span><span class="sr">Token rim, die face</span></span></div>
+<div class="sw"><span class="chip" style="background: #EADBB9"></span><span class="st"><span class="sn">Parchment</span><span class="sh">#EADBB9</span><span class="sr">Yard slots, dialog icon</span></span></div>
+</div>
+</div>
+
+<div class="grp">
+<span class="k">Gold</span>
+<div class="grid">
+<div class="sw"><span class="chip" style="background: #E8B54A"></span><span class="st"><span class="sn">Gold</span><span class="sh">#E8B54A</span><span class="sr">B1, turn ring, Host tag</span></span></div>
+<div class="sw"><span class="chip" style="background: #F3CF7E"></span><span class="st"><span class="sn">Light gold</span><span class="sh">#F3CF7E</span><span class="sr">Gold text, move cells</span></span></div>
+<div class="sw"><span class="chip" style="background: #C9952E"></span><span class="st"><span class="sn">Gold shade</span><span class="sh">#C9952E</span><span class="sr">B1 bottom edge</span></span></div>
+<div class="sw"><span class="chip" style="background: #B8892B"></span><span class="st"><span class="sn">Move edge</span><span class="sh">#B8892B</span><span class="sr">Move-cell outline</span></span></div>
+</div>
+</div>
+
+<div class="grp">
+<span class="k">Text &amp; lines</span>
+<div class="grid">
+<div class="sw"><span class="chip" style="background: #D9C3A5"></span><span class="st"><span class="sn">Tan</span><span class="sh">#D9C3A5</span><span class="sr">Secondary text on maroon</span></span></div>
+<div class="sw"><span class="chip" style="background: #6E5340"></span><span class="st"><span class="sn">Brown</span><span class="sh">#6E5340</span><span class="sr">Secondary text on ivory</span></span></div>
+<div class="sw"><span class="chip" style="background: #A8916A"></span><span class="st"><span class="sn">Tan border</span><span class="sh">#A8916A</span><span class="sr">B3, B6 on ivory</span></span></div>
+<div class="sw"><span class="chip" style="background: #9C7B68"></span><span class="st"><span class="sn">Soft brown</span><span class="sh">#9C7B68</span><span class="sr">B6 on maroon</span></span></div>
+<div class="sw"><span class="chip" style="background: #CDBB94"></span><span class="st"><span class="sn">Board line</span><span class="sh">#CDBB94</span><span class="sr">Board grid, input border</span></span></div>
+<div class="sw"><span class="chip" style="background: #9A8456"></span><span class="st"><span class="sn">Star line</span><span class="sh">#9A8456</span><span class="sr">Star on ivory cells</span></span></div>
+</div>
+</div>
+
+<div class="grp">
+<span class="k">Seats · relative to the viewer, clockwise from you</span>
+<div class="grid">
+<div class="sw"><span class="chip" style="background: #D2462E"></span><span class="st"><span class="sn">Red</span><span class="sh">#D2462E</span><span class="sr">You · bottom-left</span></span></div>
+<div class="sw"><span class="chip" style="background: #1F7A4D"></span><span class="st"><span class="sn">Green</span><span class="sh">#1F7A4D</span><span class="sr">Top-left</span></span></div>
+<div class="sw"><span class="chip" style="background: #E3A21A"></span><span class="st"><span class="sn">Yellow</span><span class="sh">#E3A21A</span><span class="sr">Top-right · maroon text on it</span></span></div>
+<div class="sw"><span class="chip" style="background: #2F4A9E"></span><span class="st"><span class="sn">Blue</span><span class="sh">#2F4A9E</span><span class="sr">Bottom-right</span></span></div>
+</div>
+<span class="note">Players are always named, never called by their colour.</span>
+</div>
+
+<div class="grp">
+<span class="k">Status</span>
+<div class="grid">
+<div class="sw"><span class="chip" style="background: #B23A2A"></span><span class="st"><span class="sn">Danger line</span><span class="sh">#B23A2A</span><span class="sr">B4 border, error input</span></span></div>
+<div class="sw"><span class="chip" style="background: #A3301F"></span><span class="st"><span class="sn">Danger text</span><span class="sh">#A3301F</span><span class="sr">B4 text, error message</span></span></div>
+<div class="sw"><span class="chip" style="background: #EFE3C8"></span><span class="st"><span class="sn">Notice fill</span><span class="sh">#EFE3C8</span><span class="sr">Info notice</span></span></div>
+<div class="sw"><span class="chip" style="background: #D9C49A"></span><span class="st"><span class="sn">Notice line</span><span class="sh">#D9C49A</span><span class="sr">Info notice border</span></span></div>
+<div class="sw"><span class="chip" style="background: #E3D3AE"></span><span class="st"><span class="sn">Empty seat</span><span class="sh">#E3D3AE</span><span class="sr">Empty yard and lane</span></span></div>
+<div class="sw"><span class="chip" style="background: #18060A"></span><span class="st"><span class="sn">Scrim</span><span class="sh">#18060A · 74%</span><span class="sr">Behind dialogs</span></span></div>
+</div>
+</div>
+</section>
+
+<section class="panel" style="flex: 1; background: #3B1218; border: 1px solid rgba(247,240,223,.12)">
+<span class="cap" style="color: #D9C3A5">TYPE</span>
+<div style="display: flex; gap: 28px">
+<div class="tcol">
+<span style="font: 700 13px Figtree, sans-serif; color: #F3CF7E">Marcellus · display</span>
+<div class="tr"><span style="font-family: Marcellus, serif; font-size: 50px; line-height: 1; letter-spacing: 0.14em; color: #F7F0DF">482 913</span><span class="ts">50 · spacing 0.14em · Game code</span></div>
+<div class="tr"><span style="font-family: Marcellus, serif; font-size: 46px; line-height: 1; letter-spacing: 0.14em; color: #F3CF7E">LUDO</span><span class="ts">46 · spacing 0.14em · Start title</span></div>
+<div class="tr"><span style="font-family: Marcellus, serif; font-size: 30px; line-height: 1.1; color: #F7F0DF">Gathering players</span><span class="ts">30 · Screen title</span></div>
+<div class="tr"><span style="font-family: Marcellus, serif; font-size: 26px; line-height: 1.15; color: #F7F0DF">You rolled a 6</span><span class="ts">26 · Dialog title, your roll</span></div>
+<div class="tr"><span style="font-family: Marcellus, serif; font-size: 24px; line-height: 1.15; color: #F7F0DF">Hermione Weasley’s turn</span><span class="ts">24 · Turn line</span></div>
+<div class="tr"><span style="font-family: Marcellus, serif; font-size: 22px; line-height: 1.15; letter-spacing: 0.08em; color: #F7F0DF">LUDO</span><span class="ts">22 · spacing 0.08em · Header wordmark</span></div>
+<div class="tr"><span style="font: 600 15px Marcellus, serif; color: #F7F0DF">N · H · B · L</span><span class="ts">15–16 · Avatar initials</span></div>
+</div>
+<div class="tcol">
+<span style="font: 700 13px Figtree, sans-serif; color: #F3CF7E">Figtree · interface</span>
+<div class="tr"><span style="font: 700 17px Figtree, sans-serif; color: #F7F0DF">Neville Lovegood</span><span class="ts">17 bold · Your name on Start</span></div>
+<div class="tr"><span style="font: 600 16px Figtree, sans-serif; color: #F7F0DF">Create a game</span><span class="ts">16 semi-bold · Buttons B1–B4</span></div>
+<div class="tr"><span style="font: 600 15px Figtree, sans-serif; color: #F7F0DF">Waiting for Neville Lovegood to start</span><span class="ts">15 semi-bold · Row names, status</span></div>
+<div class="tr"><span style="font: 400 15px/1.5 Figtree, sans-serif; color: #D9C3A5">Your place opens up for someone else.</span><span class="ts">15 regular · line 1.5 · Dialog text</span></div>
+<div class="tr"><span style="font: 600 14px Figtree, sans-serif; color: #F7F0DF">Bartemius Shacklebolt</span><span class="ts">14 semi-bold · Player card name, 2 lines max</span></div>
+<div class="tr"><span style="font: 400 14px/1.4 Figtree, sans-serif; color: #D9C3A5">Rolled a 4 and is choosing a token to move.</span><span class="ts">14 regular · Supporting text</span></div>
+<div class="tr"><span style="font: 400 13px Figtree, sans-serif; color: #D9C3A5">Classic · 4 players</span><span class="ts">13 regular · Header subtitle, error text</span></div>
+<div class="tr"><span style="font: 700 12px Figtree, sans-serif; letter-spacing: 0.12em; color: #D9C3A5">GAME CODE</span><span class="ts">12 bold · spacing 0.1–0.12em · Section labels</span></div>
+<div class="tr"><span style="font: 400 12px Figtree, sans-serif; color: #D9C3A5">You · 2 Home</span><span class="ts">12 regular · Card sub-line, notes</span></div>
+</div>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":1480}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

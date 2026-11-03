@@ -1,16 +1,18 @@
 import { useState } from "react";
 import BoardScreen from "./BoardScreen";
+import CancelledScreen from "./CancelledScreen";
 import LobbyScreen from "./LobbyScreen";
+import ResultScreen from "./ResultScreen";
 import ServerStatus from "./ServerStatus";
 import StartScreen from "./StartScreen";
-import { commonMessages, noticeMessages } from "./messages";
-import { loadPlayerName } from "./playerName";
+import { noticeMessages } from "./messages";
+import { loadPlayerName, newPlayerName } from "./playerName";
 import { useGameServer } from "./useGameServer";
 import "./ludo.css";
 
 // The whole game, as one component: run standalone by ../bootstrap.tsx, and exposed to the host app as `ludo/Ludo`.
 export default function Ludo() {
-  const [playerName] = useState(loadPlayerName);
+  const [playerName, setPlayerName] = useState(loadPlayerName);
   const {
     status,
     game,
@@ -29,12 +31,11 @@ export default function Ludo() {
   const noticeMessage = notice && noticeMessages[notice];
 
   const screen = () => {
-    // Nothing to show until the server says whether the Player has an active Game.
-    if (game === undefined) return null;
     if (game?.state === "lobby") {
       return (
         <LobbyScreen
           game={game}
+          playerName={playerName}
           disabled={busy}
           notice={noticeMessage}
           error={error}
@@ -43,6 +44,7 @@ export default function Ludo() {
         />
       );
     }
+    if (game?.state === "won" && game.board) return <ResultScreen board={game.board} onBackToStart={backToStart} />;
     if (game?.board) {
       return (
         <BoardScreen
@@ -53,33 +55,37 @@ export default function Ludo() {
           onRoll={roll}
           onMove={move}
           onLeaveGame={leaveGame}
-          onBackToStart={backToStart}
         />
       );
     }
-    // No active Game, or one the Host just cancelled by Leaving.
+    // Everyone but the Host, who chose it, is told why their Game ended.
+    if (game?.state === "cancelled" && !game.isHost) {
+      return <CancelledScreen game={game} onBackToStart={backToStart} />;
+    }
+    // Shown, logo only, while the server is yet to say whether the Player has an active Game. Mounted afresh once it
+    // has, so a code from a Join link that didn't work is filled in.
     return (
       <StartScreen
+        key={game === undefined ? "waiting" : "ready"}
+        waiting={game === undefined}
         playerName={playerName}
         disabled={busy}
-        notice={noticeMessage}
         error={error}
         initialGameCode={gameCodeFromLink}
+        onNewPlayerName={() => setPlayerName(newPlayerName())}
         onCreateGame={createGame}
         onJoinGame={joinGame}
       />
     );
   };
 
-  // The colours sit on this element, not the page, so the host app's page keeps its own.
+  // The colours sit on this element, not the page, so the host app's page keeps its own. On wider screens the game
+  // keeps its phone layout, in a channel down the middle.
   return (
-    <div className="min-h-dvh bg-white text-black">
-      <main className="flex min-h-dvh flex-col gap-6 p-4">
-        <h1 className="m-0 text-2xl font-bold">{commonMessages.wordmark}</h1>
-        <div className="flex-1">{screen()}</div>
-        <footer>
-          <ServerStatus status={status} />
-        </footer>
+    <div className="min-h-dvh bg-maroon-deep font-ui text-ivory">
+      <main className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-maroon">
+        <ServerStatus status={status} />
+        <div className="flex flex-1 flex-col">{screen()}</div>
       </main>
     </div>
   );
