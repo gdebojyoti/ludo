@@ -17,12 +17,18 @@ export interface GameSnapshot {
   isHost: boolean;
   /** The Game's Players, in the order they joined. */
   players: SnapshotPlayer[];
-  /** The Seat of the Player viewing this snapshot, once the Game has started; otherwise null. */
-  seat: Seat | null;
-  /** Every Seat at the Board, by number, once the Game has started; empty in the Lobby. */
+  /** The Board, once the Game has started; null in the Lobby. */
+  board: SnapshotBoard | null;
+}
+
+/** The Board as one Player sees it. */
+export interface SnapshotBoard {
+  /** The Seat of the Player viewing this snapshot. */
+  seat: Seat;
+  /** Every Seat at the Board, by number. */
   seats: SnapshotSeat[];
-  /** The Seat whose Turn it is, while the Game is in play; otherwise null. */
-  turn: Seat | null;
+  /** The Seat whose Turn it is. */
+  turn: Seat;
 }
 
 /** One of a Game's Players, as every Player sees them. Never their player ID: that's the only proof of who they are. */

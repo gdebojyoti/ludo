@@ -5,6 +5,7 @@ export type {
   GameState,
   RejectionReason,
   ServerToClientEvents,
+  SnapshotBoard,
   SnapshotPlayer,
   SnapshotSeat,
   TokenPosition,

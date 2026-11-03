@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { giveOutSeats, nextTakenSeat } from "./rules.js";
+import { giveOutSeats, nextTakenSeat, seatsClockwise } from "./rules.js";
 
 describe("giving out Seats", () => {
   it.each([
@@ -23,5 +23,16 @@ describe("the next taken Seat clockwise", () => {
     ["the Seat itself when it's the only one taken", 2, [2], 2],
   ])("is %s", (_, seat, takenSeats, next) => {
     expect(nextTakenSeat(seat, takenSeats)).toBe(next);
+  });
+});
+
+describe("how many Seats clockwise one Seat is from another", () => {
+  it.each([
+    ["none, for the same Seat", 1, 1, 0],
+    ["1, for the next Seat", 0, 1, 1],
+    ["2, for the Seat opposite", 3, 1, 2],
+    ["3, for the Seat just before, counting round past Seat 0", 2, 1, 3],
+  ])("is %s", (_, from, to, seats) => {
+    expect(seatsClockwise(from, to)).toBe(seats);
   });
 });

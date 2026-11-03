@@ -30,7 +30,7 @@ export default function Ludo() {
         />
       );
     }
-    if (game?.state === "playing") return <BoardScreen game={game} notice={noticeMessage} error={error} />;
+    if (game?.board) return <BoardScreen board={game.board} notice={noticeMessage} error={error} />;
     // No active Game, or one the Host just cancelled by Leaving.
     return (
       <StartScreen

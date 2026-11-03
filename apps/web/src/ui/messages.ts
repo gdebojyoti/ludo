@@ -57,7 +57,7 @@ export const lobbyMessages = {
 };
 
 export const boardMessages = {
-  yourTurn: "Your turn",
+  yourTurn: (playerName: string) => `Your turn, ${playerName}`,
   turnOf: (playerName: string) => `${playerName}'s turn`,
   you: "you",
   emptySeat: "Empty seat",

@@ -2,7 +2,14 @@
 // publishes each change.
 import { randomInt as cryptoRandomInt, randomUUID } from "node:crypto";
 
-import { classicRules, gameCodeLength, giveOutSeats, isValidPlayerName, type RejectionReason } from "@ludo/shared";
+import {
+  classicRules,
+  gameCodeLength,
+  giveOutSeats,
+  isValidPlayerName,
+  type RejectionReason,
+  type Seat,
+} from "@ludo/shared";
 
 import type { GameNotifier } from "./game-notifier.js";
 import type { Game, GameSeat, GameStore } from "./game-store.js";
@@ -47,8 +54,9 @@ export const createGameService = (
       const tokens = Array.from({ length: classicRules.tokensPerSeat }, () => ({ area: "yard" as const }));
       return { playerId: player.playerId, tokens };
     });
-    const turn = seatsInJoinOrder[randomInt(seatsInJoinOrder.length)] ?? null;
-    return { ...game, state: "playing", seats, turn };
+    // `randomInt` is always below the number of Players, so this is one of their Seats.
+    const turn = seatsInJoinOrder[randomInt(seatsInJoinOrder.length)] as Seat;
+    return { ...game, state: "playing", board: { seats, turn } };
   };
 
   /** Creates a Game in the Lobby, with the Player as its Host. */
@@ -61,8 +69,7 @@ export const createGameService = (
       gameCode: await newGameCode(),
       hostId: playerId,
       players: [{ playerId, playerName: playerName.trim() }],
-      seats: [],
-      turn: null,
+      board: null,
     };
     return { ok: true, game: await save(game) };
   });

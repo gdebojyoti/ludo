@@ -10,10 +10,15 @@ export interface Game {
   hostId: string;
   /** The Players in the Game, in the order they joined. */
   players: GamePlayer[];
-  /** Every Seat at the Board, by number, once the Game has started; empty in the Lobby. */
+  /** The Board, once the Game has started; null in the Lobby. */
+  board: GameBoard | null;
+}
+
+export interface GameBoard {
+  /** Every Seat at the Board, by number. */
   seats: GameSeat[];
-  /** The Seat whose Turn it is, while the Game is in play; otherwise null. */
-  turn: Seat | null;
+  /** The Seat whose Turn it is. */
+  turn: Seat;
 }
 
 export interface GamePlayer {

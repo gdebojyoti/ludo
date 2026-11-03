@@ -23,7 +23,6 @@ const copiedFor = 2000;
 
 export default function LobbyScreen({ game, disabled, notice, error, onStartGame, onLeaveGame }: Props) {
   const gameCode = game.gameCode ?? "";
-  const canStart = game.players.length >= classicRules.minPlayers;
   // Leave always asks first, so a misclick can't take the Player out, or cancel the Game.
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   // Which of the copy buttons last worked, while it shows that it did.
@@ -42,6 +41,17 @@ export default function LobbyScreen({ game, disabled, notice, error, onStartGame
     } catch {
       // The browser refused. The code is on screen to copy by hand, and either button can be tried again.
     }
+  };
+
+  // Only the Host can start the Game, once someone else has joined. The fourth join starts it by itself.
+  const startPrompt = () => {
+    if (!game.isHost) return <p className="m-0">{lobbyMessages.waitingForHost}</p>;
+    if (game.players.length < classicRules.minPlayers) return <p className="m-0">{lobbyMessages.waitingForPlayers}</p>;
+    return (
+      <button type="button" className="self-start border px-4 py-2" disabled={disabled} onClick={onStartGame}>
+        {lobbyMessages.start}
+      </button>
+    );
   };
 
   return (
@@ -72,14 +82,7 @@ export default function LobbyScreen({ game, disabled, notice, error, onStartGame
           ))}
         </ol>
       </div>
-      {/* Only the Host can start the Game, once someone else has joined. The fourth join starts it by itself. */}
-      {game.isHost && canStart && (
-        <button type="button" className="self-start border px-4 py-2" disabled={disabled} onClick={onStartGame}>
-          {lobbyMessages.start}
-        </button>
-      )}
-      {game.isHost && !canStart && <p className="m-0">{lobbyMessages.waitingForPlayers}</p>}
-      {!game.isHost && <p className="m-0">{lobbyMessages.waitingForHost}</p>}
+      {startPrompt()}
       {confirmingLeave
         ? (
             <div className="flex flex-wrap items-center gap-2">

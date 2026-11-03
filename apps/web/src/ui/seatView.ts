@@ -1,11 +1,24 @@
-// The only place a Seat is given a colour and a corner (ADR-0006). Each Player sees their own Seat bottom-left, in
-// red, and the other Seats clockwise from it in green, yellow and blue, so two Players can both see themselves as red.
-// Both lists are in that order: from the viewer's own Seat, clockwise.
+// The only place a Seat is given a colour, and the corner of the Board its Yard is in (ADR-0006). Each Player sees
+// their own Seat bottom-left, in red, and the other Seats clockwise from it in green, yellow and blue, so two Players
+// can both see themselves as red.
 
 /** A Cell of the Board's grid, counting rows down from the top, and columns right from the left. */
 export type Cell = [row: number, column: number];
 
-export const coloursFromViewer = ["#e53935", "#43a047", "#fdd835", "#1e88e5"];
+/** How the viewer sees one Seat. */
+interface SeatView {
+  colour: string;
+  /** The top-left Cell of the Seat's Yard. */
+  yardCorner: Cell;
+}
 
-/** The top-left Cell of each Seat's Yard. */
-export const yardCorners: Cell[] = [[9, 0], [0, 0], [0, 9], [9, 9]];
+/** How the viewer sees each Seat, from their own, clockwise. */
+const seatViews: SeatView[] = [
+  { colour: "#e53935", yardCorner: [9, 0] },
+  { colour: "#43a047", yardCorner: [0, 0] },
+  { colour: "#fdd835", yardCorner: [0, 9] },
+  { colour: "#1e88e5", yardCorner: [9, 9] },
+];
+
+/** How the viewer sees the Seat this many Seats clockwise from their own: 0 to 3. */
+export const seatView = (seatsFromViewer: number): SeatView => seatViews[seatsFromViewer] as SeatView;

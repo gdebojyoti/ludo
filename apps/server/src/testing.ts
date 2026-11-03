@@ -58,6 +58,8 @@ export interface TestServer {
   /** The player ID the server gave each open connection, in no particular order. */
   connectedPlayerIds: () => Promise<string[]>;
   close: () => Promise<void>;
+  /** Closes the server and starts a new one, with its random choices scripted to be these numbers in turn, then 0. */
+  restartWithRandomNumbers: (...numbers: number[]) => Promise<TestServer>;
 }
 
 /** Starts the server. `options.randomInt` scripts its random choices, such as Game codes. */
@@ -144,7 +146,21 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
     await server.io.close();
   };
 
-  return { url, createPlayer, playerWithNoGame, hostInLobby, playerInLobby, connectedPlayerIds, close };
+  const restartWithRandomNumbers = async (...numbers: number[]) => {
+    await close();
+    return startServer({ randomInt: () => numbers.shift() ?? 0 });
+  };
+
+  return {
+    url,
+    createPlayer,
+    playerWithNoGame,
+    hostInLobby,
+    playerInLobby,
+    connectedPlayerIds,
+    close,
+    restartWithRandomNumbers,
+  };
 };
 
 /** Sends a Socket.IO handshake over plain HTTP, the first request a browser makes, so tests can read its headers. */

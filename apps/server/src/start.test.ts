@@ -12,12 +12,6 @@ afterEach(async () => {
   await server.close();
 });
 
-/** Starts the server again, with its random choices scripted to be these numbers in turn, then 0. */
-const restartWithRandomNumbers = async (...numbers: number[]) => {
-  await server.close();
-  server = await startServer({ randomInt: () => numbers.shift() ?? 0 });
-};
-
 /** A Seat's 4 Tokens, all in its Yard. */
 const inYard = Array.from({ length: 4 }, () => ({ area: "yard" }));
 
@@ -26,7 +20,7 @@ const emptySeat = { playerName: null, tokens: [] };
 describe("the Host starting the Game", () => {
   it("with 2 Players seats them opposite each other, and sends each of them the Board from their own Seat", async () => {
     // The Game code, then the first Player: the first to join.
-    await restartWithRandomNumbers(42, 0);
+    server = await server.restartWithRandomNumbers(42, 0);
     const { host, gameCode } = await server.hostInLobby({ playerName: "Luna Lovegood" });
     const joiner = await server.playerInLobby(gameCode, { playerName: "Ginny Weasley" });
     await host.nextMessage();
@@ -43,11 +37,11 @@ describe("the Host starting the Game", () => {
     ];
     expect(await host.nextMessage()).toEqual({
       event: "game",
-      game: { state: "playing", gameCode: null, isHost: true, players, seat: 0, seats, turn: 0 },
+      game: { state: "playing", gameCode: null, isHost: true, players, board: { seat: 0, seats, turn: 0 } },
     });
     expect(await joiner.nextMessage()).toEqual({
       event: "game",
-      game: { state: "playing", gameCode: null, isHost: false, players, seat: 2, seats, turn: 0 },
+      game: { state: "playing", gameCode: null, isHost: false, players, board: { seat: 2, seats, turn: 0 } },
     });
   });
 
@@ -60,13 +54,15 @@ describe("the Host starting the Game", () => {
 
     expect(await third.nextMessage()).toMatchObject({
       game: {
-        seat: 1,
-        seats: [
-          { playerName: "Luna Lovegood", tokens: inYard },
-          { playerName: "Neville Longbottom", tokens: inYard },
-          { playerName: "Ginny Weasley", tokens: inYard },
-          emptySeat,
-        ],
+        board: {
+          seat: 1,
+          seats: [
+            { playerName: "Luna Lovegood", tokens: inYard },
+            { playerName: "Neville Longbottom", tokens: inYard },
+            { playerName: "Ginny Weasley", tokens: inYard },
+            emptySeat,
+          ],
+        },
       },
     });
   });
@@ -81,27 +77,29 @@ describe("the Host starting the Game", () => {
 
     expect(await stayer.nextMessage()).toMatchObject({
       game: {
-        seat: 2,
-        seats: [{ playerName: "Luna Lovegood" }, emptySeat, { playerName: "Neville Longbottom" }, emptySeat],
+        board: {
+          seat: 2,
+          seats: [{ playerName: "Luna Lovegood" }, emptySeat, { playerName: "Neville Longbottom" }, emptySeat],
+        },
       },
     });
   });
 
   it("gives the first Turn to the Player the server picks at random", async () => {
     // The Game code, then the first Player: the second to join, in Seat 2.
-    await restartWithRandomNumbers(42, 1);
+    server = await server.restartWithRandomNumbers(42, 1);
     const { host, gameCode } = await server.hostInLobby();
     const joiner = await server.playerInLobby(gameCode);
     await host.nextMessage();
 
     await host.startGame();
 
-    expect(await host.nextMessage()).toMatchObject({ game: { turn: 2 } });
-    expect(await joiner.nextMessage()).toMatchObject({ game: { turn: 2 } });
+    expect(await host.nextMessage()).toMatchObject({ game: { board: { turn: 2 } } });
+    expect(await joiner.nextMessage()).toMatchObject({ game: { board: { turn: 2 } } });
   });
 
   it("retires the Game code, so nobody else can join, and a new Game in the Lobby can be given it", async () => {
-    await restartWithRandomNumbers(42, 0, 42);
+    server = await server.restartWithRandomNumbers(42, 0, 42);
     const { host, gameCode } = await server.hostInLobby();
     await server.playerInLobby(gameCode);
     await host.startGame();
@@ -165,14 +163,14 @@ describe("the fourth Player joining", () => {
       { playerName: "Ginny Weasley", tokens: inYard },
       { playerName: "Hermione Granger", tokens: inYard },
     ];
-    expect(reply).toMatchObject({ ok: true, game: { state: "playing", gameCode: null, seat: 3, seats } });
-    expect(await fourth.nextMessage()).toMatchObject({ game: { state: "playing", seat: 3, seats } });
+    expect(reply).toMatchObject({ ok: true, game: { state: "playing", gameCode: null, board: { seat: 3, seats } } });
+    expect(await fourth.nextMessage()).toMatchObject({ game: { state: "playing", board: { seat: 3, seats } } });
     await host.nextMessage();
     await host.nextMessage();
-    expect(await host.nextMessage()).toMatchObject({ game: { state: "playing", seat: 0, seats } });
+    expect(await host.nextMessage()).toMatchObject({ game: { state: "playing", board: { seat: 0, seats } } });
     await second.nextMessage();
-    expect(await second.nextMessage()).toMatchObject({ game: { state: "playing", seat: 2, seats } });
-    expect(await third.nextMessage()).toMatchObject({ game: { state: "playing", seat: 1, seats } });
+    expect(await second.nextMessage()).toMatchObject({ game: { state: "playing", board: { seat: 2, seats } } });
+    expect(await third.nextMessage()).toMatchObject({ game: { state: "playing", board: { seat: 1, seats } } });
   });
 });
 
@@ -195,7 +193,7 @@ describe("once the Game has started", () => {
   });
 
   it("brings a Player who comes back to the Board as it is, from their own Seat", async () => {
-    await restartWithRandomNumbers(42, 1);
+    server = await server.restartWithRandomNumbers(42, 1);
     const { host, gameCode } = await server.hostInLobby();
     const player = server.createPlayer();
     const joiner = await server.playerInLobby(gameCode, { player });
@@ -205,7 +203,7 @@ describe("once the Game has started", () => {
 
     const message = await (await player.connect()).nextMessage();
 
-    expect(started).toMatchObject({ game: { state: "playing", seat: 2, turn: 2 } });
+    expect(started).toMatchObject({ game: { state: "playing", board: { seat: 2, turn: 2 } } });
     expect(message).toEqual(started);
   });
 
