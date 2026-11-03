@@ -116,7 +116,7 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
       return (
         <button
           type="button"
-          className="size-[88px] flex-none cursor-pointer rounded-[20px] bg-cream font-display text-2xl tracking-[0.06em]
+          className="size-20 flex-none cursor-pointer rounded-[18px] bg-cream font-display text-2xl tracking-[0.06em]
             text-maroon uppercase shadow-[inset_0_-6px_0_var(--color-die-shade),0_0_0_3px_var(--color-gold),0_8px_16px_rgba(0,0,0,0.45)]"
           disabled={disabled}
           onClick={rollDie}
@@ -125,19 +125,16 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
         </button>
       );
     }
-    if (!lastRoll) return null;
+    if (!lastRoll) return <div className="size-20" />;
     const isOwn = lastRoll.seat === viewer;
     return (
-      <div className="flex flex-none flex-col items-center gap-1.5">
-        <Die
-          number={lastRoll.number}
-          label={isOwn
-            ? boardMessages.dieShowing(lastRoll.number)
-            : boardMessages.dieRolledBy(playerName(lastRoll.seat), lastRoll.number)}
-          ringed={isOwn}
-        />
-        <span className="text-xs text-tan">{boardMessages.dieCaption(playerName(lastRoll.seat), isOwn)}</span>
-      </div>
+      <Die
+        number={lastRoll.number}
+        label={isOwn
+          ? boardMessages.dieShowing(lastRoll.number)
+          : boardMessages.dieRolledBy(playerName(lastRoll.seat), lastRoll.number)}
+        ringed={isOwn}
+      />
     );
   };
 
@@ -157,10 +154,14 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
         {card(0, false)}
         {card(3, true)}
       </div>
-      <div className="flex w-full flex-1 items-center justify-between gap-4 px-1.5">
-        <div className="flex min-w-0 flex-col gap-1.5" aria-live="polite">
-          <p className={`m-0 font-display leading-tight ${isOwnTurn ? "text-[26px]" : "text-2xl"}`}>{title}</p>
-          {detail && <p className="m-0 text-sm leading-snug text-tan">{detail}</p>}
+      {/*
+        The same height whatever it says, so nothing on the screen shifts as the Turn moves on. The text and the die
+        both start at the top, and each line is cut short at its most, so it always fits.
+      */}
+      <div className="flex h-36 w-full flex-none items-start justify-between gap-4 px-1.5 pt-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5" aria-live="polite">
+          <p className={`m-0 truncate font-display leading-tight ${isOwnTurn ? "text-[26px]" : "text-2xl"}`}>{title}</p>
+          {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-tan">{detail}</p>}
           {isOwnTurn && moves.length > 0 && !rolling && (
             <p className="m-0 mt-1 flex items-center gap-2 text-xs font-semibold text-gold-light">
               <span className="size-3.5 rounded bg-gold-light shadow-[inset_0_0_0_1.5px_#b8892b]" aria-hidden />
@@ -168,10 +169,11 @@ export default function BoardScreen({ board, disabled, notice, error, onRoll, on
             </p>
           )}
           {before && (
-            <p className="m-0 mt-1 border-t border-ivory/16 pt-2 text-xs leading-snug text-tan">{before}</p>
+            <p className="m-0 mt-1 line-clamp-2 border-t border-ivory/16 pt-2 text-xs leading-snug text-tan">{before}</p>
           )}
         </div>
-        {dieArea()}
+        {/* A fixed slot, the size of the die and the Roll button, so they and the text never resize each other. */}
+        <div className="size-20 flex-none">{dieArea()}</div>
       </div>
       <ErrorMessage error={error} />
     </div>

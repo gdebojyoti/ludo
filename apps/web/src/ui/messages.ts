@@ -120,7 +120,7 @@ export const boardMessages = {
   yourTurnShort: "your turn",
   rollingShort: "rolling…",
   pickToken: "pick a token",
-  turnOf: (playerName: string) => `${playerName}'s turn`,
+  turnOf: (playerName: string) => `${firstName(playerName)}'s turn`,
   youRolled: (number: number) => `You rolled a ${number}`,
   rolledShort: (number: number) => `Rolled a ${number}`,
   choosing: (number: number) => `Rolled a ${number} and is choosing a token to move.`,
@@ -137,7 +137,6 @@ export const boardMessages = {
   roll: "Roll",
   dieShowing: (number: number) => `Die showing ${number}`,
   dieRolledBy: (playerName: string, number: number) => `${playerName} rolled a ${number}`,
-  dieCaption: (playerName: string, isOwn: boolean) => isOwn ? commonMessages.you : firstName(playerName),
   // Said of a Cell or Yard, as Players tap those, not single Tokens.
   tokensHere: (groups: { playerName: string; isOwn: boolean; count: number }[]) => {
     const total = groups.reduce((sum, { count }) => sum + count, 0);
