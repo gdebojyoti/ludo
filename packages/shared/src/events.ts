@@ -25,7 +25,7 @@ export interface SnapshotPlayer {
 }
 
 /** Why the server refused a command. Each reason is added with the first command that can give it. */
-export type RejectionReason = "alreadyInActiveGame" | "invalidPlayerName" | "noActiveGame";
+export type RejectionReason = "alreadyInActiveGame" | "gameCodeNotFound" | "invalidPlayerName" | "noActiveGame";
 
 /** The server's answer to a command: success with its result, or a refusal with the reason. */
 export type Acknowledgement<Result extends object = object> =
@@ -41,6 +41,15 @@ export interface ClientToServerEvents {
    * already in an active Game, or the Player name, once trimmed, is empty or longer than `playerNameMaxLength`.
    */
   createGame: (playerName: string, ack: (reply: Acknowledgement<{ game: GameSnapshot }>) => void) => void;
+  /**
+   * Joins the Game in the Lobby with this Game code, shown by this Player name. Refused for the same Player names as
+   * `createGame`, if the Player is already in an active Game, or if no Game in the Lobby has the code or has room.
+   */
+  joinGame: (
+    gameCode: string,
+    playerName: string,
+    ack: (reply: Acknowledgement<{ game: GameSnapshot }>) => void,
+  ) => void;
   /** Leaves the Player's active Game. A Host Leaving the Lobby cancels the Game. Refused if they have none. */
   leaveGame: (ack: (reply: Acknowledgement) => void) => void;
 }

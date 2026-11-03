@@ -1,6 +1,15 @@
 // The rules of the game, as constants and pure functions with no I/O. The server uses them to decide what's allowed,
 // and is the only authority on them; the web app holds no game logic.
 
+/**
+ * The rules of Classic, the one Game mode in v1, that docs/game-modes/classic.md marks as ones later Game modes may
+ * change. They're kept in one value so a Game mode can replace them together.
+ */
+export const classicRules = {
+  /** The most Players a Game can have, so the most a Lobby holds. */
+  maxPlayers: 4,
+};
+
 /** How many digits a Game code has. Leading zeros count, so it's kept as text. */
 export const gameCodeLength = 6;
 
