@@ -35,7 +35,7 @@ describe("creating a Game", () => {
         state: "lobby",
         gameCode: expect.stringMatching(/^\d{6}$/),
         isHost: true,
-        players: [{ playerName: "Luna Lovegood", isHost: true }],
+        players: [{ playerName: "Luna Lovegood", isHost: true, away: false }],
         board: null,
       },
     });
@@ -184,7 +184,7 @@ describe("joining a Game", () => {
 
     const reply = await tab.joinGame(gameCode, "Ginny Weasley");
 
-    const players = [{ playerName: "Luna Lovegood", isHost: true }, { playerName: "Ginny Weasley", isHost: false }];
+    const players = [{ playerName: "Luna Lovegood", isHost: true, away: false }, { playerName: "Ginny Weasley", isHost: false, away: false }];
     expect(reply).toEqual({ ok: true, game: { state: "lobby", gameCode, isHost: false, players, board: null } });
     expect(await tab.nextMessage()).toEqual({ event: "game", game: reply.ok && reply.game });
     expect(await host.nextMessage()).toEqual({
@@ -364,8 +364,8 @@ describe("a Player who isn't the Host Leaving the Lobby", () => {
 
     expect(reply).toEqual({ ok: true });
     const players = [
-      { playerName: "Luna Lovegood", isHost: true },
-      { playerName: "Neville Longbottom", isHost: false },
+      { playerName: "Luna Lovegood", isHost: true, away: false },
+      { playerName: "Neville Longbottom", isHost: false, away: false },
     ];
     expect(await host.nextMessage()).toEqual({
       event: "game",
@@ -419,7 +419,7 @@ describe("the Host Leaving the Lobby", () => {
         state: "cancelled",
         gameCode: null,
         isHost: true,
-        players: [{ playerName: "Luna Lovegood", isHost: true }],
+        players: [{ playerName: "Luna Lovegood", isHost: true, away: false }],
         board: null,
       },
     };
@@ -439,7 +439,7 @@ describe("the Host Leaving the Lobby", () => {
         state: "cancelled",
         gameCode: null,
         isHost: false,
-        players: [{ playerName: "Luna Lovegood", isHost: true }, { playerName: "Ginny Weasley", isHost: false }],
+        players: [{ playerName: "Luna Lovegood", isHost: true, away: false }, { playerName: "Ginny Weasley", isHost: false, away: false }],
         board: null,
       },
     });

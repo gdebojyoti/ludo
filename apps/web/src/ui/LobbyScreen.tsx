@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { classicRules, type GameSnapshot } from "@ludo/shared";
 import Avatar from "./Avatar";
+import AwayTag from "./AwayTag";
 import ErrorMessage from "./ErrorMessage";
 import Header from "./Header";
 import Icon from "./Icon";
@@ -153,11 +154,12 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
               key={index}
               className="flex items-center gap-3 rounded-[14px] border border-ivory/16 bg-ivory/7 px-3.5 py-3"
             >
-              <Avatar playerName={player.playerName} ringed={index === viewerIndex} />
+              <Avatar playerName={player.playerName} ringed={index === viewerIndex} away={player.away} />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{player.playerName}</span>
                 {index === viewerIndex && <span className="text-xs text-tan">{commonMessages.you}</span>}
               </span>
+              {player.away && <AwayTag size="lobby" />}
               {player.isHost && (
                 <span className="flex h-[22px] flex-none items-center rounded-[11px] bg-gold px-[9px] text-xs font-bold text-maroon">
                   {lobbyMessages.host}

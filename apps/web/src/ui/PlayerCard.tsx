@@ -1,5 +1,6 @@
 import type { SnapshotSeat } from "@ludo/shared";
 import Avatar from "./Avatar";
+import AwayTag from "./AwayTag";
 import { boardMessages } from "./messages";
 import { seatView } from "./seatView";
 
@@ -15,8 +16,21 @@ interface Props {
 }
 
 export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, detail }: Props) {
-  const { playerName, left } = seat;
+  const { playerName, left, away } = seat;
   const direction = mirrored ? "flex-row-reverse text-right" : "";
+
+  // What's under the Player name: whether they Left or are Away, which matters more than the detail it replaces.
+  const tag = () => {
+    if (left) {
+      return (
+        <span className="flex h-[18px] items-center rounded-[9px] bg-tan px-[7px] text-[11px] font-bold text-maroon">
+          {boardMessages.left}
+        </span>
+      );
+    }
+    if (away) return <AwayTag size="card" />;
+    return detail && <span className={`text-xs ${isTurn ? "font-semibold text-gold-light" : "text-tan"}`}>{detail}</span>;
+  };
 
   if (playerName === null) {
     return (
@@ -35,16 +49,10 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
         isTurn ? "border-2 border-gold bg-gold/14" : "border border-ivory/16 bg-ivory/7"
       }`}
     >
-      <Avatar playerName={playerName} colours={seatView(seatsFromViewer)} ringed={isTurn} />
+      <Avatar playerName={playerName} colours={seatView(seatsFromViewer)} ringed={isTurn} away={away} />
       <span className={`flex min-w-0 flex-col gap-0.5 ${mirrored ? "items-end" : ""}`}>
         <span className="line-clamp-2 text-sm leading-tight font-semibold wrap-anywhere">{playerName}</span>
-        {left
-          ? (
-              <span className="flex h-[18px] items-center rounded-[9px] bg-tan px-[7px] text-[11px] font-bold text-maroon">
-                {boardMessages.left}
-              </span>
-            )
-          : detail && <span className={`text-xs ${isTurn ? "font-semibold text-gold-light" : "text-tan"}`}>{detail}</span>}
+        {tag()}
       </span>
     </div>
   );

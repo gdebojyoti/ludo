@@ -378,13 +378,13 @@ describe("Leaving during play", () => {
     expect(reply).toEqual({ ok: true });
     const game = {
       state: "playing",
-      players: [{ playerName: "Luna Lovegood", isHost: true }, { playerName: "Ginny Weasley", isHost: false }],
+      players: [{ playerName: "Luna Lovegood", isHost: true, away: false }, { playerName: "Ginny Weasley", isHost: false, away: false }],
       board: {
         seats: [
-          { playerName: "Luna Lovegood", left: false, tokens: [yard, yard, yard, yard] },
-          { playerName: "Neville Longbottom", left: true, tokens: [] },
-          { playerName: "Ginny Weasley", left: false, tokens: [yard, yard, yard, yard] },
-          { playerName: null, left: false, tokens: [] },
+          { playerName: "Luna Lovegood", left: false, away: false, tokens: [yard, yard, yard, yard] },
+          { playerName: "Neville Longbottom", left: true, away: false, tokens: [] },
+          { playerName: "Ginny Weasley", left: false, away: false, tokens: [yard, yard, yard, yard] },
+          { playerName: null, left: false, away: false, tokens: [] },
         ],
         turn: 0,
         winner: null,
@@ -445,9 +445,9 @@ describe("Leaving during play", () => {
       event: "game",
       game: {
         state: "won",
-        players: [{ playerName: "Ginny Weasley", isHost: false }],
+        players: [{ playerName: "Ginny Weasley", isHost: false, away: false }],
         board: {
-          seats: [{ playerName: "Luna Lovegood", left: true, tokens: [] }, {}, { playerName: "Ginny Weasley" }, {}],
+          seats: [{ playerName: "Luna Lovegood", left: true, away: false, tokens: [] }, {}, { playerName: "Ginny Weasley" }, {}],
           turn: 2,
           rolled: false,
           moves: [],

@@ -50,6 +50,7 @@ export const noticeMessages: Record<Notice, string> = {
 export const commonMessages = {
   wordmark: "Ludo",
   you: "You",
+  away: "Away",
 };
 
 export const startMessages = {
@@ -134,6 +135,8 @@ export const boardMessages = {
   rollingShort: "rolling…",
   pickToken: "pick a token",
   turnOf: (playerName: string) => `${firstName(playerName)}'s turn`,
+  waitingFor: (playerName: string) => `Waiting for ${firstName(playerName)}`,
+  theyreAway: "They're Away. The game waits for them, and you can Leave at any time.",
   youRolled: (number: number) => `You rolled a ${number}`,
   rolledShort: (number: number) => `Rolled a ${number}`,
   choosing: (number: number) => `Rolled a ${number} and is choosing a token to move.`,
