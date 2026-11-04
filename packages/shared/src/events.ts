@@ -72,6 +72,8 @@ export interface Move {
 export interface SnapshotPlayer {
   playerName: string;
   isHost: boolean;
+  /** Whether the Player is Away: in the Game, with no tab connected to it right now. */
+  away: boolean;
 }
 
 /** One of the Seats at the Board, as every Player sees it. */
@@ -80,6 +82,8 @@ export interface SnapshotSeat {
   playerName: string | null;
   /** Whether the Seat's Player Left during play, emptying it for the rest of the Game. */
   left: boolean;
+  /** Whether the Seat's Player is Away: still in it, with no tab connected right now. False for an empty Seat. */
+  away: boolean;
   /** Where each of the Seat's Tokens is. An empty Seat has none. */
   tokens: TokenPosition[];
 }
@@ -151,7 +155,10 @@ export interface ClientToServerEvents {
 
 /** Events the server sends to the web app. */
 export interface ServerToClientEvents {
-  /** The Player's Game, sent when they connect while in an active Game, and after every change to it. */
+  /**
+   * The Player's Game, sent when they connect while in an active Game, and after every change to it, including one of
+   * its Players becoming Away or coming back.
+   */
   game: (game: GameSnapshot) => void;
   /** Sent when a Player connects without an active Game, so the web app shows the start screen. */
   noActiveGame: () => void;

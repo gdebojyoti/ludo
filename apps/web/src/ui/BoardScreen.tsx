@@ -181,6 +181,11 @@ export default function BoardScreen({
       return { title: boardMessages.rollAgain, detail: boardMessages.youEarnedRoll, before: lastMoveLine };
     }
     if (isOwnTurn) return { title: boardMessages.yourTurn, detail: lastRollLine ?? boardMessages.firstRoll, before: lastMoveLine };
+    // The Game waits for a Player who is Away on their Turn, however long they're gone.
+    if (board.seats[turn]?.away) {
+      const title = boardMessages.waitingFor(playerName(turn));
+      return { title, detail: boardMessages.theyreAway, before: lastRollLine };
+    }
     const title = boardMessages.turnOf(playerName(turn));
     if (rolled && lastRoll) return { title, detail: boardMessages.choosing(lastRoll.number), before: lastMoveLine };
     if (extraRoll) return { title, detail: boardMessages.theyEarnedRoll, before: lastMoveLine };

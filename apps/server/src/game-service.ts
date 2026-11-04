@@ -203,9 +203,15 @@ export const createGameService = (
     return { ok: true, game: await save({ ...game, board: next }) };
   });
 
-  const findActiveGame = oneAtATime((playerId: string) => store.findActiveGameByPlayer(playerId));
+  /**
+   * Hands `use` the Player's active Game, or undefined if they have none. It runs in turn with the commands, before
+   * the next can change the Game, so whatever it sends from the Game can't arrive after a newer one.
+   */
+  const withActiveGame = oneAtATime(async (playerId: string, use: (game: Game | undefined) => void) => {
+    use(await store.findActiveGameByPlayer(playerId));
+  });
 
-  return { createGame, joinGame, startGame, leaveGame, roll, move, findActiveGame };
+  return { createGame, joinGame, startGame, leaveGame, roll, move, withActiveGame };
 };
 
 export type GameService = ReturnType<typeof createGameService>;

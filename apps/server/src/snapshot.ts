@@ -3,20 +3,28 @@ import { legalMoves, type GameSnapshot, type SnapshotBoard } from "@ludo/shared"
 
 import type { Game, GameBoard } from "./game-store.js";
 
+/** Whether the Player with this player ID is Away, with no tab connected. */
+export type IsAway = (playerId: string) => boolean;
+
 /**
- * The Game as this Player sees it. Never includes a player ID: the ID is the only proof of who a Player is.
+ * The Game as this Player sees it, with whoever is Away right now. Never includes a player ID: the ID is the only
+ * proof of who a Player is.
  */
-export const toSnapshot = (game: Game, playerId: string): GameSnapshot => {
+export const toSnapshot = (game: Game, playerId: string, isAway: IsAway): GameSnapshot => {
   return {
     state: game.state,
     gameCode: game.state === "lobby" ? game.gameCode : null,
     isHost: game.hostId === playerId,
-    players: game.players.map((player) => ({ playerName: player.playerName, isHost: player.playerId === game.hostId })),
-    board: game.board && toSnapshotBoard(game, game.board, playerId),
+    players: game.players.map((player) => ({
+      playerName: player.playerName,
+      isHost: player.playerId === game.hostId,
+      away: isAway(player.playerId),
+    })),
+    board: game.board && toSnapshotBoard(game, game.board, playerId, isAway),
   };
 };
 
-const toSnapshotBoard = (game: Game, board: GameBoard, playerId: string): SnapshotBoard => {
+const toSnapshotBoard = (game: Game, board: GameBoard, playerId: string, isAway: IsAway): SnapshotBoard => {
   const playerName = (id: string) => game.players.find((player) => player.playerId === id)?.playerName ?? null;
   const seat = board.seats.findIndex((seat) => seat.playerId === playerId);
   const ownTokens = board.seats[seat]?.tokens ?? [];
@@ -27,6 +35,7 @@ const toSnapshotBoard = (game: Game, board: GameBoard, playerId: string): Snapsh
     seats: board.seats.map((seat) => ({
       playerName: seat.playerId === null ? seat.leaverName : playerName(seat.playerId),
       left: seat.leaverName !== null,
+      away: seat.playerId !== null && isAway(seat.playerId),
       tokens: seat.tokens,
     })),
     turn: board.turn,

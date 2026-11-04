@@ -4,25 +4,39 @@ import type { Acknowledgement, ClientToServerEvents, GameSnapshot, ServerToClien
 
 import type { GameNotifier } from "./game-notifier.js";
 import type { CommandResult, GameService } from "./game-service.js";
+import type { Game } from "./game-store.js";
 import type { PlayerData } from "./identity.js";
 import { toSnapshot } from "./snapshot.js";
 
 export type GameIo = Server<ClientToServerEvents, ServerToClientEvents, object, PlayerData>;
 
 export const handleGameSockets = (io: GameIo, gameService: GameService, notifier: GameNotifier) => {
+  const tabCount = (playerId: string) => io.sockets.adapter.rooms.get(playerRoom(playerId))?.size ?? 0;
+  // A Player is Away while none of their tabs is connected. Read when each snapshot is made, so it's never stale.
+  const isAway = (playerId: string) => tabCount(playerId) === 0;
+
+  /** Sends the Game to every tab its Players have open, each as they see it. */
+  const sendToPlayers = (game: Game) => {
+    game.players.forEach(({ playerId }) => {
+      io.to(playerRoom(playerId)).emit("game", toSnapshot(game, playerId, isAway));
+    });
+  };
+
   // Every change to a Game reaches every tab its Players have open, and every tab of a Player who just Left it.
   notifier.subscribe((game, leaverId) => {
-    game.players.forEach(({ playerId }) => io.to(playerRoom(playerId)).emit("game", toSnapshot(game, playerId)));
+    sendToPlayers(game);
     if (leaverId) io.to(playerRoom(leaverId)).emit("noActiveGame");
   });
 
   io.on("connection", async (socket) => {
     const { playerId } = socket.data;
     socket.join(playerRoom(playerId));
+    // Counted at once, before anything is awaited, so of two tabs opening together only one is the first.
+    const isFirstTab = tabCount(playerId) === 1;
 
     // Answers a command that puts the Player in a Game with the Game as they see it.
     const enterGame = (result: CommandResult, ack: (reply: Acknowledgement<{ game: GameSnapshot }>) => void) => {
-      ack(result.ok ? { ok: true, game: toSnapshot(result.game, playerId) } : result);
+      ack(result.ok ? { ok: true, game: toSnapshot(result.game, playerId, isAway) } : result);
     };
 
     // The check in server.ts only looks at the last argument, so a command sent with too few arguments arrives in
@@ -64,10 +78,19 @@ export const handleGameSockets = (io: GameIo, gameService: GameService, notifier
       ack(result.ok ? { ok: true } : result);
     });
 
-    // A Rejoin: only this tab is sent the Game, as nothing about it has changed for the Player's other tabs.
-    const game = await gameService.findActiveGame(playerId);
-    if (game) socket.emit("game", toSnapshot(game, playerId));
-    else socket.emit("noActiveGame");
+    // Closing the Player's last tab makes them Away, which everyone in their Game is shown. The Game waits for them.
+    socket.on("disconnect", async () => {
+      if (tabCount(playerId) > 0) return;
+      await gameService.withActiveGame(playerId, (game) => game && sendToPlayers(game));
+    });
+
+    // A Rejoin. A Player's first tab brings them back from Away, which everyone in their Game is shown, this tab
+    // included. Any other tab changes nothing for the rest, so only it is sent the Game.
+    await gameService.withActiveGame(playerId, (game) => {
+      if (!game) socket.emit("noActiveGame");
+      else if (isFirstTab) sendToPlayers(game);
+      else socket.emit("game", toSnapshot(game, playerId, isAway));
+    });
   });
 };
 
