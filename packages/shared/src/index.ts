@@ -21,6 +21,7 @@ export {
   hasWon,
   isValidPlayerName,
   legalMoves,
+  positionsAlong,
   nextTakenSeat,
   playerNameMaxLength,
   seatsClockwise,
