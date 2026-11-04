@@ -215,7 +215,11 @@
     cursor: pointer;
   }
 
+  /* In the middle of its Cell, behind a Token on it, so the Token is centred too. */
   .ludo-star {
+    position: absolute;
+    inset: 0;
+    margin: auto;
     width: calc(15 * var(--u));
     height: calc(15 * var(--u));
     fill: none;
