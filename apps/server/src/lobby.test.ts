@@ -184,7 +184,10 @@ describe("joining a Game", () => {
 
     const reply = await tab.joinGame(gameCode, "Ginny Weasley");
 
-    const players = [{ playerName: "Luna Lovegood", isHost: true, away: false }, { playerName: "Ginny Weasley", isHost: false, away: false }];
+    const players = [
+      { playerName: "Luna Lovegood", isHost: true, away: false },
+      { playerName: "Ginny Weasley", isHost: false, away: false },
+    ];
     expect(reply).toEqual({ ok: true, game: { state: "lobby", gameCode, isHost: false, players, board: null } });
     expect(await tab.nextMessage()).toEqual({ event: "game", game: reply.ok && reply.game });
     expect(await host.nextMessage()).toEqual({
@@ -439,7 +442,10 @@ describe("the Host Leaving the Lobby", () => {
         state: "cancelled",
         gameCode: null,
         isHost: false,
-        players: [{ playerName: "Luna Lovegood", isHost: true, away: false }, { playerName: "Ginny Weasley", isHost: false, away: false }],
+        players: [
+          { playerName: "Luna Lovegood", isHost: true, away: false },
+          { playerName: "Ginny Weasley", isHost: false, away: false },
+        ],
         board: null,
       },
     });

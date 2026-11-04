@@ -101,7 +101,10 @@ describe("Away during play", () => {
     await hostPlayer.connect();
 
     expect(await joiner.nextMessage()).toMatchObject({
-      game: { players: [{ away: false }, { away: false }], board: { seats: [{ away: false }, {}, { away: false }, {}] } },
+      game: {
+        players: [{ away: false }, { away: false }],
+        board: { seats: [{ away: false }, {}, { away: false }, {}] },
+      },
     });
   });
 
@@ -134,7 +137,7 @@ describe("Away during play", () => {
     });
   });
 
-  it("makes the Game wait for a Player who is Away on their Turn, with nothing changed when they come back", async () => {
+  it("makes the Game wait for a Player Away on their Turn, with nothing changed when they come back", async () => {
     const { host, joiner, hostPlayer } = await gameInPlay();
     await host.close();
     await joiner.nextMessage();
@@ -144,7 +147,9 @@ describe("Away during play", () => {
     expect(await joiner.roll()).toEqual({ ok: false, reason: "notYourTurn" });
     const rejoined = await hostPlayer.connect();
 
-    expect(await rejoined.nextMessage()).toMatchObject({ game: { state: "playing", board: { turn: 0, rolled: false } } });
+    expect(await rejoined.nextMessage()).toMatchObject({
+      game: { state: "playing", board: { turn: 0, rolled: false } },
+    });
   });
 });
 

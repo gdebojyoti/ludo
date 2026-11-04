@@ -183,7 +183,8 @@ export default function BoardScreen({
     if (isOwnTurn) return { title: boardMessages.yourTurn, detail: lastRollLine ?? boardMessages.firstRoll, before: lastMoveLine };
     // The Game waits for a Player who is Away on their Turn, however long they're gone.
     if (board.seats[turn]?.away) {
-      return { title: boardMessages.waitingFor(playerName(turn)), detail: boardMessages.theyreAway, before: lastRollLine };
+      const title = boardMessages.waitingFor(playerName(turn));
+      return { title, detail: boardMessages.theyreAway, before: lastRollLine };
     }
     const title = boardMessages.turnOf(playerName(turn));
     if (rolled && lastRoll) return { title, detail: boardMessages.choosing(lastRoll.number), before: lastMoveLine };

@@ -20,7 +20,7 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
   const direction = mirrored ? "flex-row-reverse text-right" : "";
 
   // What's under the Player name: whether they Left or are Away, which matters more than the detail it replaces.
-  const tag = () => {
+  const belowName = () => {
     if (left) {
       return (
         <span className="flex h-[18px] items-center rounded-[9px] bg-tan px-[7px] text-[11px] font-bold text-maroon">
@@ -29,7 +29,8 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
       );
     }
     if (away) return <AwayTag size="card" />;
-    return detail && <span className={`text-xs ${isTurn ? "font-semibold text-gold-light" : "text-tan"}`}>{detail}</span>;
+    const emphasis = isTurn ? "font-semibold text-gold-light" : "text-tan";
+    return detail && <span className={`text-xs ${emphasis}`}>{detail}</span>;
   };
 
   if (playerName === null) {
@@ -52,7 +53,7 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
       <Avatar playerName={playerName} colours={seatView(seatsFromViewer)} ringed={isTurn} away={away} />
       <span className={`flex min-w-0 flex-col gap-0.5 ${mirrored ? "items-end" : ""}`}>
         <span className="line-clamp-2 text-sm leading-tight font-semibold wrap-anywhere">{playerName}</span>
-        {tag()}
+        {belowName()}
       </span>
     </div>
   );

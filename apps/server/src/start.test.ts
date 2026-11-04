@@ -28,7 +28,10 @@ describe("the Host starting the Game", () => {
     const reply = await host.startGame();
 
     expect(reply).toEqual({ ok: true });
-    const players = [{ playerName: "Luna Lovegood", isHost: true, away: false }, { playerName: "Ginny Weasley", isHost: false, away: false }];
+    const players = [
+      { playerName: "Luna Lovegood", isHost: true, away: false },
+      { playerName: "Ginny Weasley", isHost: false, away: false },
+    ];
     const seats = [
       { playerName: "Luna Lovegood", left: false, away: false, tokens: inYard },
       emptySeat,

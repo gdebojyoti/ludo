@@ -378,7 +378,10 @@ describe("Leaving during play", () => {
     expect(reply).toEqual({ ok: true });
     const game = {
       state: "playing",
-      players: [{ playerName: "Luna Lovegood", isHost: true, away: false }, { playerName: "Ginny Weasley", isHost: false, away: false }],
+      players: [
+        { playerName: "Luna Lovegood", isHost: true, away: false },
+        { playerName: "Ginny Weasley", isHost: false, away: false },
+      ],
       board: {
         seats: [
           { playerName: "Luna Lovegood", left: false, away: false, tokens: [yard, yard, yard, yard] },
@@ -447,7 +450,12 @@ describe("Leaving during play", () => {
         state: "won",
         players: [{ playerName: "Ginny Weasley", isHost: false, away: false }],
         board: {
-          seats: [{ playerName: "Luna Lovegood", left: true, away: false, tokens: [] }, {}, { playerName: "Ginny Weasley" }, {}],
+          seats: [
+            { playerName: "Luna Lovegood", left: true, away: false, tokens: [] },
+            {},
+            { playerName: "Ginny Weasley" },
+            {},
+          ],
           turn: 2,
           rolled: false,
           moves: [],
