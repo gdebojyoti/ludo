@@ -1,11 +1,13 @@
 import type { CSSProperties } from "react";
 import {
   classicRules,
+  positionsAlong,
   seatsClockwise,
   type Seat,
   type SnapshotBoard,
   type TokenPosition,
 } from "@ludo/shared";
+import MovingToken from "./MovingToken";
 import { boardMessages } from "./messages";
 import { emptySeatColour, seatView, type Cell } from "./seatView";
 
@@ -14,6 +16,13 @@ interface Props {
   disabled: boolean;
   /** Called with one of the viewer's Tokens that can Move, when they pick it. */
   onMove: (token: number) => void;
+  /**
+   * One of the viewer's Tokens, Moving by their last Roll: it's drawn sliding there from where the Board has it, and
+   * nothing on the Board can be picked until it's arrived.
+   */
+  moving: number | undefined;
+  /** Called once the Token that's Moving has arrived. */
+  onArrived: () => void;
 }
 
 /**
@@ -107,18 +116,38 @@ const homeSpotTurns: ((across: number, inFromEdge: number) => [x: number, y: num
 ];
 const homePercent = (units: number) => `${(units / 70) * 100}%`;
 
+/** The middle of a spot in a quarter of Home, in Cells of the grid. Home is 3 Cells across, from the 7th. */
+const homeSpotCentre = (turns: number, count: number, spot: number): Cell => {
+  const [across, inFromEdge] = homeSpots[count]?.[spot] as [number, number];
+  const [x, y] = (homeSpotTurns[turns] as (typeof homeSpotTurns)[number])(across, inFromEdge);
+  return [5.5 + (y / 70) * 3, 5.5 + (x / 70) * 3];
+};
+
+// How far the middle of each slot in a Yard is from the Yard's middle, across and down, in Cells: half a slot and
+// half the gap between slots, 19 design pixels, on the design's 360px Board.
+const yardSlotOffset = 19 / ((360 - 14) / 15 + 1);
+
+/** The middle of a slot in a Yard, from the Yard's top-left Cell, in Cells of the grid. Slots go across, then down. */
+const yardSlotCentre = ([row, column]: Cell, slot: number): Cell => [
+  row + (yardSize - 1) / 2 + (slot < 2 ? -1 : 1) * yardSlotOffset,
+  column + (yardSize - 1) / 2 + (slot % 2 ? 1 : -1) * yardSlotOffset,
+];
+
 const starIcon = (onColour: boolean) => (
   <svg className={`ludo-star ${onColour ? "ludo-star-on-colour" : ""}`} viewBox="0 0 24 24" aria-hidden>
     <path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" />
   </svg>
 );
 
-export default function Board({ board, disabled, onMove }: Props) {
+export default function Board({ board, disabled, onMove, moving, onArrived }: Props) {
   const viewer = board.seat;
   const fromViewer = (seat: Seat) => seatsClockwise(viewer, seat);
   const colourOf = (seat: Seat) => seatView(fromViewer(seat)).colour;
   const playerName = (seat: Seat) => board.seats[seat]?.playerName ?? "";
-  const isMovable = ({ seat, token }: PlacedToken) => seat === viewer && board.moves.includes(token);
+  const isMoving = ({ seat, token }: PlacedToken) => seat === viewer && token === moving;
+  // Nothing can be picked while a Token is Moving.
+  const isMovable = ({ seat, token }: PlacedToken) =>
+    moving === undefined && seat === viewer && board.moves.includes(token);
   // The Seat this many Seats clockwise from the viewer's.
   const seatAt = (seatsFromViewer: number) => (viewer + seatsFromViewer) % classicRules.seats;
   const isEmptySeat = (seat: Seat) => {
@@ -130,7 +159,7 @@ export default function Board({ board, disabled, onMove }: Props) {
   const tokensOnCells = new Map<string, PlacedToken[]>();
   board.seats.forEach(({ tokens }, seat) => tokens.forEach((position, token) => {
     const cell = gridCell(position, seat, viewer);
-    if (!cell) return;
+    if (!cell || isMoving({ seat, token })) return;
     const key = cellKey(cell);
     tokensOnCells.set(key, [...(tokensOnCells.get(key) ?? []), { seat, token }]);
   }));
@@ -227,7 +256,7 @@ export default function Board({ board, disabled, onMove }: Props) {
   const yard = (seat: Seat) => {
     const { colour, yardCorner } = seatView(fromViewer(seat));
     const inYard = (board.seats[seat]?.tokens ?? []).flatMap((position, token) =>
-      position.area === "yard" ? [{ seat, token }] : [],
+      position.area === "yard" && !isMoving({ seat, token }) ? [{ seat, token }] : [],
     );
     const empty = isEmptySeat(seat);
     const label = empty
@@ -275,6 +304,22 @@ export default function Board({ board, disabled, onMove }: Props) {
       .map(({ seat, count }) => ({ playerName: playerName(seat), isOwn: seat === viewer, count })),
   );
 
+  // Where the Token that's Moving starts, then each place it stands on: its slot in the Yard, or its Cell, then each
+  // Cell along its Move, and its spot in Home if it ends there.
+  const movingPath = (token: number): Cell[] => {
+    const tokens = board.seats[viewer]?.tokens ?? [];
+    const from = tokens[token];
+    if (!from || !board.lastRoll) return [];
+    const homeCount = tokens.filter((position) => position.area === "home").length;
+    const yardSlot = tokens.slice(0, token).filter((position) => position.area === "yard").length;
+    const placeOf = (position: TokenPosition): Cell => {
+      if (position.area === "yard") return yardSlotCentre(seatView(0).yardCorner, yardSlot);
+      if (position.area === "home") return homeSpotCentre(0, homeCount + 1, homeCount);
+      return gridCell(position, viewer, viewer) as Cell;
+    };
+    return [from, ...positionsAlong(viewer, from, board.lastRoll.number)].map(placeOf);
+  };
+
   return (
     <div className="ludo-board">
       {quarterTurns.map((turns) => yard(seatAt(turns)))}
@@ -303,6 +348,9 @@ export default function Board({ board, disabled, onMove }: Props) {
         )}
       </div>
       {crossCells.map(crossCell)}
+      {moving !== undefined && (
+        <MovingToken key={moving} path={movingPath(moving)} colour={colourOf(viewer)} onArrived={onArrived} />
+      )}
     </div>
   );
 }

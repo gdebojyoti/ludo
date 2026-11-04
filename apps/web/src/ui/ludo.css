@@ -180,6 +180,7 @@
    * in --u, one design pixel, so it scales with the Board.
    */
   .ludo-board {
+    position: relative;
     container-type: inline-size;
     display: grid;
     grid-template-columns: repeat(15, minmax(0, 1fr));
@@ -214,7 +215,11 @@
     cursor: pointer;
   }
 
+  /* In the middle of its Cell, behind a Token on it, so the Token is centred too. */
   .ludo-star {
+    position: absolute;
+    inset: 0;
+    margin: auto;
     width: calc(15 * var(--u));
     height: calc(15 * var(--u));
     fill: none;
@@ -344,6 +349,25 @@
     transform: translateY(-2px);
   }
 
+  /*
+   * The viewer's Token as it Moves, above everything on the Board, looking as it did when it could Move. It's set in
+   * the middle of the Cell at --row and --column, and slides there flat from the one at --from-row and --from-column.
+   * A Cell is a 15th of the Board, less the 1px gaps between them.
+   */
+  .ludo-token-moving {
+    --cell: calc((100cqi - 14px) / 15);
+    position: absolute;
+    left: calc(var(--column) * (var(--cell) + 1px) + var(--cell) / 2);
+    top: calc(var(--row) * (var(--cell) + 1px) + var(--cell) / 2);
+    z-index: 3;
+    margin: calc(-8.5 * var(--u)) 0 0 calc(-8.5 * var(--u));
+    box-shadow: 0 0 0 2px var(--color-maroon), 0 3px 4px rgb(40 10 10 / 0.55);
+    pointer-events: none;
+    animation-duration: 190ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+    animation-fill-mode: both;
+  }
+
   /* 5 or more Tokens in one Cell: a count, ringed in each Seat's share. */
   .ludo-chip {
     position: absolute;
@@ -396,5 +420,24 @@
   .ludo-home .ludo-token::after {
     inset: 1px;
     border-width: 1px;
+  }
+}
+
+/* The steps of a Moving Token (.ludo-token-moving), the same twice over so each step starts its slide afresh. */
+@keyframes ludo-step-a {
+  from {
+    transform: translate(
+      calc((var(--from-column) - var(--column)) * (var(--cell) + 1px)),
+      calc((var(--from-row) - var(--row)) * (var(--cell) + 1px))
+    );
+  }
+}
+
+@keyframes ludo-step-b {
+  from {
+    transform: translate(
+      calc((var(--from-column) - var(--column)) * (var(--cell) + 1px)),
+      calc((var(--from-row) - var(--row)) * (var(--cell) + 1px))
+    );
   }
 }

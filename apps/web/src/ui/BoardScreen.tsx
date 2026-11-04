@@ -52,8 +52,11 @@ export default function BoardScreen({
   onLeaveGame,
 }: Props) {
   // The Board as it was when the viewer tapped the die, shown until it lands, as what came after would give the Roll
-  // away: whose Turn it is, and which Tokens can Move.
+  // away: whose Turn it is, and which Tokens can Move. Or as it was when they picked a Token to Move, shown until the
+  // Token has slid to where it ends up.
   const [heldBoard, setHeldBoard] = useState<SnapshotBoard>();
+  // The viewer's Token that's sliding to where it ends up, if one is.
+  const [movingToken, setMovingToken] = useState<number>();
   const board = heldBoard ?? latestBoard;
   const [rollState, setRollState] = useState<RollState>("idle");
   // Whether the server is taking a while to reply to the Roll.
@@ -103,6 +106,20 @@ export default function BoardScreen({
     setSlow(false);
     setLanded(Boolean(reply?.ok));
     setRollState(reply?.ok ? "idle" : "failed");
+    setHeldBoard(undefined);
+  };
+
+  // The Move is sent at once, and the Token starts sliding at once, a Cell at a time, unless motion is reduced.
+  const moveToken = (token: number) => {
+    if (!prefersReducedMotion()) {
+      setHeldBoard(latestBoard);
+      setMovingToken(token);
+    }
+    onMove(token);
+  };
+
+  const tokenArrived = () => {
+    setMovingToken(undefined);
     setHeldBoard(undefined);
   };
 
@@ -238,7 +255,13 @@ export default function BoardScreen({
         {card(1, false)}
         {card(2, true)}
       </div>
-      <Board board={board} disabled={disabled} onMove={onMove} />
+      <Board
+        board={board}
+        disabled={disabled}
+        onMove={moveToken}
+        moving={movingToken}
+        onArrived={tokenArrived}
+      />
       <div className="flex w-full gap-2.5">
         {card(0, false)}
         {card(3, true)}
@@ -258,7 +281,7 @@ export default function BoardScreen({
             {title}
           </p>
           {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-tan">{detail}</p>}
-          {isOwnTurn && moves.length > 0 && !rolling && (
+          {isOwnTurn && moves.length > 0 && !rolling && movingToken === undefined && (
             <p className="m-0 mt-1 flex items-center gap-2 text-xs font-semibold text-gold-light">
               <span className="size-3.5 rounded bg-gold-light shadow-[inset_0_0_0_1.5px_#b8892b]" aria-hidden />
               {boardMessages.tokensCanMove(moves.length)}

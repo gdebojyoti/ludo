@@ -9,6 +9,7 @@ import {
   moveToken,
   nextTakenSeat,
   positionAfter,
+  positionsAlong,
   seatsClockwise,
 } from "./rules.js";
 
@@ -96,6 +97,43 @@ describe("a Token Moving along its journey", () => {
     ["Move once it's Home", 0, { area: "home" }, 1],
   ] as const)("can't %s", (_, seat, from, roll) => {
     expect(positionAfter(seat, from, roll)).toBeNull();
+  });
+});
+
+describe("the places a Token stands on as it Moves", () => {
+  it("is just its Start cell when it leaves the Yard", () => {
+    expect(positionsAlong(1, { area: "yard" }, 6)).toEqual([{ area: "track", cell: 13 }]);
+  });
+
+  it("is each Cell along the Track, wrapping round past its last Cell", () => {
+    expect(positionsAlong(1, { area: "track", cell: 50 }, 3)).toEqual([
+      { area: "track", cell: 51 },
+      { area: "track", cell: 0 },
+      { area: "track", cell: 1 },
+    ]);
+  });
+
+  it("turns into its Home column, skipping the Cell before its Start cell", () => {
+    expect(positionsAlong(0, { area: "track", cell: 49 }, 3)).toEqual([
+      { area: "track", cell: 50 },
+      { area: "homeColumn", cell: 0 },
+      { area: "homeColumn", cell: 1 },
+    ]);
+  });
+
+  it("ends Home with an exact Roll", () => {
+    expect(positionsAlong(3, { area: "homeColumn", cell: 2 }, 3)).toEqual([
+      { area: "homeColumn", cell: 3 },
+      { area: "homeColumn", cell: 4 },
+      { area: "home" },
+    ]);
+  });
+
+  it.each([
+    ["can't leave the Yard", { area: "yard" }, 5],
+    ["would overshoot Home", { area: "homeColumn", cell: 3 }, 3],
+  ] as const)("is empty when the Token %s", (_, from, roll) => {
+    expect(positionsAlong(2, from, roll)).toEqual([]);
   });
 });
 

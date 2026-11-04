@@ -88,6 +88,17 @@ export const positionAfter = (seat: Seat, position: TokenPosition, roll: number)
   return positionAt(seat, distance);
 };
 
+/**
+ * Each place a Token of the Seat stands on as it Moves by this Roll, a Cell at a time, ending where it ends up: just
+ * its Start cell if it leaves the Yard. Empty if it can't Move by the Roll.
+ */
+export const positionsAlong = (seat: Seat, position: TokenPosition, roll: number): TokenPosition[] => {
+  if (!positionAfter(seat, position, roll)) return [];
+  if (position.area === "yard") return [positionAt(seat, 0)];
+  const from = distanceOf(seat, position);
+  return Array.from({ length: roll }, (_, step) => positionAt(seat, from + step + 1));
+};
+
 /** The Seat's Tokens that can Move by this Roll, by their place in its list of Tokens. */
 export const legalMoves = (seat: Seat, tokens: TokenPosition[], roll: number): number[] => {
   return tokens.flatMap((position, token) => (positionAfter(seat, position, roll) ? [token] : []));
