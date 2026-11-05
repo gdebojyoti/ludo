@@ -82,8 +82,8 @@ export default function Ludo() {
   // The colours sit on this element, not the page, so the host app's page keeps its own. On wider screens the game
   // keeps its phone layout, in a channel down the middle.
   return (
-    <div className="min-h-dvh bg-maroon-deep font-ui text-ivory">
-      <main className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-maroon">
+    <div className="min-h-dvh bg-ludo-maroon-deep font-ludo-ui text-ludo-ivory">
+      <main className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-ludo-maroon">
         <ServerStatus status={status} />
         <div className="flex flex-1 flex-col">{screen()}</div>
       </main>

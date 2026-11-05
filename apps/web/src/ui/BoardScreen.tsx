@@ -7,6 +7,7 @@ import Header from "./Header";
 import LeaveButton from "./LeaveButton";
 import Notice from "./Notice";
 import PlayerCard from "./PlayerCard";
+import { homeCountAt, playerNameAt, seatAt } from "./boardView";
 import { boardMessages, commonMessages, leaveMessages } from "./messages";
 
 interface Props {
@@ -73,16 +74,12 @@ export default function BoardScreen({
     return () => clearInterval(interval);
   }, [rolling]);
 
-  // Players are named by their Player name, never by colour, as each sees the Seats in different colours.
-  const playerName = (seat: Seat) => board.seats[seat]?.playerName ?? "";
+  const playerName = (seat: Seat) => playerNameAt(board, seat);
   const viewer = board.seat;
   const { turn, rolled, lastRoll, lastMove, moves, extraRoll } = board;
   const isOwnTurn = turn === viewer;
   // A Roll that didn't go through, while the viewer can still Roll again.
   const failed = rollState === "failed" && isOwnTurn && !rolled;
-  const seatAt = (seatsFromViewer: number) => (viewer + seatsFromViewer) % board.seats.length;
-  const homeCount = (seat: Seat) =>
-    (board.seats[seat]?.tokens ?? []).filter((position) => position.area === "home").length;
   const playerCount = board.seats.filter((seat) => seat.playerName !== null).length;
   const otherNames = board.seats.flatMap((seat, index) =>
     index !== viewer && seat.playerName !== null && !seat.left ? [seat.playerName] : [],
@@ -140,14 +137,15 @@ export default function BoardScreen({
   };
 
   const cardDetail = (seat: Seat) => {
-    const home = homeCount(seat) > 0 ? boardMessages.home(homeCount(seat)) : "";
+    const homeCount = homeCountAt(board, seat);
+    const home = homeCount > 0 ? boardMessages.home(homeCount) : "";
     // What the viewer should do now, if anything, takes the place of their count Home, so the line stays short.
     if (seat === viewer) return [commonMessages.you, viewerNow() || home].filter(Boolean).join(" · ");
     return [otherNow(seat), home].filter(Boolean).join(" · ");
   };
 
   const card = (seatsFromViewer: number, mirrored: boolean) => {
-    const seat = seatAt(seatsFromViewer);
+    const seat = seatAt(board, seatsFromViewer);
     const snapshotSeat = board.seats[seat];
     if (!snapshotSeat) return null;
     return (
@@ -171,7 +169,8 @@ export default function BoardScreen({
   // What's happening now, then what came before it.
   const status = (): { title: string; detail: string | null; before: string | null } => {
     if (rolling) {
-      return { title: boardMessages.rolling, detail: slow ? boardMessages.stillRolling : boardMessages.everyoneSees, before: null };
+      const detail = slow ? boardMessages.stillRolling : boardMessages.everyoneSees;
+      return { title: boardMessages.rolling, detail, before: null };
     }
     if (failed) return { title: boardMessages.rollFailed, detail: boardMessages.tapToRetry, before: null };
     if (isOwnTurn && rolled && lastRoll) {
@@ -180,7 +179,9 @@ export default function BoardScreen({
     if (isOwnTurn && extraRoll) {
       return { title: boardMessages.rollAgain, detail: boardMessages.youEarnedRoll, before: lastMoveLine };
     }
-    if (isOwnTurn) return { title: boardMessages.yourTurn, detail: lastRollLine ?? boardMessages.firstRoll, before: lastMoveLine };
+    if (isOwnTurn) {
+      return { title: boardMessages.yourTurn, detail: lastRollLine ?? boardMessages.firstRoll, before: lastMoveLine };
+    }
     // The Game waits for a Player who is Away on their Turn, however long they're gone.
     if (board.seats[turn]?.away) {
       const title = boardMessages.waitingFor(playerName(turn));
@@ -203,7 +204,7 @@ export default function BoardScreen({
           number={tumbleFace}
           label={boardMessages.rollingDie}
           ringed
-          className={rollState === "tumbling" ? "motion-safe:animate-die-tumble" : "motion-safe:animate-die-spin"}
+          className={rollState === "tumbling" ? "motion-safe:animate-ludo-die-tumble" : "motion-safe:animate-ludo-die-spin"}
         />
       );
     }
@@ -211,9 +212,8 @@ export default function BoardScreen({
       return (
         <button
           type="button"
-          className="flex size-20 flex-none cursor-pointer items-center justify-center rounded-[18px] bg-cream font-display
-            text-[40px] leading-none text-danger motion-safe:animate-die-shake
-            shadow-[inset_0_-6px_0_var(--color-die-shade),0_0_0_3px_var(--color-danger-line),0_8px_16px_rgba(0,0,0,0.45)]"
+          className="ludo-die flex cursor-pointer items-center justify-center font-ludo-display text-[40px] leading-none
+            text-ludo-danger [--ludo-die-ring:var(--color-ludo-danger-line)] motion-safe:animate-ludo-die-shake"
           aria-label={boardMessages.retryRoll}
           disabled={disabled}
           onClick={() => rollDie()}
@@ -226,8 +226,8 @@ export default function BoardScreen({
       return (
         <button
           type="button"
-          className="size-20 flex-none cursor-pointer rounded-[18px] bg-cream font-display text-2xl tracking-[0.06em]
-            text-maroon uppercase shadow-[inset_0_-6px_0_var(--color-die-shade),0_0_0_3px_var(--color-gold),0_8px_16px_rgba(0,0,0,0.45)]"
+          className="ludo-die cursor-pointer font-ludo-display text-2xl tracking-[0.06em] text-ludo-maroon uppercase
+            [--ludo-die-ring:var(--color-ludo-gold)]"
           disabled={disabled}
           onClick={() => rollDie()}
         >
@@ -244,7 +244,7 @@ export default function BoardScreen({
           ? boardMessages.dieShowing(lastRoll.number)
           : boardMessages.dieRolledBy(playerName(lastRoll.seat), lastRoll.number)}
         ringed={isOwn}
-        className={isOwn && landed ? "motion-safe:animate-die-land" : ""}
+        className={isOwn && landed ? "motion-safe:animate-ludo-die-land" : ""}
       />
     );
   };
@@ -279,21 +279,26 @@ export default function BoardScreen({
         <div className="flex min-w-0 flex-1 flex-col gap-1.5" aria-live="polite">
           <p
             key={title}
-            className={`m-0 truncate font-display leading-tight ${isOwnTurn ? "text-[26px]" : "text-2xl"} ${
-              titleArrives ? "motion-safe:animate-fade-up" : ""
+            className={`m-0 truncate font-ludo-display leading-tight ${isOwnTurn ? "text-[26px]" : "text-2xl"} ${
+              titleArrives ? "motion-safe:animate-ludo-fade-up" : ""
             }`}
           >
             {title}
           </p>
-          {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-tan">{detail}</p>}
+          {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-ludo-tan">{detail}</p>}
           {isOwnTurn && moves.length > 0 && !rolling && movingToken === undefined && (
-            <p className="m-0 mt-1 flex items-center gap-2 text-xs font-semibold text-gold-light">
-              <span className="size-3.5 rounded bg-gold-light shadow-[inset_0_0_0_1.5px_#b8892b]" aria-hidden />
+            <p className="m-0 mt-1 flex items-center gap-2 text-xs font-semibold text-ludo-gold-light">
+              <span
+                className="size-3.5 rounded bg-ludo-gold-light shadow-[inset_0_0_0_1.5px_var(--color-ludo-gold-edge)]"
+                aria-hidden
+              />
               {boardMessages.tokensCanMove(moves.length)}
             </p>
           )}
           {before && (
-            <p className="m-0 mt-1 line-clamp-2 border-t border-ivory/16 pt-2 text-xs leading-snug text-tan">{before}</p>
+            <p className="m-0 mt-1 line-clamp-2 border-t border-ludo-ivory/16 pt-2 text-xs leading-snug text-ludo-tan">
+              {before}
+            </p>
           )}
         </div>
         {/* A fixed slot, the size of the die and the Roll button, so they and the text never resize each other. */}

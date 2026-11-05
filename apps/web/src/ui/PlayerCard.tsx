@@ -1,8 +1,8 @@
 import type { SnapshotSeat } from "@ludo/shared";
 import Avatar from "./Avatar";
-import AwayTag from "./AwayTag";
-import { boardMessages } from "./messages";
+import { boardMessages, commonMessages } from "./messages";
 import { seatView } from "./seatView";
+import Tag from "./Tag";
 
 interface Props {
   seat: SnapshotSeat;
@@ -21,25 +21,19 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
 
   // What's under the Player name: whether they Left or are Away, which matters more than the detail it replaces.
   const belowName = () => {
-    if (left) {
-      return (
-        <span className="flex h-[18px] items-center rounded-[9px] bg-tan px-[7px] text-[11px] font-bold text-maroon">
-          {boardMessages.left}
-        </span>
-      );
-    }
-    if (away) return <AwayTag size="card" />;
-    const emphasis = isTurn ? "font-semibold text-gold-light" : "text-tan";
+    if (left) return <Tag size="card">{boardMessages.left}</Tag>;
+    if (away) return <Tag size="card" icon="away">{commonMessages.away}</Tag>;
+    const emphasis = isTurn ? "font-semibold text-ludo-gold-light" : "text-ludo-tan";
     return detail && <span className={`text-xs ${emphasis}`}>{detail}</span>;
   };
 
   if (playerName === null) {
     return (
       <div className={`flex h-16 min-w-0 flex-1 items-center gap-2.5 rounded-[14px] border-[1.5px] border-dashed
-        border-ivory/30 px-2.5 py-2 ${direction}`}
+        border-ludo-ivory/30 px-2.5 py-2 ${direction}`}
       >
-        <span className="size-9 flex-none rounded-full border-2 border-dashed border-ivory/45" aria-hidden />
-        <span className="text-sm text-tan">{boardMessages.emptySeat}</span>
+        <span className="size-9 flex-none rounded-full border-2 border-dashed border-ludo-ivory/45" aria-hidden />
+        <span className="text-sm text-ludo-tan">{boardMessages.emptySeat}</span>
       </div>
     );
   }
@@ -47,7 +41,7 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
   return (
     <div
       className={`flex h-16 min-w-0 flex-1 items-center gap-2.5 rounded-[14px] px-2.5 py-2 ${direction} ${
-        isTurn ? "border-2 border-gold bg-gold/14" : "border border-ivory/16 bg-ivory/7"
+        isTurn ? "border-2 border-ludo-gold bg-ludo-gold/14" : "border border-ludo-ivory/16 bg-ludo-ivory/7"
       }`}
     >
       <Avatar playerName={playerName} colours={seatView(seatsFromViewer)} ringed={isTurn} away={away} />
