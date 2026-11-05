@@ -52,6 +52,7 @@ export const rejectionMessages: Record<RejectionReason, string> = {
   notHost: "Only the host can start the game.",
   notRolled: "Roll first, then pick a token to move.",
   notYourTurn: "It's not your turn.",
+  serverError: "Something went wrong on the server. Try again.",
 };
 
 export const noticeMessages: Record<Notice, string> = {

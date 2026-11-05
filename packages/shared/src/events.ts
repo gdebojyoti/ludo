@@ -104,7 +104,9 @@ export type RejectionReason =
   | "notEnoughPlayers"
   | "notHost"
   | "notRolled"
-  | "notYourTurn";
+  | "notYourTurn"
+  /** Something went wrong on the server, not with the command. */
+  | "serverError";
 
 /** The server's answer to a command: success with its result, or a refusal with the reason. */
 export type Acknowledgement<Result extends object = object> =

@@ -1,6 +1,12 @@
 // The socket layer: turns Socket.IO events into game service commands, and sends each Player their snapshot.
 import type { Server } from "socket.io";
-import type { Acknowledgement, ClientToServerEvents, GameSnapshot, ServerToClientEvents } from "@ludo/shared";
+import type {
+  Acknowledgement,
+  ClientToServerEvents,
+  GameMode,
+  GameSnapshot,
+  ServerToClientEvents,
+} from "@ludo/shared";
 
 import type { GameNotifier } from "./game-notifier.js";
 import type { CommandResult, GameService } from "./game-service.js";
@@ -39,48 +45,66 @@ export const handleGameSockets = (io: GameIo, gameService: GameService, notifier
       ack(result.ok ? { ok: true, game: toSnapshot(result.game, playerId, isAway) } : result);
     };
 
-    // The check in server.ts only looks at the last argument, so a command sent with too few arguments arrives in
-    // these with its callback in an earlier place. It's still answered, so the tab isn't left waiting.
-    socket.on("createGame", async (playerName, mode, ack) => {
-      const reply = [ack, mode, playerName].find(isCallback) as typeof ack;
+    /**
+     * Listens for a command, whatever arguments it's sent with. The check in server.ts drops any command whose last
+     * argument isn't a function, so the reply callback is always the last one. The rest go to `handle`, which checks
+     * them, as a client may send too few, too many, or ones of the wrong type. An error in `handle` is logged and
+     * answered, so one command can't crash the server and lose every Game with it.
+     */
+    const onCommand = <Event extends Command>(
+      event: Event,
+      handle: (args: unknown[], reply: Reply<Event>) => Promise<void>,
+    ) => {
+      const listener = async (...args: unknown[]) => {
+        const reply = args.at(-1) as (reply: Acknowledgement) => void;
+        try {
+          await handle(args.slice(0, -1), reply as Reply<Event>);
+        } catch (error) {
+          console.error(`The ${event} command failed for player ${playerId}`, error);
+          // Socket.IO sends only the first reply, so this one is dropped if the command was already answered.
+          reply({ ok: false, reason: "serverError" });
+        }
+      };
+      // Socket.IO types each listener by its event, which one listener for every command can't be.
+      socket.on(event, listener as never);
+    };
+
+    onCommand("createGame", async ([playerName, mode], reply) => {
       // The Player name first, as the game service checks it first. It checks the Game mode too.
       if (typeof playerName !== "string") return reply({ ok: false, reason: "invalidPlayerName" });
-      // A tab still running the web app from before Game modes sends none, with its callback in the Game mode's place.
-      // It only ever created Classic Games.
-      if (isCallback(mode)) return enterGame(await gameService.createGame(playerId, playerName, "classic"), reply);
+      // A tab still running the web app from before Game modes sends none. It only ever created Classic Games.
+      if (mode === undefined) return enterGame(await gameService.createGame(playerId, playerName, "classic"), reply);
       if (typeof mode !== "string") return reply({ ok: false, reason: "invalidGameMode" });
-      enterGame(await gameService.createGame(playerId, playerName, mode), reply);
+      enterGame(await gameService.createGame(playerId, playerName, mode as GameMode), reply);
     });
 
-    socket.on("joinGame", async (gameCode, playerName, ack) => {
-      const reply = [ack, playerName, gameCode].find(isCallback) as typeof ack;
+    onCommand("joinGame", async ([gameCode, playerName], reply) => {
       // The Player name first, as the game service checks it first.
       if (typeof playerName !== "string") return reply({ ok: false, reason: "invalidPlayerName" });
       if (typeof gameCode !== "string") return reply({ ok: false, reason: "gameCodeNotFound" });
-      enterGame(await gameService.joinGame(playerId, gameCode, playerName), ack);
+      enterGame(await gameService.joinGame(playerId, gameCode, playerName), reply);
     });
 
-    socket.on("startGame", async (ack) => {
+    onCommand("startGame", async (_args, reply) => {
       const result = await gameService.startGame(playerId);
-      ack(result.ok ? { ok: true } : result);
+      reply(result.ok ? { ok: true } : result);
     });
 
-    socket.on("leaveGame", async (ack) => {
+    onCommand("leaveGame", async (_args, reply) => {
       const result = await gameService.leaveGame(playerId);
-      ack(result.ok ? { ok: true } : result);
+      reply(result.ok ? { ok: true } : result);
     });
 
-    socket.on("roll", async (ack) => {
+    onCommand("roll", async (_args, reply) => {
       const result = await gameService.roll(playerId);
-      ack(result.ok ? { ok: true } : result);
+      reply(result.ok ? { ok: true } : result);
     });
 
-    socket.on("move", async (token, ack) => {
-      const reply = [ack, token].find(isCallback) as typeof ack;
+    onCommand("move", async ([token], reply) => {
       // Any token that isn't one of the Player's legal Moves is refused by the game service.
       if (typeof token !== "number") return reply({ ok: false, reason: "illegalMove" });
       const result = await gameService.move(playerId, token);
-      ack(result.ok ? { ok: true } : result);
+      reply(result.ok ? { ok: true } : result);
     });
 
     // Closing the Player's last tab makes them Away, which everyone in their Game is shown. The Game waits for them.
@@ -99,7 +123,13 @@ export const handleGameSockets = (io: GameIo, gameService: GameService, notifier
   });
 };
 
-const isCallback = (argument: unknown) => typeof argument === "function";
+/** Every command answered with an Acknowledgement: all but `ping`. */
+type Command = Exclude<keyof ClientToServerEvents, "ping">;
+
+/** The callback a command is answered through, its last argument. */
+type Reply<Event extends Command> = Parameters<ClientToServerEvents[Event]> extends [...unknown[], infer Ack]
+  ? Ack
+  : never;
 
 /** One room per Player, holding every tab they have open. */
 const playerRoom = (playerId: string) => `player:${playerId}`;
