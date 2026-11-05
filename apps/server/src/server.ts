@@ -42,7 +42,6 @@ export const createGameServer = (config: Config, options: GameServerOptions = {}
     socket.use((packet, next) => {
       if (typeof packet.at(-1) === "function") next();
     });
-    socket.on("ping", (ack) => ack("pong"));
   });
   const notifier = createGameNotifier();
   const gameService = createGameService(createMemoryGameStore(), notifier, options.randomInt);
