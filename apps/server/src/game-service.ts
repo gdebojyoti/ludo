@@ -160,7 +160,9 @@ export const createGameService = (
   const leaveGame = oneAtATime(async (playerId: string): Promise<CommandResult> => {
     const game = await store.findActiveGameByPlayer(playerId);
     if (!game) return { ok: false, reason: "noActiveGame" };
-    if (game.board) return { ok: true, game: await save(forfeited(game, game.board, playerId), { leaverId: playerId }) };
+    if (game.board) {
+      return { ok: true, game: await save(forfeited(game, game.board, playerId), { leaverId: playerId }) };
+    }
     if (game.hostId === playerId) return { ok: true, game: await save({ ...game, state: "cancelled" }) };
     const players = game.players.filter((player) => player.playerId !== playerId);
     return { ok: true, game: await save({ ...game, players }, { leaverId: playerId }) };
@@ -243,8 +245,13 @@ export const createGameService = (
     use(await store.findActiveGameByPlayer(playerId));
   });
 
-  /** Up to `limit` Games, whatever their state, the newest created first. */
-  const findNewestGames = (limit: number) => store.findNewestGames(limit);
+  /**
+   * Up to `limit` Games, whatever their state, the newest created first, with how many Games there are in all. It runs
+   * in turn with the commands, so the count and the Games are read with no command between them.
+   */
+  const findNewestGames = oneAtATime(async (limit: number) => {
+    return { total: await store.countGames(), games: await store.findNewestGames(limit) };
+  });
 
   return { createGame, joinGame, startGame, leaveGame, roll, move, withActiveGame, findNewestGames };
 };

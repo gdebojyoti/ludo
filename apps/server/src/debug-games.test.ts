@@ -44,8 +44,9 @@ describe("the debug list of Games", () => {
   it("shows a Game in the Lobby with its Host, its masked Game code and when it was created", async () => {
     const { gameCode } = await server.hostInLobby({ playerName: "Luna Lovegood" });
 
-    const { games } = await server.debugGames();
+    const { total, games } = await server.debugGames();
 
+    expect(total).toBe(1);
     expect(games).toEqual([{
       id: expect.stringMatching(/^[0-9a-f-]{36}$/),
       mode: "classic",
@@ -58,6 +59,14 @@ describe("the debug list of Games", () => {
     }]);
     // The Board is the longest part, so it comes after everything else.
     expect(Object.keys(games[0] ?? {}).at(-1)).toBe("board");
+  });
+
+  it("puts how many Games there are first, so it's clear when the list leaves some out", async () => {
+    await server.hostInLobby();
+
+    const { body } = await server.debugGames();
+
+    expect(Object.keys(JSON.parse(body))).toEqual(["total", "games"]);
   });
 
   it("shows a Game in play with its Board, its latest Roll and Move, and no Game code", async () => {
@@ -149,7 +158,7 @@ describe("the debug list of Games", () => {
     expect(game).toMatchObject({ state: "cancelled", gameCode: null, board: null });
   });
 
-  it("lists only the newest 100 Games, newest first", async () => {
+  it("lists only the newest 100 Games, newest first, with how many there are in all", async () => {
     await gameInPlay();
     const host = await server.playerWithNoGame();
     for (let i = 0; i < 100; i++) {
@@ -157,8 +166,9 @@ describe("the debug list of Games", () => {
       if (i < 99) await host.leaveGame();
     }
 
-    const { games } = await server.debugGames();
+    const { total, games } = await server.debugGames();
 
+    expect(total).toBe(101);
     expect(games).toHaveLength(100);
     expect(games[0]?.state).toBe("lobby");
     // The Game in play was created first, so it's the one left out.
@@ -169,7 +179,7 @@ describe("the debug list of Games", () => {
 });
 
 describe("when a Game was last saved, in the debug list", () => {
-  it("moves on with every join, the start, every Roll and Move, and Leave game, while when it was created stays", async () => {
+  it("moves on with every join, the start, every Roll and Move, and a Leave, while createdAt stays", async () => {
     // The Host brings a Token out on a 6.
     server = await server.restartWithRandomNumbers(42, 0, 5);
     const { host, gameCode } = await server.hostInLobby();

@@ -1,38 +1,35 @@
 // The debug list (ADR-0007): serves `/debug/games`, the newest Games as JSON, so the state of the server can be checked
 // by opening a URL in a browser. It's public, so it never shows a player ID or a whole Game code.
 import type { Express } from "express";
-import type { GameMode, GameState, Move, Roll, Seat, TokenPosition } from "@ludo/shared";
+import type { GameMode, GameState, Move, Roll, Seat, SnapshotPlayer, SnapshotSeat } from "@ludo/shared";
 
 import type { GameService } from "./game-service.js";
 import type { Game, GameBoard } from "./game-store.js";
-import type { IsAway } from "./snapshot.js";
+import { toSnapshotPlayer, toSnapshotSeat, type IsAway } from "./snapshot.js";
 
 /** How many Games the list shows at most. */
 const maxGamesListed = 100;
 
 export const handleDebugGames = (app: Express, gameService: GameService, isAway: IsAway) => {
   app.get("/debug/games", async (_req, res) => {
-    const games = await gameService.findNewestGames(maxGamesListed);
-    res.json(games.map((game) => toDebugGame(game, isAway)));
+    const { total, games } = await gameService.findNewestGames(maxGamesListed);
+    const list: DebugGames = { total, games: games.map((game) => toDebugGame(game, isAway)) };
+    res.json(list);
   });
 };
 
-interface DebugPlayer {
-  /** The start of the player ID: enough to tell Players apart, but not to act as one. */
-  label: string;
-  playerName: string;
-  isHost: boolean;
-  away: boolean;
+export interface DebugGames {
+  /** How many Games the server holds, which is more than are listed once there are over `maxGamesListed`. */
+  total: number;
+  /** The newest Games, newest first. */
+  games: DebugGame[];
 }
 
-interface DebugSeat {
-  /** The label of the Player in this Seat, as in the Game's list of Players; null if it's empty. */
-  label: string | null;
-  /** The Player name of the Player in this Seat, or of the Player who Left it; null if nobody has sat in it. */
-  playerName: string | null;
-  left: boolean;
-  tokens: TokenPosition[];
-}
+/** A Player as every Player sees them, with a label to tell them apart. */
+type DebugPlayer = { label: string } & SnapshotPlayer;
+
+/** A Seat as every Player sees it, with the label of the Player in it; null if it's empty. */
+type DebugSeat = { label: string | null } & SnapshotSeat;
 
 interface DebugBoard {
   turn: Seat;
@@ -65,19 +62,16 @@ const toDebugGame = (game: Game, isAway: IsAway): DebugGame => {
     gameCode: game.state === "lobby" ? maskGameCode(game.gameCode) : null,
     createdAt: game.createdAt,
     updatedAt: game.updatedAt,
-    players: game.players.map(({ playerId, playerName }) => ({
-      label: labelOf(playerId),
-      playerName,
-      isHost: playerId === game.hostId,
-      away: isAway(playerId),
+    players: game.players.map((player) => ({
+      label: labelOf(player.playerId),
+      ...toSnapshotPlayer(game, player, isAway),
     })),
     // Last, as it's the longest, and the rest is easier to read above it.
-    board: game.board && toDebugBoard(game, game.board),
+    board: game.board && toDebugBoard(game, game.board, isAway),
   };
 };
 
-const toDebugBoard = (game: Game, board: GameBoard): DebugBoard => {
-  const playerName = (id: string) => game.players.find((player) => player.playerId === id)?.playerName ?? null;
+const toDebugBoard = (game: Game, board: GameBoard, isAway: IsAway): DebugBoard => {
   return {
     turn: board.turn,
     rolled: board.rolled,
@@ -86,9 +80,7 @@ const toDebugBoard = (game: Game, board: GameBoard): DebugBoard => {
     winner: board.winner,
     seats: board.seats.map((seat) => ({
       label: seat.playerId === null ? null : labelOf(seat.playerId),
-      playerName: seat.playerId === null ? seat.leaverName : playerName(seat.playerId),
-      left: seat.leaverName !== null,
-      tokens: seat.tokens,
+      ...toSnapshotSeat(game, seat, isAway),
     })),
   };
 };

@@ -58,6 +58,8 @@ export interface GameStore {
   findLobbyGameByCode: (gameCode: string) => Promise<Game | undefined>;
   /** Up to `limit` Games, whatever their state, the newest created first. */
   findNewestGames: (limit: number) => Promise<Game[]>;
+  /** How many Games there are, whatever their state. */
+  countGames: () => Promise<number>;
 }
 
 export const createMemoryGameStore = (): GameStore => {
@@ -80,6 +82,7 @@ export const createMemoryGameStore = (): GameStore => {
       // the order the Games were created in.
       return [...games.values()].reverse().slice(0, limit).map(copy);
     },
+    countGames: async () => games.size,
   };
 };
 

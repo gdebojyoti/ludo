@@ -12,7 +12,7 @@ import type {
   ServerToClientEvents,
 } from "@ludo/shared";
 
-import type { DebugGame } from "./debug-games.js";
+import type { DebugGames } from "./debug-games.js";
 import { playerIdCookieName } from "./identity.js";
 import { createGameServer, type GameServerOptions } from "./server.js";
 
@@ -67,8 +67,8 @@ export interface TestServer {
    * Player, or `player`, shown as `playerName`. The other Players in the Lobby are each sent the change.
    */
   playerInLobby: (gameCode: string, options?: { playerName?: string; player?: Player }) => Promise<Connection>;
-  /** Opens `/debug/games` as a browser does, and returns the body as it was sent and as JSON. */
-  debugGames: () => Promise<{ body: string; games: DebugGame[] }>;
+  /** Opens `/debug/games` as a browser does, and returns the body as it was sent, and the list in it. */
+  debugGames: () => Promise<{ body: string } & DebugGames>;
   /** The player ID the server gave each open connection, in no particular order. */
   connectedPlayerIds: () => Promise<string[]>;
   close: () => Promise<void>;
@@ -171,7 +171,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
     const response = await fetch(`${url}/debug/games`);
     if (!response.ok) throw new Error(`/debug/games answered ${response.status}`);
     const body = await response.text();
-    return { body, games: JSON.parse(body) };
+    return { body, ...(JSON.parse(body) as DebugGames) };
   };
 
   const close = async () => {

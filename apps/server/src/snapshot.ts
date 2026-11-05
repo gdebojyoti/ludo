@@ -1,7 +1,13 @@
 // How a Game looks to one of its Players.
-import { legalMoves, type GameSnapshot, type SnapshotBoard } from "@ludo/shared";
+import {
+  legalMoves,
+  type GameSnapshot,
+  type SnapshotBoard,
+  type SnapshotPlayer,
+  type SnapshotSeat,
+} from "@ludo/shared";
 
-import type { Game, GameBoard } from "./game-store.js";
+import type { Game, GameBoard, GamePlayer, GameSeat } from "./game-store.js";
 
 /** Whether the Player with this player ID is Away, with no tab connected. */
 export type IsAway = (playerId: string) => boolean;
@@ -16,29 +22,35 @@ export const toSnapshot = (game: Game, playerId: string, isAway: IsAway): GameSn
     state: game.state,
     gameCode: game.state === "lobby" ? game.gameCode : null,
     isHost: game.hostId === playerId,
-    players: game.players.map((player) => ({
-      playerName: player.playerName,
-      isHost: player.playerId === game.hostId,
-      away: isAway(player.playerId),
-    })),
+    players: game.players.map((player) => toSnapshotPlayer(game, player, isAway)),
     board: game.board && toSnapshotBoard(game, game.board, playerId, isAway),
   };
 };
 
-const toSnapshotBoard = (game: Game, board: GameBoard, playerId: string, isAway: IsAway): SnapshotBoard => {
+/** One of the Game's Players, as every Player sees them. */
+export const toSnapshotPlayer = (game: Game, player: GamePlayer, isAway: IsAway): SnapshotPlayer => {
+  return { playerName: player.playerName, isHost: player.playerId === game.hostId, away: isAway(player.playerId) };
+};
+
+/** One of the Seats at the Game's Board, as every Player sees it. */
+export const toSnapshotSeat = (game: Game, seat: GameSeat, isAway: IsAway): SnapshotSeat => {
   const playerName = (id: string) => game.players.find((player) => player.playerId === id)?.playerName ?? null;
+  return {
+    playerName: seat.playerId === null ? seat.leaverName : playerName(seat.playerId),
+    left: seat.leaverName !== null,
+    away: seat.playerId !== null && isAway(seat.playerId),
+    tokens: seat.tokens,
+  };
+};
+
+const toSnapshotBoard = (game: Game, board: GameBoard, playerId: string, isAway: IsAway): SnapshotBoard => {
   const seat = board.seats.findIndex((seat) => seat.playerId === playerId);
   const ownTokens = board.seats[seat]?.tokens ?? [];
   // Only the Player whose Turn it is has a Roll to Move by, once they've Rolled.
   const rollToMove = board.rolled && board.turn === seat ? board.lastRoll : null;
   return {
     seat,
-    seats: board.seats.map((seat) => ({
-      playerName: seat.playerId === null ? seat.leaverName : playerName(seat.playerId),
-      left: seat.leaverName !== null,
-      away: seat.playerId !== null && isAway(seat.playerId),
-      tokens: seat.tokens,
-    })),
+    seats: board.seats.map((seat) => toSnapshotSeat(game, seat, isAway)),
     turn: board.turn,
     rolled: board.rolled,
     lastRoll: board.lastRoll,
