@@ -115,10 +115,10 @@ export const useBoardPlayback = (latestBoard: SnapshotBoard) => {
    * passed. The Board as it was before the Roll is shown meanwhile, as BoardScreen held it.
    */
   const ownRollLanded = (before: SnapshotBoard, ok: boolean) => setState((current) => {
-    if (!ok) return { ...current, ownRoll: undefined };
     const { seen } = current;
-    // Until the snapshot of the Roll arrives, there's nothing to rest on.
-    if (current.ownRoll !== undefined || !seen.lastRoll || seen.lastRoll.seat !== seen.seat) return current;
+    // Without the snapshot of the Roll, there's nothing to rest on.
+    if (!ok || current.ownRoll !== undefined) return { ...current, ownRoll: undefined };
+    if (!seen.lastRoll || seen.lastRoll.seat !== seen.seat) return current;
     if ((seen.rolled && seen.turn === seen.seat) || prefersReducedMotion()) return current;
     const roll = { number: seen.lastRoll.number, landed: true };
     return { ...current, playback: { seat: seen.seat, board: before, roll } };
@@ -133,12 +133,17 @@ export const useBoardPlayback = (latestBoard: SnapshotBoard) => {
     return { ...current, ownMove, playback: { seat: seen.seat, board: seen, move } };
   });
 
-  /** The server refused the viewer's Move, so their Token goes back to where it was. */
-  const ownMoveRefused = () => setState((current) => ({
-    ...current,
-    ownMove: undefined,
-    playback: current.playback?.seat === current.seen.seat ? undefined : current.playback,
-  }));
+  /**
+   * The server answered the viewer's Move, after sending its snapshot if it went through: their Token stops waiting
+   * for it. One the server refused goes back to where it was.
+   */
+  const ownMoveAnswered = (ok: boolean) => setState((current) => {
+    const { playback } = current;
+    if (playback?.seat !== current.seen.seat) return { ...current, ownMove: undefined };
+    if (!ok) return { ...current, ownMove: undefined, playback: undefined };
+    const move = playback.move?.arrived ? undefined : playback.move;
+    return { ...current, ownMove: undefined, playback: { ...playback, move } };
+  });
 
   const tokenArrived = () => setState((current) => {
     const { playback } = current;
@@ -171,7 +176,7 @@ export const useBoardPlayback = (latestBoard: SnapshotBoard) => {
     startOwnRoll,
     ownRollLanded,
     startOwnMove,
-    ownMoveRefused,
+    ownMoveAnswered,
     tokenArrived,
   };
 };

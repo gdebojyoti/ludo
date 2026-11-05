@@ -120,7 +120,7 @@ export default function BoardScreen({
   const moveToken = async (token: number) => {
     playback.startOwnMove(token);
     const reply = await onMove(token).catch(() => undefined);
-    if (!reply?.ok) playback.ownMoveRefused();
+    playback.ownMoveAnswered(Boolean(reply?.ok));
   };
 
   // What the viewer should do now, if anything.
