@@ -278,6 +278,17 @@ describe("refusals", () => {
     expect(await host.move(0)).toEqual({ ok: true });
   });
 
+  it("refuse a Move sent with a callback but no Token, and the Player can still Move", async () => {
+    const { host } = await gameInPlay(6);
+    await host.roll();
+
+    // Sent as no well-behaved client would.
+    const reply = await new Promise((resolve) => host.sendUnchecked("move", resolve));
+
+    expect(reply).toEqual({ ok: false, reason: "illegalMove" });
+    expect(await host.move(0)).toEqual({ ok: true });
+  });
+
   it.each([
     ["Roll", (tab: Connection) => tab.roll()],
     ["Move", (tab: Connection) => tab.move(0)],

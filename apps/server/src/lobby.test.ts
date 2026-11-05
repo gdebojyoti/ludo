@@ -196,6 +196,25 @@ describe("joining a Game", () => {
     });
   });
 
+  it("lets a Player join with the same Player name as another, and seats both when the Game starts", async () => {
+    const { host, gameCode } = await server.hostInLobby({ playerName: "Luna Lovegood" });
+    const tab = await server.playerWithNoGame();
+
+    const reply = await tab.joinGame(gameCode, "Luna Lovegood");
+    await host.nextMessage();
+    await tab.nextMessage();
+    await host.startGame();
+
+    expect(reply).toMatchObject({
+      ok: true,
+      game: { players: [{ playerName: "Luna Lovegood", isHost: true }, { playerName: "Luna Lovegood", isHost: false }] },
+    });
+    // Told apart by their Seats, as each is sent the Board from their own.
+    const seats = [{ playerName: "Luna Lovegood" }, { playerName: null }, { playerName: "Luna Lovegood" }, {}];
+    expect(await host.nextMessage()).toMatchObject({ game: { state: "playing", board: { seat: 0, seats } } });
+    expect(await tab.nextMessage()).toMatchObject({ game: { state: "playing", board: { seat: 2, seats } } });
+  });
+
   it("is refused when no Game in the Lobby has the Game code, and the Player stays without one", async () => {
     server = await server.restartWithRandomNumbers(42);
     await server.hostInLobby();
