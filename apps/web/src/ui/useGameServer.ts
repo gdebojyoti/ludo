@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { gameCodeLength, type Acknowledgement, type GameSnapshot } from "@ludo/shared";
+import { gameCodeLength, type Acknowledgement, type GameMode, type GameSnapshot } from "@ludo/shared";
 import { gameCodeInAddress, isGameCode, removeJoinLinkFromAddress } from "./joinLink";
 import { rejectionMessages, startMessages } from "./messages";
 import { connectToServer, type GameSocket } from "./socket";
@@ -116,7 +116,8 @@ export const useGameServer = (playerName: string) => {
     if (reply?.ok) setGame(reply.game);
   };
 
-  const createGame = () => enterGame((socket) => socket.emitWithAck("createGame", playerNameRef.current));
+  const createGame = (mode: GameMode) =>
+    enterGame((socket) => socket.emitWithAck("createGame", playerNameRef.current, mode));
 
   const joinGame = (gameCode: string) =>
     enterGame((socket) => socket.emitWithAck("joinGame", gameCode, playerNameRef.current));

@@ -1,4 +1,4 @@
-import { classicRules, playerNameMaxLength, type Move, type RejectionReason } from "@ludo/shared";
+import { classicRules, playerNameMaxLength, type GameMode, type Move, type RejectionReason } from "@ludo/shared";
 import type { LeaveText } from "./LeaveButton";
 import type { ConnectionStatus, Notice } from "./useGameServer";
 
@@ -36,6 +36,7 @@ export const rejectionMessages: Record<RejectionReason, string> = {
   gameNotInLobby: "The game has already started.",
   gameNotInPlay: "The game isn't being played right now.",
   illegalMove: "That token can't move by your roll.",
+  invalidGameMode: "That game mode can't be played. Choose another.",
   invalidPlayerName: `Your player name can't be used. It must be 1 to ${playerNameMaxLength} characters long.`,
   noActiveGame: "You're not in a game.",
   notEnoughPlayers: `The game needs at least ${classicRules.minPlayers} players to start.`,
@@ -77,12 +78,15 @@ export const modeMessages = {
   modes: {
     classic: { name: "Classic", description: "Get all four tokens home to win." },
     quick: { name: "Quick Game", description: "First token home wins." },
-    oneKill: { name: "One Kill Win", description: "One capture and it's over." },
+    oneKillWin: { name: "One Kill Win", description: "One capture and it's over." },
   },
 };
 
+/** A Game mode's name, as Players see it. */
+const modeName = (mode: GameMode) => modeMessages.modes[mode].name;
+
 export const lobbyMessages = {
-  subtitle: "Lobby · Classic",
+  subtitle: (mode: GameMode) => `Lobby · ${modeName(mode)}`,
   heading: "Gathering players",
   shareHint: (isHost: boolean) => isHost ? "Your friends join with this code." : "More friends can join with this code.",
   gameCodeHeading: "Game code",
@@ -130,7 +134,7 @@ export const leaveMessages = {
 };
 
 export const boardMessages = {
-  subtitle: (playerCount: number) => `Classic · ${playerCount} players`,
+  subtitle: (mode: GameMode, playerCount: number) => `${modeName(mode)} · ${playerCount} players`,
   emptySeat: "Empty seat",
   left: "Left",
   home: (count: number) => `${count} home`,
@@ -193,6 +197,11 @@ export const resultMessages = {
   winner: (playerName: string, isOwn: boolean) => isOwn ? "You win" : `${playerName} wins`,
   allHome: `All ${classicRules.tokensPerSeat} tokens reached home first.`,
   othersLeft: "Everyone else left the game.",
+  // Of the Capture that won a One Kill Win Game, which always takes a single Token.
+  capture: (winner: { playerName: string; isOwn: boolean }, owner: { playerName: string; isOwn: boolean }) => {
+    const token = owner.isOwn ? "your token" : `${firstName(owner.playerName)}'s token`;
+    return `${winner.isOwn ? "You" : firstName(winner.playerName)} captured ${token}.`;
+  },
   tokensHomeHeading: "Tokens home at the end",
   tokensHome: (count: number) => `${count} of ${classicRules.tokensPerSeat} tokens home`,
   backToStart: "Back to start",

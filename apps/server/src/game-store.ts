@@ -1,9 +1,11 @@
 // Where Games are kept. The game service only knows this interface, so the in-memory store (ADR-0004) can be swapped
 // for a Postgres one without touching game logic.
-import type { GameState, Move, Roll, Seat, TokenPosition } from "@ludo/shared";
+import type { GameMode, GameState, Move, Roll, Seat, TokenPosition } from "@ludo/shared";
 
 export interface Game {
   id: string;
+  /** The Game mode whose rules the Game follows, chosen by its Host when they created it. */
+  mode: GameMode;
   state: GameState;
   /** Shared by the Host so others can join. Unique among Games in the Lobby, and only used there. */
   gameCode: string;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Seat, SnapshotBoard } from "@ludo/shared";
+import type { GameMode, Seat, SnapshotBoard } from "@ludo/shared";
 import Board from "./Board";
 import Die from "./Die";
 import ErrorMessage from "./ErrorMessage";
@@ -11,6 +11,7 @@ import { homeCountAt, playerNameAt, seatAt } from "./boardView";
 import { boardMessages, commonMessages, leaveMessages } from "./messages";
 
 interface Props {
+  mode: GameMode;
   board: SnapshotBoard;
   disabled: boolean;
   /** Something that happened without the Player doing it, such as opening a Join link while in this Game. */
@@ -44,6 +45,7 @@ const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: r
 const wait = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 export default function BoardScreen({
+  mode,
   board: latestBoard,
   disabled,
   notice,
@@ -252,7 +254,7 @@ export default function BoardScreen({
   return (
     <div className="flex flex-1 flex-col items-center gap-3.5 px-[15px] pt-3.5 pb-7">
       <Header
-        subtitle={boardMessages.subtitle(playerCount)}
+        subtitle={boardMessages.subtitle(mode, playerCount)}
         action={<LeaveButton disabled={disabled} text={leaveMessages.inPlay(otherNames)} onLeave={onLeaveGame} />}
       />
       <Notice notice={notice} />
@@ -261,6 +263,7 @@ export default function BoardScreen({
         {card(2, true)}
       </div>
       <Board
+        mode={mode}
         board={board}
         disabled={disabled}
         onMove={moveToken}

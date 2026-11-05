@@ -1,5 +1,5 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
-import { gameCodeLength } from "@ludo/shared";
+import { gameCodeLength, type GameMode } from "@ludo/shared";
 import Avatar from "./Avatar";
 import CreateGameButton from "./CreateGameButton";
 import Icon from "./Icon";
@@ -18,7 +18,7 @@ interface Props {
   /** The code to fill in at first, from a Join link that didn't work. */
   initialGameCode: string;
   onNewPlayerName: () => void;
-  onCreateGame: () => void;
+  onCreateGame: (mode: GameMode) => void;
   onJoinGame: (gameCode: string) => void;
 }
 

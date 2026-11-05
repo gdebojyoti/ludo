@@ -41,10 +41,15 @@ export const handleGameSockets = (io: GameIo, gameService: GameService, notifier
 
     // The check in server.ts only looks at the last argument, so a command sent with too few arguments arrives in
     // these with its callback in an earlier place. It's still answered, so the tab isn't left waiting.
-    socket.on("createGame", async (playerName, ack) => {
-      const reply = [ack, playerName].find(isCallback) as typeof ack;
+    socket.on("createGame", async (playerName, mode, ack) => {
+      const reply = [ack, mode, playerName].find(isCallback) as typeof ack;
+      // The Player name first, as the game service checks it first. It checks the Game mode too.
       if (typeof playerName !== "string") return reply({ ok: false, reason: "invalidPlayerName" });
-      enterGame(await gameService.createGame(playerId, playerName), ack);
+      // A tab still running the web app from before Game modes sends none, with its callback in the Game mode's place.
+      // It only ever created Classic Games.
+      if (isCallback(mode)) return enterGame(await gameService.createGame(playerId, playerName, "classic"), reply);
+      if (typeof mode !== "string") return reply({ ok: false, reason: "invalidGameMode" });
+      enterGame(await gameService.createGame(playerId, playerName, mode), ack);
     });
 
     socket.on("joinGame", async (gameCode, playerName, ack) => {

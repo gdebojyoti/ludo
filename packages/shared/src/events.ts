@@ -1,16 +1,18 @@
 // The Socket.IO event contract between the web app and the server.
 // Both sides type their sockets with these, so a change here is checked on both.
-import type { Seat, SeatToken, TokenPosition } from "./rules.js";
+import type { GameMode, Seat, SeatToken, TokenPosition } from "./rules.js";
 
 /**
- * Stages a Game goes through: in the Lobby, in play once it has started, then won by the first Player to bring all
- * their Tokens Home, or cancelled by its Host Leaving the Lobby. A Game in the Lobby or in play is active; a won or
- * cancelled one has ended.
+ * Stages a Game goes through: in the Lobby, in play once it has started, then won by the first Player to do what its
+ * Game mode asks, such as bringing all their Tokens Home in Classic, or cancelled by its Host Leaving the Lobby. A
+ * Game in the Lobby or in play is active; a won or cancelled one has ended.
  */
 export type GameState = "lobby" | "playing" | "won" | "cancelled";
 
 /** A Game as one Player sees it. The server sends a fresh one after every change, and it replaces the last. */
 export interface GameSnapshot {
+  /** The Game mode whose rules the Game follows. */
+  mode: GameMode;
   state: GameState;
   /** The six-digit Game code the Host shares, while the Game is in the Lobby; otherwise null. */
   gameCode: string | null;
@@ -96,6 +98,7 @@ export type RejectionReason =
   | "gameNotInLobby"
   | "gameNotInPlay"
   | "illegalMove"
+  | "invalidGameMode"
   | "invalidPlayerName"
   | "noActiveGame"
   | "notEnoughPlayers"
@@ -113,10 +116,16 @@ export interface ClientToServerEvents {
   /** Checks the server is answering; the server acknowledges with `"pong"`. */
   ping: (ack: (reply: "pong") => void) => void;
   /**
-   * Creates a Game in the Lobby with this Player as its Host, shown by this Player name. Refused if the Player is
-   * already in an active Game, or the Player name, once trimmed, is empty or longer than `playerNameMaxLength`.
+   * Creates a Game in the Lobby, following this Game mode, with this Player as its Host, shown by this Player name.
+   * Refused if the Player is already in an active Game, the Player name, once trimmed, is empty or longer than
+   * `playerNameMaxLength`, or the Game mode isn't one of `gameModes`. Sent with no Game mode, as by a web app from
+   * before Game modes, it creates a Classic Game.
    */
-  createGame: (playerName: string, ack: (reply: Acknowledgement<{ game: GameSnapshot }>) => void) => void;
+  createGame: (
+    playerName: string,
+    mode: GameMode,
+    ack: (reply: Acknowledgement<{ game: GameSnapshot }>) => void,
+  ) => void;
   /**
    * Joins the Game in the Lobby with this Game code, shown by this Player name. Refused for the same Player names as
    * `createGame`, if the Player is already in an active Game, or if no Game in the Lobby has the code. The join that

@@ -107,7 +107,7 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
   return (
     <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-8">
       <Header
-        subtitle={lobbyMessages.subtitle}
+        subtitle={lobbyMessages.subtitle(game.mode)}
         action={
           <LeaveButton
             disabled={disabled}

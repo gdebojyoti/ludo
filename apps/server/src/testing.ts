@@ -4,7 +4,13 @@ import type { AddressInfo } from "node:net";
 
 import { NodeWebSocket } from "engine.io-client";
 import { io, type Socket } from "socket.io-client";
-import type { Acknowledgement, ClientToServerEvents, GameSnapshot, ServerToClientEvents } from "@ludo/shared";
+import type {
+  Acknowledgement,
+  ClientToServerEvents,
+  GameMode,
+  GameSnapshot,
+  ServerToClientEvents,
+} from "@ludo/shared";
 
 import { playerIdCookieName } from "./identity.js";
 import { createGameServer, type GameServerOptions } from "./server.js";
@@ -19,7 +25,8 @@ export interface Connection {
   /** Waits for the next message from the server that this connection hasn't read yet. */
   nextMessage: () => Promise<Message>;
   ping: () => Promise<"pong">;
-  createGame: (playerName: string) => Promise<Acknowledgement<{ game: GameSnapshot }>>;
+  /** Creates a Game following this Game mode, Classic unless it's given. */
+  createGame: (playerName: string, mode?: GameMode) => Promise<Acknowledgement<{ game: GameSnapshot }>>;
   joinGame: (gameCode: string, playerName: string) => Promise<Acknowledgement<{ game: GameSnapshot }>>;
   leaveGame: () => Promise<Acknowledgement>;
   startGame: () => Promise<Acknowledgement>;
@@ -48,10 +55,12 @@ export interface TestServer {
    */
   playerWithNoGame: (player?: Player) => Promise<Connection>;
   /**
-   * A Host waiting in the Lobby, with everything sent so far already read: a new Player, or `player`, shown as
-   * `playerName`.
+   * A Host waiting in the Lobby of a Game following `mode`, Classic unless it's given, with everything sent so far
+   * already read: a new Player, or `player`, shown as `playerName`.
    */
-  hostInLobby: (options?: { playerName?: string; player?: Player }) => Promise<{ host: Connection; gameCode: string }>;
+  hostInLobby: (
+    options?: { playerName?: string; player?: Player; mode?: GameMode },
+  ) => Promise<{ host: Connection; gameCode: string }>;
   /**
    * A Player who has joined the Game with this Game code, with everything sent to them so far already read: a new
    * Player, or `player`, shown as `playerName`. The other Players in the Lobby are each sent the change.
@@ -99,7 +108,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
       return {
         nextMessage: inbox.take,
         ping: () => socket.emitWithAck("ping"),
-        createGame: (playerName) => socket.emitWithAck("createGame", playerName),
+        createGame: (playerName, mode = "classic") => socket.emitWithAck("createGame", playerName, mode),
         joinGame: (gameCode, playerName) => socket.emitWithAck("joinGame", gameCode, playerName),
         leaveGame: () => socket.emitWithAck("leaveGame"),
         startGame: () => socket.emitWithAck("startGame"),
@@ -127,9 +136,13 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
     return tab;
   };
 
-  const hostInLobby = async ({ playerName = "Luna Lovegood", player = createPlayer() } = {}) => {
+  const hostInLobby: TestServer["hostInLobby"] = async ({
+    playerName = "Luna Lovegood",
+    player = createPlayer(),
+    mode,
+  } = {}) => {
     const host = await playerWithNoGame(player);
-    const reply = await host.createGame(playerName);
+    const reply = await host.createGame(playerName, mode);
     if (!reply.ok || !reply.game.gameCode) throw new Error("The Game wasn't created");
     await host.nextMessage();
     return { host, gameCode: reply.game.gameCode };

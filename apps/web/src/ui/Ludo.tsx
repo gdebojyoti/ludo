@@ -44,10 +44,13 @@ export default function Ludo() {
         />
       );
     }
-    if (game?.state === "won" && game.board) return <ResultScreen board={game.board} onBackToStart={backToStart} />;
+    if (game?.state === "won" && game.board) {
+      return <ResultScreen mode={game.mode} board={game.board} onBackToStart={backToStart} />;
+    }
     if (game?.board) {
       return (
         <BoardScreen
+          mode={game.mode}
           board={game.board}
           disabled={busy}
           notice={noticeMessage}
