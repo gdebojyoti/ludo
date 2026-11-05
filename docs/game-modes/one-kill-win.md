@@ -17,10 +17,10 @@ Terms in bold are defined in [GLOSSARY.md](../../GLOSSARY.md). "Kill" appears in
 ## Winning
 
 - The first **Player** to **Capture** a **Token** wins, and the **Game** ends at once.
-- A lone **Token** on a **Cell** that isn't a **Safe cell** is **Captured** as soon as an opponent's **Token** lands there. So two opponents' **Tokens** can only share a **Cell** while both are protected, and every **Game** ends with exactly one **Token** **Captured**.
+- The winning **Capture** takes every lone opponent's **Token** on the **Cell**, as in Classic. That's usually one, but with 3 or more **Players** it can be two of different **Seats**: when one **Seat**'s lone **Token** shares a **Cell** with another's protected pair, and the pair splits, two lone **Tokens** are left there together.
 - There's no limit on **Turns**: a **Game** ends only at a **Capture**, or when every other **Player** **Leaves**.
 
 ## On screen
 
 - The **Home columns** and **Home** are greyed out, as no **Token** uses them. This may change.
-- The result says who **Captured** whose **Token**.
+- The result says who **Captured** whose **Tokens**, naming each **Player** who lost one.

@@ -49,7 +49,7 @@ export const handleGameSockets = (io: GameIo, gameService: GameService, notifier
       // It only ever created Classic Games.
       if (isCallback(mode)) return enterGame(await gameService.createGame(playerId, playerName, "classic"), reply);
       if (typeof mode !== "string") return reply({ ok: false, reason: "invalidGameMode" });
-      enterGame(await gameService.createGame(playerId, playerName, mode), ack);
+      enterGame(await gameService.createGame(playerId, playerName, mode), reply);
     });
 
     socket.on("joinGame", async (gameCode, playerName, ack) => {

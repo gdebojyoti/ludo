@@ -57,7 +57,7 @@ A named set of rules, and the **Board** they're played on, that a **Game** follo
 _Avoid_: variant, ruleset
 
 **Classic**:
-The traditional **Game mode**, and the only one in v1.
+The traditional **Game mode**.
 _Avoid_: standard mode, normal mode
 
 **One Kill Win**:

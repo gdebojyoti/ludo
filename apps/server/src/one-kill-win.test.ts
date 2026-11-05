@@ -118,7 +118,7 @@ describe("winning a One Kill Win Game", () => {
     }
     await joiner.roll();
     await joiner.move(0);
-    // Each Roll and Move of the 6 sent everyone a Game.
+    // Each of those 6 Rolls and 6 Moves sent everyone a Game.
     await lastOf(host, 12);
     await lastOf(joiner, 12);
     await host.roll();

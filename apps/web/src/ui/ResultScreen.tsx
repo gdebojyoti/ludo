@@ -1,9 +1,9 @@
 import {
   classicRules,
-  hasWon,
   isWonByCapture,
   seatsClockwise,
   tokensReachHome,
+  wonByMove,
   type GameMode,
   type Seat,
   type SnapshotBoard,
@@ -35,16 +35,15 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
     .filter(({ playerName, index }) => playerName !== null && index !== winner)
     .sort((a, b) => seatsClockwise(viewer, a.index) - seatsClockwise(viewer, b.index));
 
-  // How the winner won: all their Tokens Home, the Capture that won a One Kill Win Game, or everyone else Leaving.
+  const named = (seat: Seat) => ({ playerName: playerNameAt(board, seat), isOwn: seat === viewer });
+
+  // How the winner won: by their last Move, as the Game mode's rules say, or, if not, by everyone else Leaving.
   const howWon = () => {
-    if (hasWon(winnerSeat?.tokens ?? [])) return resultMessages.allHome;
     const { lastMove } = board;
-    const captured = lastMove?.seat === winner ? lastMove.captured[0] : undefined;
-    if (isWonByCapture(mode) && captured) {
-      const owner = { playerName: playerNameAt(board, captured.seat), isOwn: captured.seat === viewer };
-      return resultMessages.capture({ playerName: winnerName, isOwn: winner === viewer }, owner);
-    }
-    return resultMessages.othersLeft;
+    const captured = lastMove?.seat === winner ? lastMove.captured : [];
+    if (!wonByMove(mode, { tokens: winnerSeat?.tokens ?? [], captured })) return resultMessages.othersLeft;
+    if (!isWonByCapture(mode)) return resultMessages.allHome;
+    return resultMessages.capture(named(winner), captured.map(({ seat }) => named(seat)));
   };
 
   return (

@@ -19,6 +19,15 @@ const nameList = (playerNames: string[]) => list(playerNames.map(firstName));
 
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
+/** A Player as text names them, and whether they're the one reading it. */
+interface NamedPlayer {
+  playerName: string;
+  isOwn: boolean;
+}
+
+/** "your token", or "Ginny's token". */
+const tokenOf = (owner: NamedPlayer) => owner.isOwn ? "your token" : `${firstName(owner.playerName)}'s token`;
+
 /** A Game code in two groups of three digits, as it's easier to read out. */
 export const spacedGameCode = (gameCode: string) => `${gameCode.slice(0, 3)} ${gameCode.slice(3)}`;
 
@@ -166,11 +175,8 @@ export const boardMessages = {
   tokensCanMove: (count: number) => `${plural(count, "token", "tokens")} can move`,
   lastRoll: (playerName: string, number: number) => `Last roll: ${playerName} rolled a ${number}`,
   // `captured` names the owner of each Token the Move Captured.
-  lastMove: (playerName: string, move: Move, captured: { playerName: string; isOwn: boolean }[]) => {
-    if (captured.length) {
-      const tokens = captured.map((owner) => owner.isOwn ? "your token" : `${firstName(owner.playerName)}'s token`);
-      return `Last move: ${playerName} sent ${list(tokens)} back to the yard.`;
-    }
+  lastMove: (playerName: string, move: Move, captured: NamedPlayer[]) => {
+    if (captured.length) return `Last move: ${playerName} sent ${list(captured.map(tokenOf))} back to the yard.`;
     if (move.from.area === "yard") return `Last move: ${playerName} brought a token out.`;
     if (move.to.area === "home") return `Last move: ${playerName} moved a token home.`;
     return `Last move: ${playerName} moved a token.`;
@@ -179,7 +185,7 @@ export const boardMessages = {
   dieShowing: (number: number) => `Die showing ${number}`,
   dieRolledBy: (playerName: string, number: number) => `${playerName} rolled a ${number}`,
   // Said of a Cell or Yard, as Players tap those, not single Tokens.
-  tokensHere: (groups: { playerName: string; isOwn: boolean; count: number }[]) => {
+  tokensHere: (groups: (NamedPlayer & { count: number })[]) => {
     const total = groups.reduce((sum, { count }) => sum + count, 0);
     const shares = groups.map(({ playerName, isOwn, count }) => `${count} ${isOwn ? "yours" : `${playerName}'s`}`);
     return `${plural(total, "token", "tokens")} here: ${shares.join(", ")}`;
@@ -187,7 +193,7 @@ export const boardMessages = {
   moveFromHere: (description: string) => `Move a token from here. ${description}`,
   yardOf: (playerName: string, isOwn: boolean, count: number) =>
     `${isOwn ? "Your" : `${playerName}'s`} yard: ${plural(count, "token", "tokens")}`,
-  homeLabel: (counts: { playerName: string; isOwn: boolean; count: number }[]) =>
+  homeLabel: (counts: (NamedPlayer & { count: number })[]) =>
     `Home: ${counts.map(({ playerName, isOwn, count }) => `${playerName}${isOwn ? " (you)" : ""} ${count}`).join(", ")}`,
 };
 
@@ -197,11 +203,10 @@ export const resultMessages = {
   winner: (playerName: string, isOwn: boolean) => isOwn ? "You win" : `${playerName} wins`,
   allHome: `All ${classicRules.tokensPerSeat} tokens reached home first.`,
   othersLeft: "Everyone else left the game.",
-  // Of the Capture that won a One Kill Win Game, which always takes a single Token.
-  capture: (winner: { playerName: string; isOwn: boolean }, owner: { playerName: string; isOwn: boolean }) => {
-    const token = owner.isOwn ? "your token" : `${firstName(owner.playerName)}'s token`;
-    return `${winner.isOwn ? "You" : firstName(winner.playerName)} captured ${token}.`;
-  },
+  // Of the Capture that won a One Kill Win Game. `captured` names the owner of each Token it took: usually one, but
+  // it can be two, of different Seats.
+  capture: (winner: NamedPlayer, captured: NamedPlayer[]) =>
+    `${winner.isOwn ? "You" : firstName(winner.playerName)} captured ${list(captured.map(tokenOf))}.`,
   tokensHomeHeading: "Tokens home at the end",
   tokensHome: (count: number) => `${count} of ${classicRules.tokensPerSeat} tokens home`,
   backToStart: "Back to start",

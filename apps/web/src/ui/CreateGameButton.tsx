@@ -1,5 +1,5 @@
 import { useRef, type FormEvent } from "react";
-import type { GameMode } from "@ludo/shared";
+import { isGameMode, type GameMode } from "@ludo/shared";
 import Icon from "./Icon";
 import { modeMessages, startMessages } from "./messages";
 
@@ -39,7 +39,8 @@ export default function CreateGameButton({ disabled, onCreateGame }: Props) {
   const createGame = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // Only the Game modes that are available can be checked.
-    const mode = new FormData(event.currentTarget).get("mode") as GameMode;
+    const mode = new FormData(event.currentTarget).get("mode");
+    if (!isGameMode(mode)) return;
     dialogRef.current?.close();
     onCreateGame(mode);
   };

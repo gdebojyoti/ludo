@@ -336,6 +336,47 @@ describe("One Kill Win", () => {
     });
   });
 
+  it("never Captures on a Safe cell", () => {
+    // Cell 8 is the Star cell 8 Cells on from Seat 0's Start cell.
+    const seats = [[track(5), track(0)], [track(8)], [], []];
+
+    expect(applyMove("oneKillWin", seats, 0, 0, 3)).toEqual({
+      seats: [[track(8), track(0)], [track(8)], [], []],
+      captured: [],
+    });
+  });
+
+  it("never Captures a Seat's Tokens stacked on one Cell, which protect each other", () => {
+    const seats = [[track(30), track(0)], [track(33), track(33), yard, yard], [], []];
+
+    expect(applyMove("oneKillWin", seats, 0, 0, 3)).toEqual({
+      seats: [[track(33), track(0)], [track(33), track(33), yard, yard], [], []],
+      captured: [],
+    });
+  });
+
+  it("never Captures with a Token brought out of the Yard onto its Start cell, a Safe cell", () => {
+    const seats = [[track(10), track(10), yard, yard], [track(0)], [], []];
+
+    expect(applyMove("oneKillWin", seats, 0, 2, 6)).toEqual({
+      seats: [[track(10), track(10), track(0), yard], [track(0)], [], []],
+      captured: [],
+    });
+  });
+
+  it("Captures the lone Tokens of two Seats on one Cell in a single Move, which wins", () => {
+    // Seat 1's pair split, leaving one of its Tokens alone on Cell 33 with Seat 3's.
+    const seats = [[track(30), track(0)], [track(33), track(36)], [], [track(33), track(39)]];
+
+    const move = applyMove("oneKillWin", seats, 0, 0, 3);
+
+    expect(move).toEqual({
+      seats: [[track(33), track(0)], [yard, track(36)], [], [yard, track(39)]],
+      captured: [{ seat: 1, token: 0 }, { seat: 3, token: 0 }],
+    });
+    expect(wonByMove("oneKillWin", { tokens: move.seats[0] ?? [], captured: move.captured })).toBe(true);
+  });
+
   it("is won by a Move that makes a Capture", () => {
     expect(wonByMove("oneKillWin", { tokens: [track(5), yard], captured: [{ seat: 2, token: 0 }] })).toBe(true);
   });
