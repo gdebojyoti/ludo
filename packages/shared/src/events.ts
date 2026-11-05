@@ -61,6 +61,9 @@ export interface Roll {
   index: number;
 }
 
+/** The index the Game's next Roll, or next Move, gets: one past the latest, or 0 if there's none yet. */
+export const indexAfter = (latest: Roll | Move | null) => (latest?.index ?? -1) + 1;
+
 /** A Move, by the Seat whose Turn it was. */
 export interface Move {
   seat: Seat;

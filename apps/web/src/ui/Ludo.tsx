@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { SnapshotBoard } from "@ludo/shared";
 import BoardScreen from "./BoardScreen";
 import CancelledScreen from "./CancelledScreen";
 import LobbyScreen from "./LobbyScreen";
@@ -29,13 +30,8 @@ export default function Ludo() {
     backToStart,
   } = useGameServer(playerName);
   const noticeMessage = notice && noticeMessages[notice];
-  // Whether a won Game's last Move has played out on the Board, so its result can be shown.
-  const [playedOut, setPlayedOut] = useState(false);
-
-  const leaveResult = () => {
-    setPlayedOut(false);
-    backToStart();
-  };
+  // The won Game's Board, once its last Move has played out, so its result can be shown.
+  const [playedOutBoard, setPlayedOutBoard] = useState<SnapshotBoard>();
 
   const screen = () => {
     if (game?.state === "lobby") {
@@ -51,8 +47,8 @@ export default function Ludo() {
         />
       );
     }
-    if (game?.state === "won" && game.board && playedOut) {
-      return <ResultScreen mode={game.mode} board={game.board} onBackToStart={leaveResult} />;
+    if (game?.state === "won" && game.board && game.board === playedOutBoard) {
+      return <ResultScreen mode={game.mode} board={game.board} onBackToStart={backToStart} />;
     }
     if (game?.board) {
       return (
@@ -65,7 +61,7 @@ export default function Ludo() {
           onRoll={roll}
           onMove={move}
           onLeaveGame={leaveGame}
-          onPlayedOut={() => setPlayedOut(true)}
+          onPlayedOut={() => setPlayedOutBoard(game.board ?? undefined)}
         />
       );
     }

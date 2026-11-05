@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useEffectEvent, useLayoutEffect, useState } from "react";
 import type { GameMode, Seat, SnapshotBoard } from "@ludo/shared";
 import Board from "./Board";
 import Die from "./Die";
@@ -9,7 +9,8 @@ import Notice from "./Notice";
 import PlayerCard from "./PlayerCard";
 import { homeCountAt, playerNameAt, seatAt } from "./boardView";
 import { boardMessages, commonMessages, leaveMessages } from "./messages";
-import { prefersReducedMotion, tumbleFor, useBoardPlayback } from "./useBoardPlayback";
+import { faceEvery, prefersReducedMotion, tumbleFaces, tumbleFor, tumbleForReducedMotion } from "./motion";
+import { useBoardPlayback } from "./useBoardPlayback";
 
 interface Props {
   mode: GameMode;
@@ -20,7 +21,8 @@ interface Props {
   error: string | undefined;
   /** Rolls, settling with the server's reply, or nothing if it never came. */
   onRoll: () => Promise<{ ok: boolean } | undefined>;
-  onMove: (token: number) => void;
+  /** Moves the Token, settling with the server's reply, or nothing if it never came. */
+  onMove: (token: number) => Promise<{ ok: boolean } | undefined>;
   /** Leaves the Game during play, forfeiting it. */
   onLeaveGame: () => void;
   /** Called once a won Game has played out its last Move, so its result can be shown. */
@@ -32,12 +34,6 @@ interface Props {
  * on the Roll or, if it didn't go through, waits to be tapped again.
  */
 type RollState = "idle" | "tumbling" | "spinning" | "failed";
-
-// The die tumbles for at least `tumbleFor`, and on until the server replies with the Roll. Faces flick past in a fixed
-// order: the server makes every random choice in a Game, and this one isn't even a choice.
-const tumbleForReducedMotion = 300;
-const faceEvery = 90;
-const tumbleFaces = [3, 6, 2, 5, 1, 4];
 
 // After this long without a reply, the Player is told the die is still waiting for it.
 const slowAfter = 1500;
@@ -55,11 +51,12 @@ export default function BoardScreen({
   onLeaveGame,
   onPlayedOut,
 }: Props) {
-  const { board: playedBoard, playback, moving, playOwnMove, tokenArrived } = useBoardPlayback(latestBoard);
+  const playback = useBoardPlayback(latestBoard);
+  const { playedRoll, moving } = playback;
   // The Board as it was when the viewer tapped the die, shown until it lands, as what came after would give the Roll
   // away: whose Turn it is, and which Tokens can Move.
   const [heldBoard, setHeldBoard] = useState<SnapshotBoard>();
-  const board = heldBoard ?? playedBoard;
+  const board = heldBoard ?? playback.board;
   const [rollState, setRollState] = useState<RollState>("idle");
   // Whether the server is taking a while to reply to the Roll.
   const [slow, setSlow] = useState(false);
@@ -68,9 +65,7 @@ export default function BoardScreen({
   const [tumbleFace, setTumbleFace] = useState(1);
   const rolling = rollState === "tumbling" || rollState === "spinning";
   const viewer = board.seat;
-  // Another Player's Roll, playing out.
-  const otherRoll = playback && playback.seat !== viewer ? playback.roll : undefined;
-  const tumbling = rolling || (otherRoll !== undefined && !otherRoll.landed);
+  const tumbling = rolling || (playedRoll !== undefined && !playedRoll.landed);
 
   useEffect(() => {
     if (!tumbling || prefersReducedMotion()) return;
@@ -81,10 +76,11 @@ export default function BoardScreen({
 
   // A won Game shows its result once the Board has nothing left to play out. Before the screen is painted, so the
   // Board never flashes up as it was left.
-  const playedOut = !heldBoard && !playback;
+  const playedOut = !heldBoard && playback.playedOut;
+  const showResult = useEffectEvent(onPlayedOut);
   useLayoutEffect(() => {
-    if (playedOut && latestBoard.winner !== null) onPlayedOut();
-  }, [playedOut, latestBoard.winner, onPlayedOut]);
+    if (playedOut && latestBoard.winner !== null) showResult();
+  }, [playedOut, latestBoard.winner]);
 
   const playerName = (seat: Seat) => playerNameAt(board, seat);
   const { turn, rolled, lastRoll, lastMove, moves, extraRoll } = board;
@@ -98,11 +94,13 @@ export default function BoardScreen({
 
   const rollDie = async () => {
     let replied = false;
+    const before = latestBoard;
     setTumbleFace(tumbleFaces[0] as number);
     setLanded(false);
     setSlow(false);
     setRollState("tumbling");
-    setHeldBoard(latestBoard);
+    setHeldBoard(before);
+    playback.startOwnRoll();
     const slowTimeout = setTimeout(() => setSlow(true), slowAfter);
     // Once it's tumbled, it spins until the reply comes.
     const tumbled = wait(prefersReducedMotion() ? tumbleForReducedMotion : tumbleFor)
@@ -114,17 +112,20 @@ export default function BoardScreen({
     setSlow(false);
     setLanded(Boolean(reply?.ok));
     setRollState(reply?.ok ? "idle" : "failed");
+    playback.ownRollLanded(before, Boolean(reply?.ok));
     setHeldBoard(undefined);
   };
 
   // The Move is sent at once, and the Token starts sliding at once, a Cell at a time, unless motion is reduced.
-  const moveToken = (token: number) => {
-    playOwnMove(token);
-    onMove(token);
+  const moveToken = async (token: number) => {
+    playback.startOwnMove(token);
+    const reply = await onMove(token).catch(() => undefined);
+    if (!reply?.ok) playback.ownMoveRefused();
   };
 
   // What the viewer should do now, if anything.
   const viewerNow = () => {
+    if (playedRoll?.seat === viewer) return playedRoll.landed ? "" : boardMessages.rollingShort;
     if (!isOwnTurn) return "";
     if (rolling) return boardMessages.rollingShort;
     if (moves.length) return boardMessages.pickToken;
@@ -134,8 +135,8 @@ export default function BoardScreen({
 
   // What another Seat's Player is doing now, if anything.
   const otherNow = (seat: Seat) => {
-    if (otherRoll && seat === playback?.seat) {
-      return otherRoll.landed ? boardMessages.rolledShort(otherRoll.number) : boardMessages.rollingShort;
+    if (playedRoll?.seat === seat) {
+      return playedRoll.landed ? boardMessages.rolledShort(playedRoll.number) : boardMessages.rollingShort;
     }
     if (seat !== turn) return "";
     if (rolled && lastRoll?.seat === seat) return boardMessages.rolledShort(lastRoll.number);
@@ -179,9 +180,20 @@ export default function BoardScreen({
       return { title: boardMessages.rolling, detail, before: null };
     }
     if (failed) return { title: boardMessages.rollFailed, detail: boardMessages.tapToRetry, before: null };
-    if (otherRoll && playback) {
-      const detail = otherRoll.landed ? boardMessages.theyRolled(otherRoll.number) : boardMessages.theyreRolling;
-      return { title: boardMessages.turnOf(playerName(playback.seat)), detail, before: lastMoveLine };
+    // A Roll playing out: another Player's, or one of the viewer's from another tab, or their own resting, as it
+    // passed the Turn.
+    if (playedRoll?.seat === viewer) {
+      const { number, landed: rollLanded } = playedRoll;
+      if (rollLanded) return { title: boardMessages.youRolled(number), detail: null, before: null };
+      return { title: boardMessages.rolling, detail: boardMessages.everyoneSees, before: null };
+    }
+    if (playedRoll) {
+      const { seat, number, landed: rollLanded } = playedRoll;
+      const detail = rollLanded ? boardMessages.theyRolled(number) : boardMessages.theyreRolling;
+      return { title: boardMessages.turnOf(playerName(seat)), detail, before: lastMoveLine };
+    }
+    if (moving && moving.seat !== viewer) {
+      return { title: boardMessages.turnOf(playerName(moving.seat)), detail: boardMessages.movingToken, before: null };
     }
     if (isOwnTurn && rolled && lastRoll) {
       return { title: boardMessages.youRolled(lastRoll.number), detail: boardMessages.tapToMove, before: null };
@@ -218,16 +230,24 @@ export default function BoardScreen({
         />
       );
     }
-    if (otherRoll && playback) {
-      if (!otherRoll.landed) {
+    if (playedRoll) {
+      const { seat, number } = playedRoll;
+      const isOwn = seat === viewer;
+      if (!playedRoll.landed) {
         return (
-          <Die number={tumbleFace} label={boardMessages.rollingDie} className="motion-safe:animate-ludo-die-tumble" />
+          <Die
+            number={tumbleFace}
+            label={boardMessages.rollingDie}
+            ringed={isOwn}
+            className="motion-safe:animate-ludo-die-tumble"
+          />
         );
       }
       return (
         <Die
-          number={otherRoll.number}
-          label={boardMessages.dieRolledBy(playerName(playback.seat), otherRoll.number)}
+          number={number}
+          label={isOwn ? boardMessages.dieShowing(number) : boardMessages.dieRolledBy(playerName(seat), number)}
+          ringed={isOwn}
           className="motion-safe:animate-ludo-die-land"
         />
       );
@@ -290,7 +310,7 @@ export default function BoardScreen({
         disabled={disabled}
         onMove={moveToken}
         moving={moving}
-        onArrived={tokenArrived}
+        onArrived={playback.tokenArrived}
       />
       <div className="flex w-full gap-2.5">
         {card(0, false)}

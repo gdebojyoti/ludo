@@ -15,7 +15,7 @@ import { homeCountAt, playerNameAt, seatAt, seatViewOf } from "./boardView";
 import MovingToken from "./MovingToken";
 import { boardMessages } from "./messages";
 import { emptySeatColour, seatView, type Cell } from "./seatView";
-import type { MovingToken as Moving } from "./useBoardPlayback";
+import type { TokenMoving } from "./useBoardPlayback";
 
 interface Props {
   mode: GameMode;
@@ -27,7 +27,7 @@ interface Props {
    * A Token Moving by its Roll, the viewer's or another Player's: it's drawn sliding there from where the Board has it,
    * and nothing on the Board can be picked until it's arrived.
    */
-  moving: Moving | undefined;
+  moving: TokenMoving | undefined;
   /** Called once the Token that's Moving has arrived. */
   onArrived: () => void;
 }
@@ -318,7 +318,7 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
 
   // Where the Token that's Moving starts, then each place it stands on: its slot in the Yard, or its Cell, then each
   // Cell along its Move, and its spot in Home if it ends there.
-  const movingPath = ({ seat, token, number }: Moving): Cell[] => {
+  const movingPath = ({ seat, token, number }: TokenMoving): Cell[] => {
     const tokens = board.seats[seat]?.tokens ?? [];
     const from = tokens[token];
     if (!from) return [];

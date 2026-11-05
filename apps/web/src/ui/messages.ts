@@ -173,6 +173,7 @@ export const boardMessages = {
   waitingToRoll: "Waiting for them to roll.",
   theyreRolling: "They're rolling the die…",
   theyRolled: (number: number) => `They rolled a ${number}.`,
+  movingToken: "Moving a token…",
   firstRoll: "Roll the die to start your turn.",
   tapToMove: "Tap a highlighted token to move it.",
   tokensCanMove: (count: number) => `${plural(count, "token", "tokens")} can move`,
