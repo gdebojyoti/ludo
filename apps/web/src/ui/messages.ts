@@ -202,8 +202,8 @@ export const boardMessages = {
 };
 
 export const resultMessages = {
-  subtitle: "Game over",
-  won: "The game is won",
+  subtitle: (mode: GameMode) => modeName(mode),
+  won: "The game is over",
   winner: (playerName: string, isOwn: boolean) => isOwn ? "You win" : `${playerName} wins`,
   allHome: `All ${classicRules.tokensPerSeat} tokens reached home first.`,
   othersLeft: "Everyone else left the game.",

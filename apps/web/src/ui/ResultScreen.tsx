@@ -48,7 +48,7 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
 
   return (
     <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-9">
-      <Header subtitle={resultMessages.subtitle} />
+      <Header subtitle={resultMessages.subtitle(mode)} />
       <section
         className="flex flex-col items-center gap-3 rounded-[22px] border-t-8 bg-ludo-ivory px-[22px] py-[26px] text-center
           text-ludo-maroon"
