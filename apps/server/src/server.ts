@@ -29,6 +29,11 @@ export const createGameServer = (config: Config, options: GameServerOptions = {}
   const httpServer = createServer(app);
   const io: GameIo = new Server(httpServer, {
     cors: { origin: config.webOrigins, credentials: true },
+    // A tab whose connection drops without closing, such as on a phone that loses signal, is noticed within
+    // pingInterval + pingTimeout, and only then are the others shown that its Player is Away. Socket.IO's defaults
+    // would take up to 45 seconds.
+    pingInterval: 5000,
+    pingTimeout: 5000,
   });
   identifyPlayers(io);
   io.on("connection", (socket) => {

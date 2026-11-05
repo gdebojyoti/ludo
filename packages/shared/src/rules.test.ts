@@ -11,6 +11,8 @@ import {
   positionAfter,
   positionsAlong,
   seatsClockwise,
+  tokensHome,
+  type TokenPosition,
 } from "./rules.js";
 
 describe("giving out Seats", () => {
@@ -268,18 +270,23 @@ describe("an extra Roll", () => {
 
 describe("winning", () => {
   it("is a Move that brings the Seat's last Token Home", () => {
-    const tokens = [{ area: "home" }, { area: "homeColumn", cell: 3 }, { area: "home" }, { area: "home" }] as const;
+    const home = { area: "home" } as const;
+    const seats: TokenPosition[][] = [[], [], [home, { area: "homeColumn", cell: 3 }, home, home], []];
 
-    const moved = moveToken(2, [...tokens], 1, 2);
+    const after = applyMove(seats, 2, 1, 2).seats[2] ?? [];
 
-    expect(moved).toEqual([{ area: "home" }, { area: "home" }, { area: "home" }, { area: "home" }]);
-    expect(hasWon(moved)).toBe(true);
+    expect(after).toEqual([home, home, home, home]);
+    expect(tokensHome(after)).toBe(4);
+    expect(hasWon(after)).toBe(true);
   });
 
   it("isn't a Move that brings a Token Home with another still out", () => {
-    const tokens = [{ area: "homeColumn", cell: 4 }, { area: "track", cell: 7 }, { area: "home" }] as const;
+    const seats: TokenPosition[][] = [[{ area: "homeColumn", cell: 4 }, { area: "track", cell: 7 }, { area: "home" }]];
 
-    expect(hasWon(moveToken(0, [...tokens], 0, 1))).toBe(false);
+    const after = applyMove(seats, 0, 0, 1).seats[0] ?? [];
+
+    expect(tokensHome(after)).toBe(2);
+    expect(hasWon(after)).toBe(false);
   });
 
   it("isn't a Seat with no Tokens, such as an empty one", () => {
