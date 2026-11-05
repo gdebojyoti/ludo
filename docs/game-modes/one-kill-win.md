@@ -22,5 +22,6 @@ Terms in bold are defined in [GLOSSARY.md](../../GLOSSARY.md). "Kill" appears in
 
 ## On screen
 
-- The **Home columns** and **Home** are greyed out, as no **Token** uses them. This may change.
+- The **Home columns** and **Home** are greyed out, as no **Token** uses them. Each **Cell** of a **Home column** is also crossed corner to corner, in the colour of the lines between **Cells**, so it reads as closed rather than as an empty **Seat**'s.
+- On each **Seat**'s side, the **Cell** where its **Tokens** would turn into its **Home column** has an arrow pointing on along the **Track**, drawn like a star. It's there for every **Seat**, taken or empty, and like a star it's hidden under 2 or more **Tokens**.
 - The result says who **Captured** whose **Tokens**, naming each **Player** who lost one.

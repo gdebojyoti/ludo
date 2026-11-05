@@ -56,6 +56,22 @@ const turnClockwise = ([row, column]: Cell, quarterTurns: number): Cell => {
   return turnClockwise([column, size - 1 - row], quarterTurns - 1);
 };
 
+/**
+ * The Cell where the viewer's Tokens turn into their Home column: the last but one of the Seat's before theirs, at the
+ * foot of the bottom arm. In a Game mode with no Home column, the Track carries on to its left from here.
+ */
+const ownTurnInCell = turnClockwise(ownTrackStretch.at(-2) as Cell, classicRules.seats - 1);
+
+/**
+ * Pointing on along the Track from where a Seat's Tokens would turn into its Home column, for the Seat this many Seats
+ * clockwise from the viewer's.
+ */
+const carryOnArrow = (turns: number) => (
+  <svg className="ludo-carry-on" style={{ rotate: `${turns * 90}deg` }} viewBox="0 0 24 24" aria-hidden>
+    <path d="M19 12H6M11 6.5L5.5 12l5.5 5.5" />
+  </svg>
+);
+
 /** Whether a row or column runs through an arm of the cross, between the Yards. */
 const isOnArm = (index: number) => index >= yardSize && index < size - yardSize;
 
@@ -78,6 +94,12 @@ const colouredCells = new Map(quarterTurns.flatMap((turns) =>
 const homeColumnCells = new Set(quarterTurns.flatMap((turns) =>
   ownHomeColumn.map((cell) => cellKey(turnClockwise(cell, turns))),
 ));
+
+/**
+ * The Cells where each Seat's Tokens turn into their Home column, by how many Seats clockwise from the viewer's that
+ * Seat is.
+ */
+const turnInCells = new Map(quarterTurns.map((turns) => [cellKey(turnClockwise(ownTurnInCell, turns)), turns]));
 
 /** The Cells drawn with a star: the Start cells, and the Star cells. */
 const starredCells = new Set(quarterTurns.flatMap((turns) =>
@@ -225,6 +247,7 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
     const key = cellKey(cell);
     const placed = tokensOnCells.get(key) ?? [];
     const colourTurns = colouredCells.get(key);
+    const turnInTurns = turnInCells.get(key);
     // An empty Seat's Home column and Start cell are neutral, like its Yard, as is any unused Home column.
     const isUnusedHomeColumn = !usesHome && homeColumnCells.has(key);
     const seatColour = colourTurns === undefined
@@ -235,6 +258,7 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
       <>
         {placed.length < 2 && starredCells.has(key) &&
           starIcon(seatColour !== undefined && seatColour !== emptySeatColour)}
+        {!usesHome && placed.length < 2 && turnInTurns !== undefined && carryOnArrow(turnInTurns)}
         {placed.length > 0 && tokensDrawing(placed, placed.some(isMovable))}
       </>
     );
@@ -259,7 +283,7 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
     return (
       <div
         key={key}
-        className="ludo-cell"
+        className={`ludo-cell ${isUnusedHomeColumn ? "ludo-cell-closed" : ""}`}
         style={style}
         role={placed.length ? "img" : undefined}
         aria-label={placed.length ? describe(placed) : undefined}
