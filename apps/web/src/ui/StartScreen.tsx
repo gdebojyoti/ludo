@@ -1,6 +1,7 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { gameCodeLength } from "@ludo/shared";
 import Avatar from "./Avatar";
+import CreateGameButton from "./CreateGameButton";
 import Icon from "./Icon";
 import { commonMessages, startMessages } from "./messages";
 import { seatView } from "./seatView";
@@ -95,9 +96,7 @@ export default function StartScreen({
             <Icon name="newName" />
           </button>
         </div>
-        <button type="button" className="ludo-button-maroon" disabled={disabled} onClick={onCreateGame}>
-          {startMessages.createGame}
-        </button>
+        <CreateGameButton disabled={disabled} onCreateGame={onCreateGame} />
         <form className="flex flex-col gap-2" onSubmit={joinGame}>
           <label htmlFor="game-code" className="text-xs font-bold tracking-widest text-ludo-brown uppercase">
             {startMessages.gameCodeLabel}

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ludo · Choose a mode · Bottom sheet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Figtree:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.yd{border-radius:18px;display:flex;align-items:center;justify-content:center}
+.yd span{width:58%;aspect-ratio:1/1;border-radius:50%;background:#F7F0DF;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:14px;box-sizing:border-box}
+.yd i{border-radius:50%;background:#EADBB9;display:block;aspect-ratio:1/1}
+.opt{display:flex;align-items:center;gap:14px;padding:16px 4px;border-top:1px solid #E2D2AD;cursor:pointer;color:#3B1218}
+.opt:first-of-type{border-top:none}
+.opt input{appearance:none;-webkit-appearance:none;margin:0;flex:none;width:22px;height:22px;border-radius:50%;border:2px solid #A8916A;background:#F7F0DF;cursor:pointer}
+.opt input:checked{border-color:#3B1218;background:radial-gradient(circle,#3B1218 0 5px,#F7F0DF 5.5px)}
+.opt input:focus-visible{outline:2px solid #E8B54A;outline-offset:3px}
+.mi{width:40px;height:40px;flex:none;border-radius:50%;background:#EADBB9;color:#3B1218;display:flex;align-items:center;justify-content:center}
+.opt:has(input:checked) .mi{background:#3B1218;color:#F3CF7E}
+.opt.soon{cursor:default}
+.opt.soon input{border-color:#D9C49A;background:#EFE3C8;cursor:default}
+.opt.soon .mi{background:#EFE3C8;color:#A8916A}
+.opt.soon .mn{color:#6E5340;font-weight:600}
+.soontag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:10px;background:#EADBB9;color:#6E5340;font-size:11px;font-weight:700;letter-spacing:0.04em}
+.mt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.mn{font-size:16px;font-weight:700}
+.md{font-size:13px;line-height:1.4;color:#6E5340}
+.btn{width:100%;height:54px;border:none;border-radius:14px;background:#3B1218;color:#F3CF7E;font:600 16px Figtree,sans-serif;cursor:pointer}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; box-sizing: border-box; background: #3B1218; font-family: Figtree, sans-serif; overflow: hidden">
+<div aria-hidden="true" style="display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 72px 24px 0">
+<div style="width: 220px; height: 220px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 10px; box-sizing: border-box; border: 2px solid #E8B54A; border-radius: 26px">
+<div class="yd" style="background: #1F7A4D"><span><i></i><i></i><i></i><i></i></span></div>
+<div class="yd" style="background: #E3A21A"><span><i></i><i></i><i></i><i></i></span></div>
+<div class="yd" style="background: #D2462E"><span><i></i><i></i><i></i><i></i></span></div>
+<div class="yd" style="background: #2F4A9E"><span><i></i><i></i><i></i><i></i></span></div>
+</div>
+<div style="text-align: center">
+<div style="font-family: Marcellus, serif; font-size: 46px; letter-spacing: 0.14em; color: #F3CF7E">LUDO</div>
+<div style="margin-top: 4px; font-size: 15px; color: #D9C3A5">Classic Ludo, with friends</div>
+</div>
+</div>
+<div style="position: absolute; inset: 0; background: rgba(24,6,10,.74); display: flex; flex-direction: column; justify-content: flex-end">
+<form role="dialog" aria-modal="true" aria-labelledby="mode-title" style="margin: 0; background: #F7F0DF; border-radius: 28px 28px 0 0; padding: 10px 24px 36px; display: flex; flex-direction: column; gap: 14px; color: #3B1218">
+<span aria-hidden="true" style="align-self: center; width: 40px; height: 4px; border-radius: 2px; background: #D9C49A"></span>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<div>
+<h2 id="mode-title" style="margin: 0; font-family: Marcellus, serif; font-weight: 400; font-size: 26px">Choose a mode</h2>
+<p style="margin: 4px 0 0; font-size: 13px; color: #6E5340">Everyone in this game plays the same mode.</p>
+</div>
+</div>
+<fieldset style="margin: 0; padding: 0; border: none; display: flex; flex-direction: column">
+<legend style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Game mode</legend>
+<span id="soon-note" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Coming soon, not available yet</span>
+<label class="opt">
+<span class="mi" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7.5" r="3"></circle><circle cx="16.5" cy="7.5" r="3"></circle><circle cx="7.5" cy="16.5" r="3"></circle><circle cx="16.5" cy="16.5" r="3"></circle></svg></span>
+<span class="mt"><span class="mn">Classic</span><span class="md">Get all four tokens home to win.</span></span>
+<input type="radio" name="mode" value="classic" checked></label>
+<label class="opt soon">
+<span class="mi" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2.5L4.5 13.5H11L10 21.5l8.5-11H12z"></path></svg></span>
+<span class="mt"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span class="mn">Quick Game</span><span class="soontag">Coming soon</span></span><span class="md">First token home wins.</span></span>
+<input type="radio" name="mode" value="quick" disabled aria-describedby="soon-note"></label>
+<label class="opt soon">
+<span class="mi" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"></path></svg></span>
+<span class="mt"><span style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap"><span class="mn">One Kill Win</span><span class="soontag">Coming soon</span></span><span class="md">One capture and it’s over.</span></span>
+<input type="radio" name="mode" value="one-kill" disabled aria-describedby="soon-note"></label>
+</fieldset>
+<button type="button" class="btn">Create game</button>
+</form>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
