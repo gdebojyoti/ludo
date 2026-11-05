@@ -77,7 +77,7 @@ export const modeMessages = {
   modes: {
     classic: { name: "Classic", description: "Get all four tokens home to win." },
     quick: { name: "Quick Game", description: "First token home wins." },
-    "one-kill": { name: "One Kill Win", description: "One capture and it's over." },
+    oneKill: { name: "One Kill Win", description: "One capture and it's over." },
   },
 };
 
