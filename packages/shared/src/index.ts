@@ -11,6 +11,7 @@ export type {
   SnapshotPlayer,
   SnapshotSeat,
 } from "./events.js";
+export { indexAfter } from "./events.js";
 export {
   applyMove,
   classicRules,

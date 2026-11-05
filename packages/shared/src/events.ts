@@ -57,7 +57,12 @@ export interface Roll {
   seat: Seat;
   /** The number Rolled, from 1 up to `dieFaces`. */
   number: number;
+  /** Which of the Game's Rolls this is, counting from 0, so a new Roll can be told from the last one. */
+  index: number;
 }
+
+/** The index the Game's next Roll, or next Move, gets: one past the latest, or 0 if there's none yet. */
+export const indexAfter = (latest: Roll | Move | null) => (latest?.index ?? -1) + 1;
 
 /** A Move, by the Seat whose Turn it was. */
 export interface Move {
@@ -68,6 +73,8 @@ export interface Move {
   to: TokenPosition;
   /** The opponents' Tokens the Move Captured, from the Cell it ended on, each now back in its Yard. */
   captured: SeatToken[];
+  /** Which of the Game's Moves this is, counting from 0, so a new Move can be told from the last one. */
+  index: number;
 }
 
 /** One of a Game's Players, as every Player sees them. Never their player ID: that's the only proof of who they are. */

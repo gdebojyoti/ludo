@@ -16,7 +16,7 @@ interface Props {
 const stepEvery = 220;
 
 /**
- * One of the viewer's Tokens, drawn above the Board as it Moves: it slides from each place on its path to the next.
+ * A Token, drawn above the Board as it Moves: it slides from each place on its path to the next.
  * Each step sets the Token where it's going and slides it in from where it was, so nothing depends on it staying
  * mounted. The slide alternates between two identical animations, so a new step always restarts it.
  */
