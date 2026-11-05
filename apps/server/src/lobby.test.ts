@@ -32,6 +32,7 @@ describe("creating a Game", () => {
     expect(reply).toEqual({
       ok: true,
       game: {
+        mode: "classic",
         state: "lobby",
         gameCode: expect.stringMatching(/^\d{6}$/),
         isHost: true,
@@ -188,11 +189,14 @@ describe("joining a Game", () => {
       { playerName: "Luna Lovegood", isHost: true, away: false },
       { playerName: "Ginny Weasley", isHost: false, away: false },
     ];
-    expect(reply).toEqual({ ok: true, game: { state: "lobby", gameCode, isHost: false, players, board: null } });
+    expect(reply).toEqual({
+      ok: true,
+      game: { mode: "classic", state: "lobby", gameCode, isHost: false, players, board: null },
+    });
     expect(await tab.nextMessage()).toEqual({ event: "game", game: reply.ok && reply.game });
     expect(await host.nextMessage()).toEqual({
       event: "game",
-      game: { state: "lobby", gameCode, isHost: true, players, board: null },
+      game: { mode: "classic", state: "lobby", gameCode, isHost: true, players, board: null },
     });
   });
 
@@ -391,11 +395,11 @@ describe("a Player who isn't the Host Leaving the Lobby", () => {
     ];
     expect(await host.nextMessage()).toEqual({
       event: "game",
-      game: { state: "lobby", gameCode, isHost: true, players, board: null },
+      game: { mode: "classic", state: "lobby", gameCode, isHost: true, players, board: null },
     });
     expect(await stayer.nextMessage()).toEqual({
       event: "game",
-      game: { state: "lobby", gameCode, isHost: false, players, board: null },
+      game: { mode: "classic", state: "lobby", gameCode, isHost: false, players, board: null },
     });
   });
 
@@ -438,6 +442,7 @@ describe("the Host Leaving the Lobby", () => {
     const cancelled = {
       event: "game",
       game: {
+        mode: "classic",
         state: "cancelled",
         gameCode: null,
         isHost: true,
@@ -458,6 +463,7 @@ describe("the Host Leaving the Lobby", () => {
     expect(await joiner.nextMessage()).toEqual({
       event: "game",
       game: {
+        mode: "classic",
         state: "cancelled",
         gameCode: null,
         isHost: false,

@@ -26,6 +26,33 @@ export const classicRules = {
   rollToRollAgain: 6,
 };
 
+/** The Game modes a Game can follow, each a named set of rules. */
+export const gameModes = ["classic", "oneKillWin"] as const;
+
+export type GameMode = (typeof gameModes)[number];
+
+/** Whether a value, such as one a Player sent, is a Game mode. */
+export const isGameMode = (value: unknown): value is GameMode => gameModes.includes(value as GameMode);
+
+/**
+ * How each Game mode changes Classic's rules, as docs/game-modes describes. Every rule not here is Classic's, in
+ * `classicRules`.
+ */
+const modeRules: Record<GameMode, {
+  /** How many of each Seat's Tokens start the Game on its Start cell, rather than in its Yard. */
+  tokensOnStartCell: number;
+  /**
+   * Whether Tokens turn into their Home column and go on to Home. Without one, they go round the Track again and
+   * again, and never reach Home.
+   */
+  hasHomeColumn: boolean;
+  /** What wins the Game: bringing all of a Seat's Tokens Home, or the first Capture. */
+  wonBy: "allHome" | "capture";
+}> = {
+  classic: { tokensOnStartCell: 0, hasHomeColumn: true, wonBy: "allHome" },
+  oneKillWin: { tokensOnStartCell: 2, hasHomeColumn: false, wonBy: "capture" },
+};
+
 /** How many faces the die has: a Roll is a whole number from 1 up to this. */
 export const dieFaces = 6;
 
@@ -69,8 +96,8 @@ const distanceOf = (seat: Seat, position: Exclude<TokenPosition, { area: "yard" 
 };
 
 /** Where a Token of the Seat is, this many Cells along its journey. */
-const positionAt = (seat: Seat, distance: number): TokenPosition => {
-  if (distance <= lastTrackDistance) {
+const positionAt = (mode: GameMode, seat: Seat, distance: number): TokenPosition => {
+  if (!modeRules[mode].hasHomeColumn || distance <= lastTrackDistance) {
     return { area: "track", cell: (startCell(seat) + distance) % classicRules.trackCells };
   }
   if (distance < homeDistance) return { area: "homeColumn", cell: distance - lastTrackDistance - 1 };
@@ -79,35 +106,47 @@ const positionAt = (seat: Seat, distance: number): TokenPosition => {
 
 /**
  * Where a Token of the Seat ends up if it Moves by this Roll, or null if it can't: it's in the Yard and the Roll
- * isn't the one that brings it out, it's already Home, or the Roll would take it past Home.
+ * isn't the one that brings it out, it's already Home, or the Roll would take it past Home. In a Game mode with no
+ * Home column, a Token on the Track goes on round it, so it can always Move.
  */
-export const positionAfter = (seat: Seat, position: TokenPosition, roll: number): TokenPosition | null => {
-  if (position.area === "yard") return roll === classicRules.rollToLeaveYard ? positionAt(seat, 0) : null;
+export const positionAfter = (
+  mode: GameMode,
+  seat: Seat,
+  position: TokenPosition,
+  roll: number,
+): TokenPosition | null => {
+  if (position.area === "yard") return roll === classicRules.rollToLeaveYard ? positionAt(mode, seat, 0) : null;
   const distance = distanceOf(seat, position) + roll;
-  if (position.area === "home" || distance > homeDistance) return null;
-  return positionAt(seat, distance);
+  if (position.area === "home" || (modeRules[mode].hasHomeColumn && distance > homeDistance)) return null;
+  return positionAt(mode, seat, distance);
 };
 
 /**
  * Each place a Token of the Seat stands on as it Moves by this Roll, a Cell at a time, ending where it ends up: just
  * its Start cell if it leaves the Yard. Empty if it can't Move by the Roll.
  */
-export const positionsAlong = (seat: Seat, position: TokenPosition, roll: number): TokenPosition[] => {
-  if (!positionAfter(seat, position, roll)) return [];
-  if (position.area === "yard") return [positionAt(seat, 0)];
+export const positionsAlong = (mode: GameMode, seat: Seat, position: TokenPosition, roll: number): TokenPosition[] => {
+  if (!positionAfter(mode, seat, position, roll)) return [];
+  if (position.area === "yard") return [positionAt(mode, seat, 0)];
   const from = distanceOf(seat, position);
-  return Array.from({ length: roll }, (_, step) => positionAt(seat, from + step + 1));
+  return Array.from({ length: roll }, (_, step) => positionAt(mode, seat, from + step + 1));
 };
 
 /** The Seat's Tokens that can Move by this Roll, by their place in its list of Tokens. */
-export const legalMoves = (seat: Seat, tokens: TokenPosition[], roll: number): number[] => {
-  return tokens.flatMap((position, token) => (positionAfter(seat, position, roll) ? [token] : []));
+export const legalMoves = (mode: GameMode, seat: Seat, tokens: TokenPosition[], roll: number): number[] => {
+  return tokens.flatMap((position, token) => (positionAfter(mode, seat, position, roll) ? [token] : []));
 };
 
 /** The Seat's Tokens after this one Moves by the Roll, which must be one of its legal Moves. */
-export const moveToken = (seat: Seat, tokens: TokenPosition[], token: number, roll: number): TokenPosition[] => {
+export const moveToken = (
+  mode: GameMode,
+  seat: Seat,
+  tokens: TokenPosition[],
+  token: number,
+  roll: number,
+): TokenPosition[] => {
   return tokens.map((position, index) => {
-    return index === token ? positionAfter(seat, position, roll) ?? position : position;
+    return index === token ? positionAfter(mode, seat, position, roll) ?? position : position;
   });
 };
 
@@ -122,12 +161,13 @@ export interface SeatToken {
  * the opponents' Tokens it Captured, each now back in its Yard.
  */
 export const applyMove = (
+  mode: GameMode,
   seats: TokenPosition[][],
   seat: Seat,
   token: number,
   roll: number,
 ): { seats: TokenPosition[][]; captured: SeatToken[] } => {
-  const moved = moveToken(seat, seats[seat] ?? [], token, roll);
+  const moved = moveToken(mode, seat, seats[seat] ?? [], token, roll);
   const to = moved[token];
   const captured = seats.flatMap((tokens, owner) => {
     if (owner === seat || to?.area !== "track" || isSafeCell(to.cell)) return [];
@@ -153,6 +193,30 @@ export const applyMove = (
  */
 export const earnsExtraRoll = (roll: number, move: { to: TokenPosition; captured: SeatToken[] }): boolean => {
   return roll === classicRules.rollToRollAgain || move.captured.length > 0 || move.to.area === "home";
+};
+
+/** Whether a Game in this Game mode is won by its first Capture, as in One Kill Win, rather than as in Classic. */
+export const isWonByCapture = (mode: GameMode): boolean => modeRules[mode].wonBy === "capture";
+
+/** Whether Tokens in this Game mode turn into their Home column and go on to Home, as in Classic. */
+export const tokensReachHome = (mode: GameMode): boolean => modeRules[mode].hasHomeColumn;
+
+/**
+ * Where a Seat's Tokens are when the Game starts: any the Game mode puts on its Start cell, then the rest in its
+ * Yard.
+ */
+export const startingTokens = (mode: GameMode, seat: Seat): TokenPosition[] => {
+  return Array.from({ length: classicRules.tokensPerSeat }, (_, token) => {
+    return token < modeRules[mode].tokensOnStartCell ? positionAt(mode, seat, 0) : { area: "yard" };
+  });
+};
+
+/**
+ * Whether a Move wins the Game for its Seat, with the Seat's Tokens after it and the Tokens it Captured: in Classic,
+ * when it brings the Seat's last Token Home, and in One Kill Win, when it makes a Capture.
+ */
+export const wonByMove = (mode: GameMode, move: { tokens: TokenPosition[]; captured: SeatToken[] }): boolean => {
+  return isWonByCapture(mode) ? move.captured.length > 0 : hasWon(move.tokens);
 };
 
 /** How many of these Tokens of a Seat are Home. */

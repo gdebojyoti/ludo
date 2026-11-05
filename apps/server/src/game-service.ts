@@ -9,10 +9,13 @@ import {
   earnsExtraRoll,
   gameCodeLength,
   giveOutSeats,
-  hasWon,
+  isGameMode,
   isValidPlayerName,
   legalMoves,
   nextTakenSeat,
+  startingTokens,
+  wonByMove,
+  type GameMode,
   type RejectionReason,
   type Seat,
   type TokenPosition,
@@ -50,16 +53,16 @@ export const createGameService = (
   };
 
   /**
-   * The Game, started: the Seats given out to the Players in the order they joined, every Token in its Yard, and the
-   * first Player picked at random. Its Game code stops working, as only Games in the Lobby are found by it.
+   * The Game, started: the Seats given out to the Players in the order they joined, their Tokens where its Game mode
+   * starts them, and the first Player picked at random. Its Game code stops working, as only Games in the Lobby are
+   * found by it.
    */
   const started = (game: Game): Game => {
     const seatsInJoinOrder = giveOutSeats(game.players.length);
     const seats = Array.from({ length: classicRules.seats }, (_, seat): GameSeat => {
       const player = game.players[seatsInJoinOrder.indexOf(seat)];
       if (!player) return { playerId: null, leaverName: null, tokens: [] };
-      const tokens = Array.from({ length: classicRules.tokensPerSeat }, () => ({ area: "yard" as const }));
-      return { playerId: player.playerId, leaverName: null, tokens };
+      return { playerId: player.playerId, leaverName: null, tokens: startingTokens(game.mode, seat) };
     });
     // `randomInt` is always below the number of Players, so this is one of their Seats.
     const turn = seatsInJoinOrder[randomInt(seatsInJoinOrder.length)] as Seat;
@@ -82,12 +85,18 @@ export const createGameService = (
     return { ok: true as const, game, board, seat: board.turn };
   };
 
-  /** Creates a Game in the Lobby, with the Player as its Host. */
-  const createGame = oneAtATime(async (playerId: string, playerName: string): Promise<CommandResult> => {
+  /** Creates a Game in the Lobby, following this Game mode, with the Player as its Host. */
+  const createGame = oneAtATime(async (
+    playerId: string,
+    playerName: string,
+    mode: GameMode,
+  ): Promise<CommandResult> => {
     if (!isValidPlayerName(playerName)) return { ok: false, reason: "invalidPlayerName" };
+    if (!isGameMode(mode)) return { ok: false, reason: "invalidGameMode" };
     if (await store.findActiveGameByPlayer(playerId)) return { ok: false, reason: "alreadyInActiveGame" };
     const game: Game = {
       id: randomUUID(),
+      mode,
       state: "lobby",
       gameCode: await newGameCode(),
       hostId: playerId,
@@ -169,15 +178,15 @@ export const createGameService = (
     const number = randomInt(dieFaces) + 1;
     const rolled = { ...board, rolled: true, lastRoll: { seat, number } };
     const tokens = board.seats[seat]?.tokens ?? [];
-    const canMove = legalMoves(seat, tokens, number).length > 0;
+    const canMove = legalMoves(game.mode, seat, tokens, number).length > 0;
     return { ok: true, game: await save({ ...game, board: canMove ? rolled : turnPassed(rolled) }) };
   });
 
   /**
    * The Player Moves one of their Tokens, by its place in their Seat's list of Tokens, by their Roll, Capturing any
    * opponents' Tokens it can. A Move that used a 6, made a Capture, or brought a Token Home earns them another Roll in
-   * the same Turn; any other passes the Turn. A Move that brings the Seat's last Token Home wins, ending the Game,
-   * which frees every Player in it.
+   * the same Turn; any other passes the Turn. A Move that wins by the Game mode's rules, bringing the Seat's last Token
+   * Home in Classic or making a Capture in One Kill Win, ends the Game, which frees every Player in it.
    */
   const move = oneAtATime(async (playerId: string, token: number): Promise<CommandResult> => {
     const turn = await findTurn(playerId);
@@ -186,14 +195,14 @@ export const createGameService = (
     if (!board.rolled || !board.lastRoll) return { ok: false, reason: "notRolled" };
     const { number } = board.lastRoll;
     const tokens = board.seats[seat]?.tokens ?? [];
-    if (!legalMoves(seat, tokens, number).includes(token)) return { ok: false, reason: "illegalMove" };
-    const after = applyMove(board.seats.map((other) => other.tokens), seat, token, number);
+    if (!legalMoves(game.mode, seat, tokens, number).includes(token)) return { ok: false, reason: "illegalMove" };
+    const after = applyMove(game.mode, board.seats.map((other) => other.tokens), seat, token, number);
     const moved = after.seats[seat] ?? [];
     // A legal Move is always one of the Seat's Tokens.
     const from = tokens[token] as TokenPosition;
     const lastMove = { seat, token, from, to: moved[token] as TokenPosition, captured: after.captured };
     const seats = board.seats.map((other, index) => ({ ...other, tokens: after.seats[index] ?? other.tokens }));
-    if (hasWon(moved)) {
+    if (wonByMove(game.mode, { tokens: moved, captured: after.captured })) {
       const won = { ...board, seats, lastMove, rolled: false, winner: seat };
       return { ok: true, game: await save({ ...game, state: "won", board: won }) };
     }

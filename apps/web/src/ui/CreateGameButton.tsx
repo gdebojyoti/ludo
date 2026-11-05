@@ -1,17 +1,18 @@
 import { useRef, type FormEvent } from "react";
+import { isGameMode, type GameMode } from "@ludo/shared";
 import Icon from "./Icon";
 import { modeMessages, startMessages } from "./messages";
 
 interface Props {
   disabled: boolean;
-  onCreateGame: () => void;
+  onCreateGame: (mode: GameMode) => void;
 }
 
-/** The Game modes the Host can choose from, each drawn with the icon of the same name. Only Classic is played yet. */
+/** The Game modes the Host can choose from, each drawn with the icon of the same name. Quick Game isn't played yet. */
 const modes = [
   { mode: "classic", available: true },
+  { mode: "oneKillWin", available: true },
   { mode: "quick", available: false },
-  { mode: "oneKill", available: false },
 ] as const;
 
 // How a Game mode's option looks, by whether it can be chosen yet.
@@ -35,10 +36,13 @@ const soonStyles = {
 export default function CreateGameButton({ disabled, onCreateGame }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  const createGame = (event: FormEvent) => {
+  const createGame = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    // Only the Game modes that are available can be checked.
+    const mode = new FormData(event.currentTarget).get("mode");
+    if (!isGameMode(mode)) return;
     dialogRef.current?.close();
-    onCreateGame();
+    onCreateGame(mode);
   };
 
   return (

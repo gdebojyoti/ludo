@@ -57,8 +57,13 @@ A named set of rules, and the **Board** they're played on, that a **Game** follo
 _Avoid_: variant, ruleset
 
 **Classic**:
-The traditional **Game mode**, and the only one in v1.
+The traditional **Game mode**.
 _Avoid_: standard mode, normal mode
+
+**One Kill Win**:
+A **Game mode** won by the first **Capture**, with no **Home columns** or **Home** in play. See [docs/game-modes/one-kill-win.md](docs/game-modes/one-kill-win.md).
+"Kill" is fine in this name only: elsewhere, it is still a **Capture**.
+_Avoid_: one capture mode
 
 **House rules**:
 Changes to the rules that the **Players** choose for one **Game**, in a **Game mode** that allows them.

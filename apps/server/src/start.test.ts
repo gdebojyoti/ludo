@@ -44,11 +44,11 @@ describe("the Host starting the Game", () => {
     };
     expect(await host.nextMessage()).toEqual({
       event: "game",
-      game: { state: "playing", gameCode: null, isHost: true, players, board: { ...board, seat: 0 } },
+      game: { mode: "classic", state: "playing", gameCode: null, isHost: true, players, board: { ...board, seat: 0 } },
     });
     expect(await joiner.nextMessage()).toEqual({
       event: "game",
-      game: { state: "playing", gameCode: null, isHost: false, players, board: { ...board, seat: 2 } },
+      game: { mode: "classic", state: "playing", gameCode: null, isHost: false, players, board: { ...board, seat: 2 } },
     });
   });
 

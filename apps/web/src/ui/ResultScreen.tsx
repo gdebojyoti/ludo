@@ -1,10 +1,20 @@
-import { classicRules, hasWon, seatsClockwise, type Seat, type SnapshotBoard } from "@ludo/shared";
+import {
+  classicRules,
+  isWonByCapture,
+  seatsClockwise,
+  tokensReachHome,
+  wonByMove,
+  type GameMode,
+  type Seat,
+  type SnapshotBoard,
+} from "@ludo/shared";
 import Avatar from "./Avatar";
 import { homeCountAt, playerNameAt, seatViewOf } from "./boardView";
 import Header from "./Header";
 import { boardMessages, commonMessages, resultMessages } from "./messages";
 
 interface Props {
+  mode: GameMode;
   /** The Board of a won Game. */
   board: SnapshotBoard;
   onBackToStart: () => void;
@@ -12,7 +22,7 @@ interface Props {
 
 const tokenSpots = Array.from({ length: classicRules.tokensPerSeat }, (_, spot) => spot);
 
-export default function ResultScreen({ board, onBackToStart }: Props) {
+export default function ResultScreen({ mode, board, onBackToStart }: Props) {
   const winner = board.winner ?? board.turn;
   const viewer = board.seat;
   const colours = (seat: Seat) => seatViewOf(board, seat);
@@ -24,6 +34,17 @@ export default function ResultScreen({ board, onBackToStart }: Props) {
     .map((seat, index) => ({ ...seat, index }))
     .filter(({ playerName, index }) => playerName !== null && index !== winner)
     .sort((a, b) => seatsClockwise(viewer, a.index) - seatsClockwise(viewer, b.index));
+
+  const named = (seat: Seat) => ({ playerName: playerNameAt(board, seat), isOwn: seat === viewer });
+
+  // How the winner won: by their last Move, as the Game mode's rules say, or, if not, by everyone else Leaving.
+  const howWon = () => {
+    const { lastMove } = board;
+    const captured = lastMove?.seat === winner ? lastMove.captured : [];
+    if (!wonByMove(mode, { tokens: winnerSeat?.tokens ?? [], captured })) return resultMessages.othersLeft;
+    if (!isWonByCapture(mode)) return resultMessages.allHome;
+    return resultMessages.capture(named(winner), captured.map(({ seat }) => named(seat)));
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-9">
@@ -43,11 +64,10 @@ export default function ResultScreen({ board, onBackToStart }: Props) {
         <h1 className="m-0 font-ludo-display text-[30px] leading-[1.15] font-normal wrap-anywhere" aria-live="polite">
           {resultMessages.winner(winnerName, winner === viewer)}
         </h1>
-        <p className="m-0 text-sm text-ludo-brown">
-          {hasWon(winnerSeat?.tokens ?? []) ? resultMessages.allHome : resultMessages.othersLeft}
-        </p>
+        <p className="m-0 text-sm text-ludo-brown">{howWon()}</p>
       </section>
-      {others.length > 0 && (
+      {/* No Token reaches Home in a Game mode without it, so there's no count to show. */}
+      {tokensReachHome(mode) && others.length > 0 && (
         <section className="flex flex-col gap-2.5">
           <h2 className="m-0 text-xs font-semibold tracking-widest text-ludo-tan uppercase">
             {resultMessages.tokensHomeHeading}

@@ -4,6 +4,8 @@ import {
   positionsAlong,
   seatsClockwise,
   tokensHome,
+  tokensReachHome,
+  type GameMode,
   type Seat,
   type SeatToken,
   type SnapshotBoard,
@@ -15,6 +17,7 @@ import { boardMessages } from "./messages";
 import { emptySeatColour, seatView, type Cell } from "./seatView";
 
 interface Props {
+  mode: GameMode;
   board: SnapshotBoard;
   disabled: boolean;
   /** Called with one of the viewer's Tokens that can Move, when they pick it. */
@@ -68,6 +71,11 @@ const yardSlots = Array.from({ length: classicRules.tokensPerSeat }, (_, slot) =
 /** The Home columns and Start cells, each in the colour of the Seat this many Seats clockwise from the viewer's. */
 const colouredCells = new Map(quarterTurns.flatMap((turns) =>
   [...ownHomeColumn, ownStartCell].map((cell) => [cellKey(turnClockwise(cell, turns)), turns] as const),
+));
+
+/** The Home columns' Cells. */
+const homeColumnCells = new Set(quarterTurns.flatMap((turns) =>
+  ownHomeColumn.map((cell) => cellKey(turnClockwise(cell, turns))),
 ));
 
 /** The Cells drawn with a star: the Start cells, and the Star cells. */
@@ -138,8 +146,10 @@ const starIcon = (onColour: boolean) => (
   </svg>
 );
 
-export default function Board({ board, disabled, onMove, moving, onArrived }: Props) {
+export default function Board({ mode, board, disabled, onMove, moving, onArrived }: Props) {
   const viewer = board.seat;
+  // A Game mode whose Tokens never reach Home greys out the Home columns and Home, which it doesn't use.
+  const usesHome = tokensReachHome(mode);
   const fromViewer = (seat: Seat) => seatsClockwise(viewer, seat);
   const colourOf = (seat: Seat) => seatViewOf(board, seat).colour;
   const isMoving = ({ seat, token }: SeatToken) => seat === viewer && token === moving;
@@ -214,10 +224,11 @@ export default function Board({ board, disabled, onMove, moving, onArrived }: Pr
     const key = cellKey(cell);
     const placed = tokensOnCells.get(key) ?? [];
     const colourTurns = colouredCells.get(key);
-    // An empty Seat's Home column and Start cell are neutral, like its Yard.
+    // An empty Seat's Home column and Start cell are neutral, like its Yard, as is any unused Home column.
+    const isUnusedHomeColumn = !usesHome && homeColumnCells.has(key);
     const seatColour = colourTurns === undefined
       ? undefined
-      : isEmptySeat(seatAt(board, colourTurns)) ? emptySeatColour : seatView(colourTurns).colour;
+      : isEmptySeat(seatAt(board, colourTurns)) || isUnusedHomeColumn ? emptySeatColour : seatView(colourTurns).colour;
     const style = { ...gridArea(cell), ...(seatColour ? { backgroundColor: seatColour } : {}) };
     const content = (
       <>
@@ -317,19 +328,19 @@ export default function Board({ board, disabled, onMove, moving, onArrived }: Pr
       if (position.area === "home") return homeSpotCentre(0, homeCount + 1, homeCount);
       return gridCell(position, viewer, viewer) as Cell;
     };
-    return [from, ...positionsAlong(viewer, from, board.lastRoll.number)].map(placeOf);
+    return [from, ...positionsAlong(mode, viewer, from, board.lastRoll.number)].map(placeOf);
   };
 
   return (
     <div className="ludo-board">
       {quarterTurns.map((turns) => yard(seatAt(board, turns)))}
-      <div className="ludo-home" role="img" aria-label={homeLabel}>
+      <div className="ludo-home" {...(usesHome ? { role: "img", "aria-label": homeLabel } : { "aria-hidden": true })}>
         <svg viewBox="0 0 3 3" width="100%" height="100%" preserveAspectRatio="none" aria-hidden>
           {homeTriangles.map((points, turns) => (
             <polygon
               key={points}
               points={points}
-              fill={isEmptySeat(seatAt(board, turns)) ? emptySeatColour : seatView(turns).colour}
+              fill={!usesHome || isEmptySeat(seatAt(board, turns)) ? emptySeatColour : seatView(turns).colour}
             />
           ))}
           <circle cx="1.5" cy="1.5" r="0.32" className="fill-ludo-ivory stroke-ludo-gold" strokeWidth="0.08" />
