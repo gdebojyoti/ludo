@@ -224,6 +224,11 @@
     background: var(--color-ludo-ivory);
   }
 
+  /* A Star cell, a Safe cell set apart from the rest of the Track. */
+  .ludo-cell-star {
+    background: var(--color-ludo-parchment);
+  }
+
   /* A Cell the viewer can Move one of their Tokens from. */
   .ludo-cell-movable {
     background: var(--color-ludo-gold-light);
@@ -246,6 +251,30 @@
 
   .ludo-star-on-colour {
     stroke: var(--color-ludo-ivory);
+  }
+
+  /* A Home column Cell no Token can enter, in a Game mode without Home columns: crossed corner to corner over its plain
+   * colour, so it can't be taken for an empty Seat's. */
+  .ludo-cell-closed {
+    /* Drawn like the lines between Cells: the Board's 1px gap, in its colour. */
+    --cross: transparent calc(50% - 0.5px), var(--color-ludo-board-line) calc(50% - 0.5px) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px);
+    background-image: linear-gradient(to top right, var(--cross)), linear-gradient(to bottom right, var(--cross));
+  }
+
+  /* On the Cell where the viewer's Tokens would turn into their Home column, pointing on along the Track. Drawn like
+   * a star. */
+  .ludo-carry-on {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: calc(15 * var(--u));
+    height: calc(15 * var(--u));
+    fill: none;
+    stroke: #9a8456;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .ludo-yard {

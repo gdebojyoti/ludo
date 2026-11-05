@@ -22,8 +22,11 @@ const seatViews: SeatView[] = [
   { colour: "#2f4a9e", textColour: "#fff8e8", yardCorner: [9, 9] },
 ];
 
-/** The colour of an empty Seat's Yard and its quarter of Home. */
-export const emptySeatColour = "#e3d3ae";
+/**
+ * The colour of an empty Seat's Yard, Start cell, Home column and quarter of Home: parchment, as `--color-ludo-parchment`
+ * in ludo.css. It's the value, not the variable, as it also fills SVG shapes, whose fill attribute can't read one.
+ */
+export const emptySeatColour = "#eadbb9";
 
 /** How the viewer sees the Seat this many Seats clockwise from their own: 0 to 3. */
 export const seatView = (seatsFromViewer: number): SeatView => seatViews[seatsFromViewer] as SeatView;
