@@ -167,8 +167,8 @@ export default function BoardScreen({
   };
 
   // The Turn status: whose Turn the Board shows, and on the viewer's own, what they need to know to take it. Whose
-  // Turn it is follows the Board, so it changes only once a Roll or Move has played out. While the viewer's own Roll
-  // is under way, the detail can also say the server is slow or the Roll failed.
+  // Turn it is follows the Board, so it changes only once a Roll or Move has played out. The detail doesn't wait for
+  // the Board to say the server is slow with the viewer's Roll, or that it didn't go through.
   const status = (): { title: string; detail: string | null } => {
     if (!isOwnTurn) {
       // The Game waits for a Player who is Away on their Turn, however long they're gone.
@@ -284,8 +284,8 @@ export default function BoardScreen({
       </div>
       {/*
         The Turn status, beside the die. The same height whatever it says, so nothing on the screen shifts as the Turn
-        moves on. The text and the die both start at the top, and each line is cut short at its most, so it always
-        fits. On another Player's Turn, both are dimmed.
+        moves on. The text and the die both start at the top, and the title and the detail are each cut short at two
+        lines, so they always fit. On another Player's Turn, both are dimmed.
       */}
       <div className="flex h-36 w-full flex-none items-start justify-between gap-4 px-1.5 pt-2">
         <div
