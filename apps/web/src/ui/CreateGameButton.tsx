@@ -11,8 +11,8 @@ interface Props {
 /** The Game modes the Host can choose from, each drawn with the icon of the same name. Quick Game isn't played yet. */
 const modes = [
   { mode: "classic", available: true },
-  { mode: "quick", available: false },
   { mode: "oneKillWin", available: true },
+  { mode: "quick", available: false },
 ] as const;
 
 // How a Game mode's option looks, by whether it can be chosen yet.
