@@ -66,6 +66,21 @@ export const startMessages = {
   joinLinkNoReply: "The connection dropped before you could join. Try joining again.",
 };
 
+export const modeMessages = {
+  title: "Choose a mode",
+  subtitle: "Everyone in this game plays the same mode.",
+  legend: "Game mode",
+  soon: "Coming soon",
+  soonNote: "Coming soon, not available yet",
+  createGame: "Create game",
+  // Named as the Game modes are, so not in sentence case.
+  modes: {
+    classic: { name: "Classic", description: "Get all four tokens home to win." },
+    quick: { name: "Quick Game", description: "First token home wins." },
+    "one-kill": { name: "One Kill Win", description: "One capture and it's over." },
+  },
+};
+
 export const lobbyMessages = {
   subtitle: "Lobby · Classic",
   heading: "Gathering players",

@@ -31,6 +31,7 @@ Each `*.dc.html` file is one screen (artboard), 390 × 844 unless noted. They ar
 |---|---|
 | StartSheet.dc.html | Start 2 · Name (with new-name button), Create a game, Join with a code. |
 | StartNoGame.dc.html | Start 2 error · No game found (also covers started or full games). |
+| ChooseMode.dc.html | Start 2b · Choose a mode: bottom sheet over the Start screen after Create a game. Classic only; the rest Coming soon. |
 | StartInGame.dc.html | Start 2 error · You're already in a game. |
 | LobbyCodePlain.dc.html | Lobby 3 (Host) · Game code, Share join link, Copy code, players, Start. |
 | LobbyGuest.dc.html | Lobby 3 (Guest) · No Start; "Waiting for [Host] to start". |
