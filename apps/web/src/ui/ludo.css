@@ -43,12 +43,11 @@
   }
 
   /* The die, from the design's roll animation: it tumbles when tapped, spins on while the server is slow to reply,
-     bounces as it lands, and shakes if the Roll didn't go through. The title fades up with the result. */
+     bounces as it lands, and shakes if the Roll didn't go through. */
   --animate-ludo-die-tumble: ludo-die-tumble 900ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
   --animate-ludo-die-spin: ludo-die-spin 700ms linear infinite;
   --animate-ludo-die-land: ludo-die-land 320ms ease-out both;
   --animate-ludo-die-shake: ludo-die-shake 420ms ease-out both;
-  --animate-ludo-fade-up: ludo-fade-up 320ms ease-out both;
 
   @keyframes ludo-die-tumble {
     0% { transform: translateY(0) rotate(0deg) scale(1); }
@@ -80,11 +79,6 @@
     40% { transform: translateX(6px) rotate(3deg); }
     60% { transform: translateX(-4px) rotate(-2deg); }
     80% { transform: translateX(2px); }
-  }
-
-  @keyframes ludo-fade-up {
-    0% { transform: translateY(6px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
   }
 }
 

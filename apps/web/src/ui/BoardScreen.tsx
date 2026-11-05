@@ -83,7 +83,7 @@ export default function BoardScreen({
   }, [playedOut, latestBoard.winner]);
 
   const playerName = (seat: Seat) => playerNameAt(board, seat);
-  const { turn, rolled, lastRoll, lastMove, moves, extraRoll } = board;
+  const { turn, rolled, lastRoll, moves, extraRoll } = board;
   const isOwnTurn = turn === viewer;
   // A Roll that didn't go through, while the viewer can still Roll again.
   const failed = rollState === "failed" && isOwnTurn && !rolled;
@@ -166,58 +166,22 @@ export default function BoardScreen({
     );
   };
 
-  const lastMoveLine = lastMove && boardMessages.lastMove(
-    playerName(lastMove.seat),
-    lastMove,
-    lastMove.captured.map(({ seat }) => ({ playerName: playerName(seat), isOwn: seat === viewer })),
-  );
-  const lastRollLine = lastRoll && boardMessages.lastRoll(playerName(lastRoll.seat), lastRoll.number);
-
-  // What's happening now, then what came before it.
-  const status = (): { title: string; detail: string | null; before: string | null } => {
-    if (rolling) {
-      const detail = slow ? boardMessages.stillRolling : boardMessages.everyoneSees;
-      return { title: boardMessages.rolling, detail, before: null };
+  // The Turn status: whose Turn the Board shows, and on the viewer's own, what they need to know to take it. It
+  // follows the Board, so it changes only once a Roll or Move has played out.
+  const status = (): { title: string; detail: string | null } => {
+    if (!isOwnTurn) {
+      // The Game waits for a Player who is Away on their Turn, however long they're gone.
+      const detail = board.seats[turn]?.away ? boardMessages.isAway(playerName(turn)) : null;
+      return { title: boardMessages.waitingForTurn, detail };
     }
-    if (failed) return { title: boardMessages.rollFailed, detail: boardMessages.tapToRetry, before: null };
-    // A Roll playing out: another Player's, or one of the viewer's from another tab, or their own resting, as it
-    // passed the Turn.
-    if (playedRoll?.seat === viewer) {
-      const { number, landed: rollLanded } = playedRoll;
-      if (rollLanded) return { title: boardMessages.youRolled(number), detail: null, before: null };
-      return { title: boardMessages.rolling, detail: boardMessages.everyoneSees, before: null };
-    }
-    if (playedRoll) {
-      const { seat, number, landed: rollLanded } = playedRoll;
-      const detail = rollLanded ? boardMessages.theyRolled(number) : boardMessages.theyreRolling;
-      return { title: boardMessages.turnOf(playerName(seat)), detail, before: lastMoveLine };
-    }
-    if (moving && moving.seat !== viewer) {
-      return { title: boardMessages.turnOf(playerName(moving.seat)), detail: boardMessages.movingToken, before: null };
-    }
-    if (isOwnTurn && rolled && lastRoll) {
-      return { title: boardMessages.youRolled(lastRoll.number), detail: boardMessages.tapToMove, before: null };
-    }
-    if (isOwnTurn && extraRoll) {
-      return { title: boardMessages.rollAgain, detail: boardMessages.youEarnedRoll, before: lastMoveLine };
-    }
-    if (isOwnTurn) {
-      return { title: boardMessages.yourTurn, detail: lastRollLine ?? boardMessages.firstRoll, before: lastMoveLine };
-    }
-    // The Game waits for a Player who is Away on their Turn, however long they're gone.
-    if (board.seats[turn]?.away) {
-      const title = boardMessages.waitingFor(playerName(turn));
-      return { title, detail: boardMessages.theyreAway, before: lastRollLine };
-    }
-    const title = boardMessages.turnOf(playerName(turn));
-    if (rolled && lastRoll) return { title, detail: boardMessages.choosing(lastRoll.number), before: lastMoveLine };
-    if (extraRoll) return { title, detail: boardMessages.theyEarnedRoll, before: lastMoveLine };
-    return { title, detail: lastRollLine ?? boardMessages.waitingToRoll, before: lastMoveLine };
+    const title = boardMessages.yourTurn;
+    if (rolling && slow) return { title, detail: boardMessages.stillRolling };
+    if (failed) return { title, detail: boardMessages.rollFailed };
+    if (rolled) return { title, detail: boardMessages.tapToMove };
+    if (extraRoll) return { title, detail: boardMessages.rollAgain };
+    return { title, detail: boardMessages.rollToStart };
   };
-  const { title, detail, before } = status();
-
-  // The result, as it comes in, fades up.
-  const titleArrives = failed || (landed && isOwnTurn && rolled);
+  const { title, detail } = status();
 
   const dieArea = () => {
     if (rolling) {
@@ -279,7 +243,8 @@ export default function BoardScreen({
         </button>
       );
     }
-    if (!lastRoll) return <div className="size-20" />;
+    // Before the first Roll, the die shows how many Players the Game started with: a small Easter egg.
+    if (!lastRoll) return <Die number={playerCount} />;
     const isOwn = lastRoll.seat === viewer;
     return (
       <Die
@@ -317,37 +282,22 @@ export default function BoardScreen({
         {card(3, true)}
       </div>
       {/*
-        The same height whatever it says, so nothing on the screen shifts as the Turn moves on. The text and the die
-        both start at the top, and each line is cut short at its most, so it always fits.
+        The Turn status, beside the die. The same height whatever it says, so nothing on the screen shifts as the Turn
+        moves on. The text and the die both start at the top, and each line is cut short at its most, so it always
+        fits. On another Player's Turn, both are dimmed.
       */}
       <div className="flex h-36 w-full flex-none items-start justify-between gap-4 px-1.5 pt-2">
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5" aria-live="polite">
-          <p
-            key={title}
-            className={`m-0 truncate font-ludo-display leading-tight ${isOwnTurn ? "text-[26px]" : "text-2xl"} ${
-              titleArrives ? "motion-safe:animate-ludo-fade-up" : ""
-            }`}
-          >
-            {title}
-          </p>
+        <div
+          className={`flex min-w-0 flex-1 flex-col gap-1.5 ${isOwnTurn ? "" : "opacity-75"}`}
+          aria-live="polite"
+        >
+          <p className="m-0 line-clamp-2 font-ludo-display text-2xl leading-tight">{title}</p>
           {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-ludo-tan">{detail}</p>}
-          {isOwnTurn && moves.length > 0 && !rolling && (
-            <p className="m-0 mt-1 flex items-center gap-2 text-xs font-semibold text-ludo-gold-light">
-              <span
-                className="size-3.5 rounded bg-ludo-gold-light shadow-[inset_0_0_0_1.5px_var(--color-ludo-gold-edge)]"
-                aria-hidden
-              />
-              {boardMessages.tokensCanMove(moves.length)}
-            </p>
-          )}
-          {before && (
-            <p className="m-0 mt-1 line-clamp-2 border-t border-ludo-ivory/16 pt-2 text-xs leading-snug text-ludo-tan">
-              {before}
-            </p>
-          )}
         </div>
         {/* A fixed slot, the size of the die and the Roll button, so they and the text never resize each other. */}
-        <div className="size-20 flex-none">{dieArea()}</div>
+        <div className={`size-20 flex-none ${isOwnTurn ? "" : "opacity-85"}`}>
+          {dieArea()}
+        </div>
       </div>
       <ErrorMessage error={error} />
     </div>

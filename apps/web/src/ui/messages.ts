@@ -1,4 +1,4 @@
-import { classicRules, playerNameMaxLength, type GameMode, type Move, type RejectionReason } from "@ludo/shared";
+import { classicRules, playerNameMaxLength, type GameMode, type RejectionReason } from "@ludo/shared";
 import type { LeaveText } from "./LeaveButton";
 import type { ConnectionStatus, Notice } from "./useGameServer";
 
@@ -149,42 +149,21 @@ export const boardMessages = {
   left: "Left",
   home: (count: number) => `${count} home`,
   yourTurn: "Your turn",
-  rolling: "Rolling…",
-  everyoneSees: "Everyone sees this roll.",
+  waitingForTurn: "Waiting for your turn",
+  isAway: (playerName: string) => `${firstName(playerName)} is away`,
+  rollToStart: "Roll the die to start your turn",
   stillRolling: "Still rolling. Waiting for the result…",
   rollingDie: "Rolling the die",
-  rollFailed: "Roll didn't go through",
-  tapToRetry: "Tap the die to try again.",
+  rollFailed: "Roll didn't go through. Tap the die to try again",
   retryRoll: "The roll didn't go through. Tap to try again",
   yourTurnShort: "your turn",
   rollAgain: "Roll again",
   rollAgainShort: "roll again",
   rollsAgainShort: "rolls again",
-  youEarnedRoll: "Your move earned you another roll.",
-  theyEarnedRoll: "Their move earned another roll.",
   rollingShort: "rolling…",
   pickToken: "pick a token",
-  turnOf: (playerName: string) => `${firstName(playerName)}'s turn`,
-  waitingFor: (playerName: string) => `Waiting for ${firstName(playerName)}`,
-  theyreAway: "They're away. The game waits for them, and you can leave at any time.",
-  youRolled: (number: number) => `You rolled a ${number}`,
   rolledShort: (number: number) => `Rolled a ${number}`,
-  choosing: (number: number) => `Rolled a ${number} and is choosing a token to move.`,
-  waitingToRoll: "Waiting for them to roll.",
-  theyreRolling: "They're rolling the die…",
-  theyRolled: (number: number) => `They rolled a ${number}.`,
-  movingToken: "Moving a token…",
-  firstRoll: "Roll the die to start your turn.",
-  tapToMove: "Tap a highlighted token to move it.",
-  tokensCanMove: (count: number) => `${plural(count, "token", "tokens")} can move`,
-  lastRoll: (playerName: string, number: number) => `Last roll: ${playerName} rolled a ${number}`,
-  // `captured` names the owner of each Token the Move Captured.
-  lastMove: (playerName: string, move: Move, captured: NamedPlayer[]) => {
-    if (captured.length) return `Last move: ${playerName} sent ${list(captured.map(tokenOf))} back to the yard.`;
-    if (move.from.area === "yard") return `Last move: ${playerName} brought a token out.`;
-    if (move.to.area === "home") return `Last move: ${playerName} moved a token home.`;
-    return `Last move: ${playerName} moved a token.`;
-  },
+  tapToMove: "Tap a highlighted token to move it",
   roll: "Roll",
   dieShowing: (number: number) => `Die showing ${number}`,
   dieRolledBy: (playerName: string, number: number) => `${playerName} rolled a ${number}`,
