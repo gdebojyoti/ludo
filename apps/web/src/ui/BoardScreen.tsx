@@ -166,8 +166,9 @@ export default function BoardScreen({
     );
   };
 
-  // The Turn status: whose Turn the Board shows, and on the viewer's own, what they need to know to take it. It
-  // follows the Board, so it changes only once a Roll or Move has played out.
+  // The Turn status: whose Turn the Board shows, and on the viewer's own, what they need to know to take it. Whose
+  // Turn it is follows the Board, so it changes only once a Roll or Move has played out. While the viewer's own Roll
+  // is under way, the detail can also say the server is slow or the Roll failed.
   const status = (): { title: string; detail: string | null } => {
     if (!isOwnTurn) {
       // The Game waits for a Player who is Away on their Turn, however long they're gone.
