@@ -60,14 +60,17 @@ export const handleGameSockets = (io: GameIo, gameService: GameService, notifier
         try {
           await handle(args.slice(0, -1), reply as Reply<Event>);
         } catch (error) {
-          console.error(`The ${event} command failed for player ${playerId}`, error);
-          // Socket.IO sends only the first reply, so this one is dropped if the command was already answered.
+          console.error(`The ${event} command failed for Player ${playerId}`, error);
+          // Socket.IO sends only the first reply, so this one is dropped if the command was already answered. `ping`
+          // can't fail, so every command that gets here is answered with an Acknowledgement.
           reply({ ok: false, reason: "serverError" });
         }
       };
       // Socket.IO types each listener by its event, which one listener for every command can't be.
       socket.on(event, listener as never);
     };
+
+    onCommand("ping", async (_args, reply) => reply("pong"));
 
     onCommand("createGame", async ([playerName, mode], reply) => {
       // The Player name first, as the game service checks it first. It checks the Game mode too.
@@ -123,8 +126,7 @@ export const handleGameSockets = (io: GameIo, gameService: GameService, notifier
   });
 };
 
-/** Every command answered with an Acknowledgement: all but `ping`. */
-type Command = Exclude<keyof ClientToServerEvents, "ping">;
+type Command = keyof ClientToServerEvents;
 
 /** The callback a command is answered through, its last argument. */
 type Reply<Event extends Command> = Parameters<ClientToServerEvents[Event]> extends [...unknown[], infer Ack]

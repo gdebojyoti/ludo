@@ -90,7 +90,10 @@ export interface SnapshotSeat {
   tokens: TokenPosition[];
 }
 
-/** Why the server refused a command. Each reason is added with the first command that can give it. */
+/**
+ * Why the server refused a command. Each reason is added with the first command that can give it, except
+ * `serverError`, which any command but `ping` can give.
+ */
 export type RejectionReason =
   | "alreadyInActiveGame"
   | "alreadyRolled"
@@ -113,7 +116,10 @@ export type Acknowledgement<Result extends object = object> =
   | ({ ok: true } & Result)
   | { ok: false; reason: RejectionReason };
 
-/** Events the web app sends to the server. */
+/**
+ * Events the web app sends to the server. Each is answered through its last argument, a callback, and one sent without
+ * a callback is dropped. Any arguments besides the callback that it doesn't expect are ignored.
+ */
 export interface ClientToServerEvents {
   /** Checks the server is answering; the server acknowledges with `"pong"`. */
   ping: (ack: (reply: "pong") => void) => void;

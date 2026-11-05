@@ -42,9 +42,6 @@ export const createGameServer = (config: Config, options: GameServerOptions = {}
     socket.use((packet, next) => {
       if (typeof packet.at(-1) === "function") next();
     });
-    // Answered through the last argument, which the check above makes sure is a function, as any extra arguments
-    // come before it.
-    socket.on("ping", (...args: unknown[]) => (args.at(-1) as (reply: "pong") => void)("pong"));
   });
   const notifier = createGameNotifier();
   const gameService = createGameService(createMemoryGameStore(), notifier, options.randomInt);
