@@ -29,6 +29,13 @@ export default function Ludo() {
     backToStart,
   } = useGameServer(playerName);
   const noticeMessage = notice && noticeMessages[notice];
+  // Whether a won Game's last Move has played out on the Board, so its result can be shown.
+  const [playedOut, setPlayedOut] = useState(false);
+
+  const leaveResult = () => {
+    setPlayedOut(false);
+    backToStart();
+  };
 
   const screen = () => {
     if (game?.state === "lobby") {
@@ -44,8 +51,8 @@ export default function Ludo() {
         />
       );
     }
-    if (game?.state === "won" && game.board) {
-      return <ResultScreen mode={game.mode} board={game.board} onBackToStart={backToStart} />;
+    if (game?.state === "won" && game.board && playedOut) {
+      return <ResultScreen mode={game.mode} board={game.board} onBackToStart={leaveResult} />;
     }
     if (game?.board) {
       return (
@@ -58,6 +65,7 @@ export default function Ludo() {
           onRoll={roll}
           onMove={move}
           onLeaveGame={leaveGame}
+          onPlayedOut={() => setPlayedOut(true)}
         />
       );
     }

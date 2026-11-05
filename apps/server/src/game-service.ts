@@ -176,7 +176,7 @@ export const createGameService = (
     const { game, board, seat } = turn;
     if (board.rolled) return { ok: false, reason: "alreadyRolled" };
     const number = randomInt(dieFaces) + 1;
-    const rolled = { ...board, rolled: true, lastRoll: { seat, number } };
+    const rolled = { ...board, rolled: true, lastRoll: { seat, number, index: (board.lastRoll?.index ?? -1) + 1 } };
     const tokens = board.seats[seat]?.tokens ?? [];
     const canMove = legalMoves(game.mode, seat, tokens, number).length > 0;
     return { ok: true, game: await save({ ...game, board: canMove ? rolled : turnPassed(rolled) }) };
@@ -200,7 +200,8 @@ export const createGameService = (
     const moved = after.seats[seat] ?? [];
     // A legal Move is always one of the Seat's Tokens.
     const from = tokens[token] as TokenPosition;
-    const lastMove = { seat, token, from, to: moved[token] as TokenPosition, captured: after.captured };
+    const index = (board.lastMove?.index ?? -1) + 1;
+    const lastMove = { seat, token, from, to: moved[token] as TokenPosition, captured: after.captured, index };
     const seats = board.seats.map((other, index) => ({ ...other, tokens: after.seats[index] ?? other.tokens }));
     if (wonByMove(game.mode, { tokens: moved, captured: after.captured })) {
       const won = { ...board, seats, lastMove, rolled: false, winner: seat };

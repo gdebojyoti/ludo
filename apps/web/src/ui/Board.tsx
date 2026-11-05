@@ -15,6 +15,7 @@ import { homeCountAt, playerNameAt, seatAt, seatViewOf } from "./boardView";
 import MovingToken from "./MovingToken";
 import { boardMessages } from "./messages";
 import { emptySeatColour, seatView, type Cell } from "./seatView";
+import type { MovingToken as Moving } from "./useBoardPlayback";
 
 interface Props {
   mode: GameMode;
@@ -23,10 +24,10 @@ interface Props {
   /** Called with one of the viewer's Tokens that can Move, when they pick it. */
   onMove: (token: number) => void;
   /**
-   * One of the viewer's Tokens, Moving by their last Roll: it's drawn sliding there from where the Board has it, and
-   * nothing on the Board can be picked until it's arrived.
+   * A Token Moving by its Roll, the viewer's or another Player's: it's drawn sliding there from where the Board has it,
+   * and nothing on the Board can be picked until it's arrived.
    */
-  moving: number | undefined;
+  moving: Moving | undefined;
   /** Called once the Token that's Moving has arrived. */
   onArrived: () => void;
 }
@@ -152,7 +153,7 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
   const usesHome = tokensReachHome(mode);
   const fromViewer = (seat: Seat) => seatsClockwise(viewer, seat);
   const colourOf = (seat: Seat) => seatViewOf(board, seat).colour;
-  const isMoving = ({ seat, token }: SeatToken) => seat === viewer && token === moving;
+  const isMoving = ({ seat, token }: SeatToken) => seat === moving?.seat && token === moving.token;
   // Nothing can be picked while a Token is Moving.
   const isMovable = ({ seat, token }: SeatToken) =>
     moving === undefined && seat === viewer && board.moves.includes(token);
@@ -317,19 +318,22 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
 
   // Where the Token that's Moving starts, then each place it stands on: its slot in the Yard, or its Cell, then each
   // Cell along its Move, and its spot in Home if it ends there.
-  const movingPath = (token: number): Cell[] => {
-    const tokens = board.seats[viewer]?.tokens ?? [];
+  const movingPath = ({ seat, token, number }: Moving): Cell[] => {
+    const tokens = board.seats[seat]?.tokens ?? [];
     const from = tokens[token];
-    if (!from || !board.lastRoll) return [];
+    if (!from) return [];
+    const turns = fromViewer(seat);
     const homeCount = tokensHome(tokens);
     const yardSlot = tokens.slice(0, token).filter((position) => position.area === "yard").length;
     const placeOf = (position: TokenPosition): Cell => {
-      if (position.area === "yard") return yardSlotCentre(seatView(0).yardCorner, yardSlot);
-      if (position.area === "home") return homeSpotCentre(0, homeCount + 1, homeCount);
-      return gridCell(position, viewer, viewer) as Cell;
+      if (position.area === "yard") return yardSlotCentre(seatView(turns).yardCorner, yardSlot);
+      if (position.area === "home") return homeSpotCentre(turns, homeCount + 1, homeCount);
+      return gridCell(position, seat, viewer) as Cell;
     };
-    return [from, ...positionsAlong(mode, viewer, from, board.lastRoll.number)].map(placeOf);
+    return [from, ...positionsAlong(mode, seat, from, number)].map(placeOf);
   };
+  const path = moving ? movingPath(moving) : [];
+  const movingFrom = path[0];
 
   return (
     <div className="ludo-board">
@@ -359,8 +363,14 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
         )}
       </div>
       {crossCells.map(crossCell)}
-      {moving !== undefined && (
-        <MovingToken key={moving} path={movingPath(moving)} colour={colourOf(viewer)} onArrived={onArrived} />
+      {moving && movingFrom && (
+        <MovingToken
+          // Where it starts, too, so a Token that Moves again before it's arrived starts its new path afresh.
+          key={`${moving.seat}-${moving.token}-${movingFrom.join()}`}
+          path={path}
+          colour={colourOf(moving.seat)}
+          onArrived={onArrived}
+        />
       )}
     </div>
   );

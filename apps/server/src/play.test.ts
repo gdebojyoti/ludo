@@ -51,7 +51,7 @@ describe("Rolling", () => {
     const reply = await host.roll();
 
     expect(reply).toEqual({ ok: true });
-    const lastRoll = { seat: 0, number: 6 };
+    const lastRoll = { seat: 0, number: 6, index: 0 };
     expect(await host.nextMessage()).toMatchObject({
       game: { board: { turn: 0, rolled: true, lastRoll, lastMove: null, moves: [0, 1, 2, 3] } },
     });
@@ -74,12 +74,13 @@ describe("Moving", () => {
     const reply = await host.move(2);
 
     expect(reply).toEqual({ ok: true });
+    // Each Roll and Move counts on from the Game's last, so a new one can be told from the last.
     const board = {
       seats: [{ tokens: [yard, yard, track(3), yard] }, {}, { tokens: [yard, yard, yard, yard] }, {}],
       turn: 2,
       rolled: false,
-      lastRoll: { seat: 0, number: 3 },
-      lastMove: { seat: 0, token: 2, from: track(0), to: track(3) },
+      lastRoll: { seat: 0, number: 3, index: 1 },
+      lastMove: { seat: 0, token: 2, from: track(0), to: track(3), index: 1 },
       moves: [],
       extraRoll: false,
     };

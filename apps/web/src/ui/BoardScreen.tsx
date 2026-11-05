@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import type { GameMode, Seat, SnapshotBoard } from "@ludo/shared";
 import Board from "./Board";
 import Die from "./Die";
@@ -9,6 +9,7 @@ import Notice from "./Notice";
 import PlayerCard from "./PlayerCard";
 import { homeCountAt, playerNameAt, seatAt } from "./boardView";
 import { boardMessages, commonMessages, leaveMessages } from "./messages";
+import { prefersReducedMotion, tumbleFor, useBoardPlayback } from "./useBoardPlayback";
 
 interface Props {
   mode: GameMode;
@@ -22,6 +23,8 @@ interface Props {
   onMove: (token: number) => void;
   /** Leaves the Game during play, forfeiting it. */
   onLeaveGame: () => void;
+  /** Called once a won Game has played out its last Move, so its result can be shown. */
+  onPlayedOut: () => void;
 }
 
 /**
@@ -30,17 +33,14 @@ interface Props {
  */
 type RollState = "idle" | "tumbling" | "spinning" | "failed";
 
-// The die tumbles for at least this long, and on until the server replies with the Roll. Faces flick past in a fixed
+// The die tumbles for at least `tumbleFor`, and on until the server replies with the Roll. Faces flick past in a fixed
 // order: the server makes every random choice in a Game, and this one isn't even a choice.
-const tumbleFor = 900;
 const tumbleForReducedMotion = 300;
 const faceEvery = 90;
 const tumbleFaces = [3, 6, 2, 5, 1, 4];
 
 // After this long without a reply, the Player is told the die is still waiting for it.
 const slowAfter = 1500;
-
-const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const wait = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -53,14 +53,13 @@ export default function BoardScreen({
   onRoll,
   onMove,
   onLeaveGame,
+  onPlayedOut,
 }: Props) {
+  const { board: playedBoard, playback, moving, playOwnMove, tokenArrived } = useBoardPlayback(latestBoard);
   // The Board as it was when the viewer tapped the die, shown until it lands, as what came after would give the Roll
-  // away: whose Turn it is, and which Tokens can Move. Or as it was when they picked a Token to Move, shown until the
-  // Token has slid to where it ends up.
+  // away: whose Turn it is, and which Tokens can Move.
   const [heldBoard, setHeldBoard] = useState<SnapshotBoard>();
-  // The viewer's Token that's sliding to where it ends up, if one is.
-  const [movingToken, setMovingToken] = useState<number>();
-  const board = heldBoard ?? latestBoard;
+  const board = heldBoard ?? playedBoard;
   const [rollState, setRollState] = useState<RollState>("idle");
   // Whether the server is taking a while to reply to the Roll.
   const [slow, setSlow] = useState(false);
@@ -68,16 +67,26 @@ export default function BoardScreen({
   const [landed, setLanded] = useState(false);
   const [tumbleFace, setTumbleFace] = useState(1);
   const rolling = rollState === "tumbling" || rollState === "spinning";
+  const viewer = board.seat;
+  // Another Player's Roll, playing out.
+  const otherRoll = playback && playback.seat !== viewer ? playback.roll : undefined;
+  const tumbling = rolling || (otherRoll !== undefined && !otherRoll.landed);
 
   useEffect(() => {
-    if (!rolling || prefersReducedMotion()) return;
+    if (!tumbling || prefersReducedMotion()) return;
     let flicks = 0;
     const interval = setInterval(() => setTumbleFace(tumbleFaces[flicks++ % tumbleFaces.length] as number), faceEvery);
     return () => clearInterval(interval);
-  }, [rolling]);
+  }, [tumbling]);
+
+  // A won Game shows its result once the Board has nothing left to play out. Before the screen is painted, so the
+  // Board never flashes up as it was left.
+  const playedOut = !heldBoard && !playback;
+  useLayoutEffect(() => {
+    if (playedOut && latestBoard.winner !== null) onPlayedOut();
+  }, [playedOut, latestBoard.winner, onPlayedOut]);
 
   const playerName = (seat: Seat) => playerNameAt(board, seat);
-  const viewer = board.seat;
   const { turn, rolled, lastRoll, lastMove, moves, extraRoll } = board;
   const isOwnTurn = turn === viewer;
   // A Roll that didn't go through, while the viewer can still Roll again.
@@ -110,16 +119,8 @@ export default function BoardScreen({
 
   // The Move is sent at once, and the Token starts sliding at once, a Cell at a time, unless motion is reduced.
   const moveToken = (token: number) => {
-    if (!prefersReducedMotion()) {
-      setHeldBoard(latestBoard);
-      setMovingToken(token);
-    }
+    playOwnMove(token);
     onMove(token);
-  };
-
-  const tokenArrived = () => {
-    setMovingToken(undefined);
-    setHeldBoard(undefined);
   };
 
   // What the viewer should do now, if anything.
@@ -133,6 +134,9 @@ export default function BoardScreen({
 
   // What another Seat's Player is doing now, if anything.
   const otherNow = (seat: Seat) => {
+    if (otherRoll && seat === playback?.seat) {
+      return otherRoll.landed ? boardMessages.rolledShort(otherRoll.number) : boardMessages.rollingShort;
+    }
     if (seat !== turn) return "";
     if (rolled && lastRoll?.seat === seat) return boardMessages.rolledShort(lastRoll.number);
     return extraRoll ? boardMessages.rollsAgainShort : "";
@@ -175,6 +179,10 @@ export default function BoardScreen({
       return { title: boardMessages.rolling, detail, before: null };
     }
     if (failed) return { title: boardMessages.rollFailed, detail: boardMessages.tapToRetry, before: null };
+    if (otherRoll && playback) {
+      const detail = otherRoll.landed ? boardMessages.theyRolled(otherRoll.number) : boardMessages.theyreRolling;
+      return { title: boardMessages.turnOf(playerName(playback.seat)), detail, before: lastMoveLine };
+    }
     if (isOwnTurn && rolled && lastRoll) {
       return { title: boardMessages.youRolled(lastRoll.number), detail: boardMessages.tapToMove, before: null };
     }
@@ -207,6 +215,20 @@ export default function BoardScreen({
           label={boardMessages.rollingDie}
           ringed
           className={rollState === "tumbling" ? "motion-safe:animate-ludo-die-tumble" : "motion-safe:animate-ludo-die-spin"}
+        />
+      );
+    }
+    if (otherRoll && playback) {
+      if (!otherRoll.landed) {
+        return (
+          <Die number={tumbleFace} label={boardMessages.rollingDie} className="motion-safe:animate-ludo-die-tumble" />
+        );
+      }
+      return (
+        <Die
+          number={otherRoll.number}
+          label={boardMessages.dieRolledBy(playerName(playback.seat), otherRoll.number)}
+          className="motion-safe:animate-ludo-die-land"
         />
       );
     }
@@ -267,7 +289,7 @@ export default function BoardScreen({
         board={board}
         disabled={disabled}
         onMove={moveToken}
-        moving={movingToken}
+        moving={moving}
         onArrived={tokenArrived}
       />
       <div className="flex w-full gap-2.5">
@@ -289,7 +311,7 @@ export default function BoardScreen({
             {title}
           </p>
           {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-ludo-tan">{detail}</p>}
-          {isOwnTurn && moves.length > 0 && !rolling && movingToken === undefined && (
+          {isOwnTurn && moves.length > 0 && !rolling && (
             <p className="m-0 mt-1 flex items-center gap-2 text-xs font-semibold text-ludo-gold-light">
               <span
                 className="size-3.5 rounded bg-ludo-gold-light shadow-[inset_0_0_0_1.5px_var(--color-ludo-gold-edge)]"
