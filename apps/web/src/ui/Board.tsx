@@ -106,6 +106,9 @@ const starredCells = new Set(quarterTurns.flatMap((turns) =>
   [ownStartCell, ownStarCell].map((cell) => cellKey(turnClockwise(cell, turns))),
 ));
 
+/** The Star cells, drawn in parchment rather than ivory. The Start cells have their Seats' colours instead. */
+const starCells = new Set(quarterTurns.map((turns) => cellKey(turnClockwise(ownStarCell, turns))));
+
 /** Where a Token of the Seat is drawn, if it's on the Track or in its Home column, for a viewer in this Seat. */
 const gridCell = (position: TokenPosition, seat: Seat, viewer: Seat): Cell | null => {
   if (position.area === "track") {
@@ -283,7 +286,7 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
     return (
       <div
         key={key}
-        className={`ludo-cell ${isUnusedHomeColumn ? "ludo-cell-closed" : ""}`}
+        className={`ludo-cell ${isUnusedHomeColumn ? "ludo-cell-closed" : ""} ${starCells.has(key) ? "ludo-cell-star" : ""}`}
         style={style}
         role={placed.length ? "img" : undefined}
         aria-label={placed.length ? describe(placed) : undefined}

@@ -224,6 +224,11 @@
     background: var(--color-ludo-ivory);
   }
 
+  /* A Star cell, a Safe cell set apart from the rest of the Track. */
+  .ludo-cell-star {
+    background: var(--color-ludo-parchment);
+  }
+
   /* A Cell the viewer can Move one of their Tokens from. */
   .ludo-cell-movable {
     background: var(--color-ludo-gold-light);
