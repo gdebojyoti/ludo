@@ -30,20 +30,32 @@ export type CommandResult = { ok: true; game: Game } | { ok: false; reason: Reje
 /** Returns a random whole number from 0 up to, but not including, `max`. */
 export type RandomInt = (max: number) => number;
 
+/** Says what time it is now. */
+export type Clock = () => Date;
+
 // Every random choice in a Game goes through `randomInt`, so tests can script them. A Game's ID isn't one: it plays no
-// part in the rules, and is never sent to a Player.
+// part in the rules, and is never sent to a Player. Every time a Game is created or saved is read from `now`, so
+// tests can script those too.
 export const createGameService = (
   store: GameStore,
   notifier: GameNotifier,
   randomInt: RandomInt = cryptoRandomInt,
+  now: Clock = () => new Date(),
 ) => {
   const oneAtATime = createQueue();
 
-  // Published before the command returns, so each Player is sent the change before the reply to their command.
-  const save = async (game: Game, leaverId?: string): Promise<Game> => {
-    await store.save(game);
-    notifier.publish(game, leaverId);
-    return game;
+  const timestamp = () => now().toISOString();
+
+  /**
+   * Saves the Game as of `savedAt`, now unless it's given, and publishes it, with the Player who just Left it if
+   * they're no longer in it. Published before the command returns, so each Player is sent the change before the reply
+   * to their command.
+   */
+  const save = async (game: Game, { leaverId, savedAt = timestamp() }: SaveOptions = {}): Promise<Game> => {
+    const saved = { ...game, updatedAt: savedAt };
+    await store.save(saved);
+    notifier.publish(saved, leaverId);
+    return saved;
   };
 
   const newGameCode = async (): Promise<string> => {
@@ -95,6 +107,7 @@ export const createGameService = (
     if (!isValidPlayerName(playerName)) return { ok: false, reason: "invalidPlayerName" };
     if (!isGameMode(mode)) return { ok: false, reason: "invalidGameMode" };
     if (await store.findActiveGameByPlayer(playerId)) return { ok: false, reason: "alreadyInActiveGame" };
+    const createdAt = timestamp();
     const game: Game = {
       id: randomUUID(),
       mode,
@@ -103,8 +116,10 @@ export const createGameService = (
       hostId: playerId,
       players: [{ playerId, playerName: playerName.trim() }],
       board: null,
+      createdAt,
+      updatedAt: createdAt,
     };
-    return { ok: true, game: await save(game) };
+    return { ok: true, game: await save(game, { savedAt: createdAt }) };
   });
 
   /**
@@ -145,10 +160,12 @@ export const createGameService = (
   const leaveGame = oneAtATime(async (playerId: string): Promise<CommandResult> => {
     const game = await store.findActiveGameByPlayer(playerId);
     if (!game) return { ok: false, reason: "noActiveGame" };
-    if (game.board) return { ok: true, game: await save(forfeited(game, game.board, playerId), playerId) };
+    if (game.board) {
+      return { ok: true, game: await save(forfeited(game, game.board, playerId), { leaverId: playerId }) };
+    }
     if (game.hostId === playerId) return { ok: true, game: await save({ ...game, state: "cancelled" }) };
     const players = game.players.filter((player) => player.playerId !== playerId);
-    return { ok: true, game: await save({ ...game, players }, playerId) };
+    return { ok: true, game: await save({ ...game, players }, { leaverId: playerId }) };
   });
 
   /**
@@ -228,10 +245,25 @@ export const createGameService = (
     use(await store.findActiveGameByPlayer(playerId));
   });
 
-  return { createGame, joinGame, startGame, leaveGame, roll, move, withActiveGame };
+  /**
+   * Up to `limit` Games, whatever their state, the newest created first, with how many Games there are in all. It runs
+   * in turn with the commands, so the count and the Games are read with no command between them.
+   */
+  const findNewestGames = oneAtATime(async (limit: number) => {
+    return { total: await store.countGames(), games: await store.findNewestGames(limit) };
+  });
+
+  return { createGame, joinGame, startGame, leaveGame, roll, move, withActiveGame, findNewestGames };
 };
 
 export type GameService = ReturnType<typeof createGameService>;
+
+interface SaveOptions {
+  /** The Player who just Left the Game, if they're no longer in it, so they can be told too. */
+  leaverId?: string;
+  /** When the Game is saved, as an ISO 8601 time; now unless it's given. */
+  savedAt?: string;
+}
 
 /** The Seats with a Player in them, by number. */
 const takenSeats = (board: GameBoard): Seat[] => {

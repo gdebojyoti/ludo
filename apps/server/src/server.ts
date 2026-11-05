@@ -4,8 +4,9 @@ import express from "express";
 import { Server } from "socket.io";
 
 import type { Config } from "./config.js";
+import { handleDebugGames } from "./debug-games.js";
 import { createGameNotifier } from "./game-notifier.js";
-import { createGameService, type RandomInt } from "./game-service.js";
+import { createGameService, type Clock, type RandomInt } from "./game-service.js";
 import { handleGameSockets, type GameIo } from "./game-sockets.js";
 import { createMemoryGameStore } from "./game-store.js";
 import { identifyPlayers } from "./identity.js";
@@ -18,6 +19,8 @@ export interface GameServer {
 export interface GameServerOptions {
   /** Makes every random choice, such as Game codes. Tests replace it to make them predictable. */
   randomInt?: RandomInt;
+  /** Says when each Game is created and saved. Tests replace it to make the times predictable. */
+  now?: Clock;
 }
 
 export const createGameServer = (config: Config, options: GameServerOptions = {}): GameServer => {
@@ -44,8 +47,9 @@ export const createGameServer = (config: Config, options: GameServerOptions = {}
     });
   });
   const notifier = createGameNotifier();
-  const gameService = createGameService(createMemoryGameStore(), notifier, options.randomInt);
-  handleGameSockets(io, gameService, notifier);
+  const gameService = createGameService(createMemoryGameStore(), notifier, options.randomInt, options.now);
+  const { isAway } = handleGameSockets(io, gameService, notifier);
+  handleDebugGames(app, gameService, isAway);
 
   return { httpServer, io };
 };
