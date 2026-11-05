@@ -155,9 +155,14 @@ export const earnsExtraRoll = (roll: number, move: { to: TokenPosition; captured
   return roll === classicRules.rollToRollAgain || move.captured.length > 0 || move.to.area === "home";
 };
 
+/** How many of these Tokens of a Seat are Home. */
+export const tokensHome = (tokens: TokenPosition[]): number => {
+  return tokens.filter((position) => position.area === "home").length;
+};
+
 /** Whether a Seat with these Tokens has won: it has Tokens, and every one is Home. An empty Seat never wins. */
 export const hasWon = (tokens: TokenPosition[]): boolean => {
-  return tokens.length > 0 && tokens.every((position) => position.area === "home");
+  return tokens.length > 0 && tokensHome(tokens) === tokens.length;
 };
 
 /**

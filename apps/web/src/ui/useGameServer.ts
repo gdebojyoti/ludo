@@ -10,6 +10,9 @@ export type ConnectionStatus = "connecting" | "connected" | "disconnected";
  * already in a Game. */
 export type Notice = "alreadyInGame";
 
+/** Whether a Game has ended, won or cancelled, so it's shown until the Player goes back to the start. */
+const isOver = (game: GameSnapshot) => game.state === "won" || game.state === "cancelled";
+
 // The connection to the server, and the latest snapshot of the Player's Game. The web app holds no game logic: it
 // shows what the server last sent, and sends commands, with this Player name where they need one.
 export const useGameServer = (playerName: string) => {
@@ -52,7 +55,9 @@ export const useGameServer = (playerName: string) => {
     socket.on("noActiveGame", async () => {
       // A Join link is used once. The start screen waits for the reply, so it doesn't flash up before the Lobby.
       const gameCode = gameCodeInAddress();
-      if (gameCode === null) return setGame(null);
+      // A Game that's over frees its Players, so the server sends this when a tab reconnects while showing one.
+      // Its result stays up until the Player goes back to the start.
+      if (gameCode === null) return setGame((shown) => (shown && isOver(shown) ? shown : null));
       removeJoinLinkFromAddress();
       if (isGameCode(gameCode)) {
         const gamesBefore = gamesReceived;

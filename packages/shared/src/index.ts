@@ -25,6 +25,7 @@ export {
   nextTakenSeat,
   playerNameMaxLength,
   seatsClockwise,
+  tokensHome,
   type Seat,
   type SeatToken,
   type TokenPosition,

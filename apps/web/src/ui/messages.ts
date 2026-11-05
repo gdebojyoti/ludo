@@ -2,7 +2,8 @@ import { classicRules, playerNameMaxLength, type Move, type RejectionReason } fr
 import type { LeaveText } from "./LeaveButton";
 import type { ConnectionStatus, Notice } from "./useGameServer";
 
-// Every piece of text the web app shows, in one place.
+// Every piece of text the web app shows, in one place. It's in sentence case: the glossary's terms are capitalised in
+// code and docs, where they mean something to developers, but not here, as Players don't know the glossary.
 
 /** A Player name's first word, as Players are named in longer sentences. */
 const firstName = (playerName: string) => playerName.trim().split(/\s+/)[0] ?? playerName;
@@ -90,7 +91,7 @@ export const leaveMessages = {
   asHostInLobby: (otherNames: string[]): LeaveText => ({
     label: "Leave and cancel the game",
     title: "Cancel this game?",
-    message: "You're the Host, so leaving cancels the game for everyone." +
+    message: "You're the host, so leaving cancels the game for everyone." +
       (otherNames.length ? ` ${nameList(otherNames)} will be sent back to the start.` : ""),
     stay: "Keep the game open",
     leave: "Leave and cancel",
@@ -98,7 +99,7 @@ export const leaveMessages = {
   inLobby: {
     label: "Leave the lobby",
     title: "Leave this lobby?",
-    message: "Your place opens up for someone else. You can rejoin with the code while the game hasn't started.",
+    message: "Your place opens up for someone else. You can join again with the code while the game hasn't started.",
     stay: "Stay in the lobby",
     leave: "Leave lobby",
   } satisfies LeaveText,
@@ -117,7 +118,7 @@ export const boardMessages = {
   subtitle: (playerCount: number) => `Classic · ${playerCount} players`,
   emptySeat: "Empty seat",
   left: "Left",
-  home: (count: number) => `${count} Home`,
+  home: (count: number) => `${count} home`,
   yourTurn: "Your turn",
   rolling: "Rolling…",
   everyoneSees: "Everyone sees this roll.",
@@ -136,7 +137,7 @@ export const boardMessages = {
   pickToken: "pick a token",
   turnOf: (playerName: string) => `${firstName(playerName)}'s turn`,
   waitingFor: (playerName: string) => `Waiting for ${firstName(playerName)}`,
-  theyreAway: "They're Away. The game waits for them, and you can Leave at any time.",
+  theyreAway: "They're away. The game waits for them, and you can leave at any time.",
   youRolled: (number: number) => `You rolled a ${number}`,
   rolledShort: (number: number) => `Rolled a ${number}`,
   choosing: (number: number) => `Rolled a ${number} and is choosing a token to move.`,
@@ -149,10 +150,10 @@ export const boardMessages = {
   lastMove: (playerName: string, move: Move, captured: { playerName: string; isOwn: boolean }[]) => {
     if (captured.length) {
       const tokens = captured.map((owner) => owner.isOwn ? "your token" : `${firstName(owner.playerName)}'s token`);
-      return `Last move: ${playerName} sent ${list(tokens)} back to the Yard.`;
+      return `Last move: ${playerName} sent ${list(tokens)} back to the yard.`;
     }
     if (move.from.area === "yard") return `Last move: ${playerName} brought a token out.`;
-    if (move.to.area === "home") return `Last move: ${playerName} moved a token into Home.`;
+    if (move.to.area === "home") return `Last move: ${playerName} moved a token home.`;
     return `Last move: ${playerName} moved a token.`;
   },
   roll: "Roll",
@@ -175,12 +176,12 @@ export const resultMessages = {
   subtitle: "Game over",
   won: "The game is won",
   winner: (playerName: string, isOwn: boolean) => isOwn ? "You win" : `${playerName} wins`,
-  allHome: `All ${classicRules.tokensPerSeat} tokens reached Home first.`,
+  allHome: `All ${classicRules.tokensPerSeat} tokens reached home first.`,
   othersLeft: "Everyone else left the game.",
-  tokensHomeHeading: "Tokens Home at the end",
-  tokensHome: (count: number) => `${count} of ${classicRules.tokensPerSeat} tokens Home`,
+  tokensHomeHeading: "Tokens home at the end",
+  tokensHome: (count: number) => `${count} of ${classicRules.tokensPerSeat} tokens home`,
   backToStart: "Back to start",
   cancelledSubtitle: "Lobby",
   cancelled: "Game cancelled",
-  cancelledBy: (hostName: string) => `The Host, ${hostName}, cancelled this game before it started.`,
+  cancelledBy: (hostName: string) => `The host, ${hostName}, cancelled this game before it started.`,
 };

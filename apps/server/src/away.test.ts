@@ -108,6 +108,23 @@ describe("Away during play", () => {
     });
   });
 
+  it("doesn't show a Player with two tabs open as Away when they close one, nor tell anyone anything", async () => {
+    const { host, joiner, joinerPlayer } = await gameInPlay(6);
+    const otherTab = await joinerPlayer.connect();
+    expect(await otherTab.nextMessage()).toMatchObject({ game: { board: { seats: [{}, {}, { away: false }, {}] } } });
+
+    await otherTab.close();
+    // The joiner is sent this Roll, so anything sent to them about the closed tab would be read before it.
+    await host.roll();
+
+    expect(await joiner.nextMessage()).toMatchObject({
+      game: {
+        players: [{ away: false }, { away: false }],
+        board: { seats: [{ away: false }, {}, { away: false }, {}], lastRoll: { seat: 0, number: 6 } },
+      },
+    });
+  });
+
   it("doesn't show an empty Seat, or one whose Player Left, as Away", async () => {
     server = await server.restartWithRandomNumbers(42, 0);
     const { host, gameCode } = await server.hostInLobby();

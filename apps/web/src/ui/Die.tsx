@@ -22,10 +22,8 @@ const spots = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 export default function Die({ number, label, ringed = false, className = "" }: Props) {
   return (
     <div
-      className={`grid size-20 flex-none grid-cols-3 grid-rows-3 gap-0.5 rounded-[18px] bg-cream p-3.5 ${
-        ringed
-          ? "shadow-[inset_0_-5px_0_var(--color-die-shade),0_0_0_3px_var(--color-gold),0_6px_14px_rgba(0,0,0,0.4)]"
-          : "shadow-[inset_0_-5px_0_var(--color-die-shade),0_6px_14px_rgba(0,0,0,0.4)]"
+      className={`ludo-die grid grid-cols-3 grid-rows-3 gap-0.5 p-3.5 ${
+        ringed ? "[--ludo-die-ring:var(--color-ludo-gold)]" : ""
       } ${className}`}
       role={label ? "img" : undefined}
       aria-label={label}
@@ -34,7 +32,7 @@ export default function Die({ number, label, ringed = false, className = "" }: P
       {spots.map((spot) => (
         <span
           key={spot}
-          className={`size-3 place-self-center rounded-full bg-maroon ${
+          className={`size-3 place-self-center rounded-full bg-ludo-maroon ${
             pipSpots[number]?.includes(spot) ? "" : "invisible"
           }`}
         />
