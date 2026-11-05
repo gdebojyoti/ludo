@@ -124,6 +124,8 @@ export const handleGameSockets = (io: GameIo, gameService: GameService, notifier
       else socket.emit("game", toSnapshot(game, playerId, isAway));
     });
   });
+
+  return { isAway };
 };
 
 type Command = keyof ClientToServerEvents;

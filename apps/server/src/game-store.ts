@@ -14,6 +14,10 @@ export interface Game {
   players: GamePlayer[];
   /** The Board, once the Game has started; null in the Lobby. */
   board: GameBoard | null;
+  /** When the Game was created, as an ISO 8601 time. */
+  createdAt: string;
+  /** When the Game was last saved, as an ISO 8601 time. */
+  updatedAt: string;
 }
 
 export interface GameBoard {
@@ -52,6 +56,8 @@ export interface GameStore {
   /** The Game the Player is in, if it's active: a Player is in at most one active Game. */
   findActiveGameByPlayer: (playerId: string) => Promise<Game | undefined>;
   findLobbyGameByCode: (gameCode: string) => Promise<Game | undefined>;
+  /** Up to `limit` Games, whatever their state, the newest created first. */
+  findNewestGames: (limit: number) => Promise<Game[]>;
 }
 
 export const createMemoryGameStore = (): GameStore => {
@@ -68,6 +74,11 @@ export const createMemoryGameStore = (): GameStore => {
     findLobbyGameByCode: async (gameCode) => {
       const game = [...games.values()].find((game) => game.state === "lobby" && game.gameCode === gameCode);
       return game && copy(game);
+    },
+    findNewestGames: async (limit) => {
+      // A Map keeps its keys in the order they were first set, which saving a Game again doesn't change, so this is
+      // the order the Games were created in.
+      return [...games.values()].reverse().slice(0, limit).map(copy);
     },
   };
 };

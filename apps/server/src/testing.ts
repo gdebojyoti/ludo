@@ -12,6 +12,7 @@ import type {
   ServerToClientEvents,
 } from "@ludo/shared";
 
+import type { DebugGame } from "./debug-games.js";
 import { playerIdCookieName } from "./identity.js";
 import { createGameServer, type GameServerOptions } from "./server.js";
 
@@ -66,14 +67,22 @@ export interface TestServer {
    * Player, or `player`, shown as `playerName`. The other Players in the Lobby are each sent the change.
    */
   playerInLobby: (gameCode: string, options?: { playerName?: string; player?: Player }) => Promise<Connection>;
+  /** Opens `/debug/games` as a browser does, and returns the body as it was sent and as JSON. */
+  debugGames: () => Promise<{ body: string; games: DebugGame[] }>;
   /** The player ID the server gave each open connection, in no particular order. */
   connectedPlayerIds: () => Promise<string[]>;
   close: () => Promise<void>;
-  /** Closes the server and starts a new one, with its random choices scripted to be these numbers in turn, then 0. */
+  /**
+   * Closes the server and starts a new one, with its random choices scripted to be these numbers in turn, then 0, and
+   * the same clock.
+   */
   restartWithRandomNumbers: (...numbers: number[]) => Promise<TestServer>;
 }
 
-/** Starts the server. `options.randomInt` scripts its random choices, such as Game codes. */
+/**
+ * Starts the server. `options.randomInt` scripts its random choices, such as Game codes, and `options.now` the times
+ * its Games are created and saved.
+ */
 export const startServer = async (options?: GameServerOptions): Promise<TestServer> => {
   const server = createGameServer({ port: 0, webOrigins: [webOrigin] }, options);
   await new Promise<void>((resolve) => server.httpServer.listen(0, resolve));
@@ -158,6 +167,13 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
 
   const connectedPlayerIds = async () => (await server.io.fetchSockets()).map((socket) => socket.data.playerId);
 
+  const debugGames = async () => {
+    const response = await fetch(`${url}/debug/games`);
+    if (!response.ok) throw new Error(`/debug/games answered ${response.status}`);
+    const body = await response.text();
+    return { body, games: JSON.parse(body) };
+  };
+
   const close = async () => {
     sockets.forEach((socket) => socket.disconnect());
     await server.io.close();
@@ -165,7 +181,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
 
   const restartWithRandomNumbers = async (...numbers: number[]) => {
     await close();
-    return startServer({ randomInt: () => numbers.shift() ?? 0 });
+    return startServer({ ...options, randomInt: () => numbers.shift() ?? 0 });
   };
 
   return {
@@ -175,6 +191,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
     hostInLobby,
     playerInLobby,
     connectedPlayerIds,
+    debugGames,
     close,
     restartWithRandomNumbers,
   };
