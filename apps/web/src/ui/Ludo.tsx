@@ -55,6 +55,7 @@ export default function Ludo() {
         <BoardScreen
           mode={game.mode}
           board={game.board}
+          playing={game.state === "playing"}
           disabled={busy}
           notice={noticeMessage}
           error={error}

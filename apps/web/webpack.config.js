@@ -46,6 +46,7 @@ export default {
           },
         ],
       },
+      { test: /\.mp3$/, type: "asset/resource" },
     ],
   },
   plugins: [
