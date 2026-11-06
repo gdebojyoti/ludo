@@ -10,11 +10,14 @@ import PlayerCard from "./PlayerCard";
 import { homeCountAt, playerNameAt, seatAt } from "./boardView";
 import { boardMessages, commonMessages, leaveMessages } from "./messages";
 import { faceEvery, prefersReducedMotion, tumbleFaces, tumbleFor, tumbleForReducedMotion } from "./motion";
+import { playSound } from "./sound";
 import { useBoardPlayback } from "./useBoardPlayback";
 
 interface Props {
   mode: GameMode;
   board: SnapshotBoard;
+  /** Whether the Game is still in play, not over in any way. */
+  playing: boolean;
   disabled: boolean;
   /** Something that happened without the Player doing it, such as opening a Join link while in this Game. */
   notice: string | undefined;
@@ -43,6 +46,7 @@ const wait = (milliseconds: number) => new Promise((resolve) => setTimeout(resol
 export default function BoardScreen({
   mode,
   board: latestBoard,
+  playing,
   disabled,
   notice,
   error,
@@ -67,6 +71,11 @@ export default function BoardScreen({
   const viewer = board.seat;
   const tumbling = rolling || (playedRoll !== undefined && !playedRoll.landed);
 
+  // Every Player hears the die as it starts tumbling, whoever Rolled.
+  useEffect(() => {
+    if (tumbling) playSound("dieRoll");
+  }, [tumbling]);
+
   useEffect(() => {
     if (!tumbling || prefersReducedMotion()) return;
     let flicks = 0;
@@ -85,6 +94,15 @@ export default function BoardScreen({
   const playerName = (seat: Seat) => playerNameAt(board, seat);
   const { turn, rolled, lastRoll, moves, extraRoll } = board;
   const isOwnTurn = turn === viewer;
+
+  // The viewer hears their Turn start as the Board shows it, once what came before has played out. That's when the
+  // Game starts, too, if they go first, but not when they Roll again in the same Turn. Never once the Game is over,
+  // however it ended: as when the only other Player Leaves and the Turn passes to the viewer, the winner.
+  const turnStarts = isOwnTurn && playing;
+  useEffect(() => {
+    if (turnStarts) playSound("notifyTurn");
+  }, [turnStarts]);
+
   // A Roll that didn't go through, while the viewer can still Roll again.
   const failed = rollState === "failed" && isOwnTurn && !rolled;
   const playerCount = board.seats.filter((seat) => seat.playerName !== null).length;
