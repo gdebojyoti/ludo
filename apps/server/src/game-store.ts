@@ -31,6 +31,11 @@ export interface GameBoard {
   lastRoll: Roll | null;
   /** The latest Move in the Game; null before the first. */
   lastMove: Move | null;
+  /**
+   * When every screen will have played out the latest Roll or Move, as an ISO 8601 time; null before the first. AI
+   * Players don't Roll or Move before then (ADR-0008).
+   */
+  playsOutAt: string | null;
   /** The Seat whose Player won the Game: set exactly when the Game's state is won, and otherwise null. */
   winner: Seat | null;
 }

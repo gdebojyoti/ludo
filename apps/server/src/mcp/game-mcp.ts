@@ -25,10 +25,16 @@ import type { CommandResult, GameService } from "../game-service.js";
 import type { Game } from "../game-store.js";
 import { toSnapshot, type IsAway } from "../snapshot.js";
 
-/** How long, in milliseconds, an AI Player's `wait_for_turn` waits, and how long an MCP session can sit idle. */
-export interface McpTimeouts {
+export interface McpOptions {
+  /** How long, in milliseconds, an AI Player's `wait_for_turn` waits. */
   waitForTurn: number;
+  /** How long, in milliseconds, an MCP session can sit idle. */
   sessionIdle: number;
+  /**
+   * Whether an AI Player waits for each Roll and Move to play out before it Rolls or Moves (ADR-0008). Tests turn
+   * it off to run quickly.
+   */
+  paceAiPlayers: boolean;
 }
 
 export const handleGameMcp = (
@@ -38,7 +44,7 @@ export const handleGameMcp = (
   aiPlayers: AiPlayers,
   isAway: IsAway,
   webAppUrl: string,
-  timeouts: McpTimeouts,
+  options: McpOptions,
 ) => {
   const sessions = new Map<string, Session>();
   const context: ToolContext = {
@@ -47,7 +53,8 @@ export const handleGameMcp = (
     notifier,
     isAway,
     webAppUrl,
-    waitForTurnTimeout: timeouts.waitForTurn,
+    waitForTurnTimeout: options.waitForTurn,
+    paceAiPlayers: options.paceAiPlayers,
     lastShown: new Map(),
   };
 
@@ -70,7 +77,7 @@ export const handleGameMcp = (
         sessions.set(id, newSession);
       },
     });
-    const newSession = createSession(transport, timeouts.sessionIdle);
+    const newSession = createSession(transport, options.sessionIdle);
     // Set before connecting: the MCP server keeps a handler that's already set, and calls it when the session closes.
     transport.onclose = () => {
       newSession.stopTracking();
@@ -110,6 +117,7 @@ interface ToolContext {
   isAway: IsAway;
   webAppUrl: string;
   waitForTurnTimeout: number;
+  paceAiPlayers: boolean;
   /** The Game each AI Player was last shown, by its player ID: one entry for each, kept as long as its key. */
   lastShown: Map<string, ShownGame>;
 }
@@ -125,7 +133,7 @@ interface ShownGame {
 
 /** The MCP server for one session: the tools that every AI Player whose calls arrive on it plays with. */
 const createGameTools = (
-  { aiPlayers, gameService, notifier, isAway, webAppUrl, waitForTurnTimeout, lastShown }: ToolContext,
+  { aiPlayers, gameService, notifier, isAway, webAppUrl, waitForTurnTimeout, paceAiPlayers, lastShown }: ToolContext,
 ) => {
   const server = new McpServer({ name: "ludo", version: "1.0.0" }, { instructions: guide });
 
@@ -177,6 +185,22 @@ const createGameTools = (
     });
     return { changed, stop: () => unsubscribe() };
   };
+
+  /**
+   * Resolves true once every screen has played out the Game's latest Roll or Move, so the AI's next one doesn't cut
+   * it short, or false if `stopped` aborts first.
+   */
+  const playedOut = (game: Game, stopped: AbortSignal) => new Promise<boolean>((resolve) => {
+    const playsOutAt = game.board?.playsOutAt;
+    const wait = paceAiPlayers && playsOutAt ? Date.parse(playsOutAt) + playOutMargin - Date.now() : 0;
+    if (wait <= 0) return resolve(true);
+    if (stopped.aborted) return resolve(false);
+    const timeout = setTimeout(() => resolve(true), wait);
+    stopped.addEventListener("abort", () => {
+      clearTimeout(timeout);
+      resolve(false);
+    }, { once: true });
+  });
 
   const answer = (playerId: string, result: CommandResult, ...notes: string[]) => {
     return result.ok ? viewOf(playerId, result.game, ...notes) : refusal(result.reason);
@@ -311,6 +335,7 @@ const createGameTools = (
           if (game.state !== "playing" || !isTurnOf(playerId, game) || game.board?.rolled) {
             return viewOf(playerId, game, ...notes);
           }
+          if (!(await playedOut(game, stopped))) return stillWaiting(game);
           const rolled = await gameService.roll(playerId);
           // Refused only if the Game changed since it was looked at, so it's looked at again, unless time is up.
           if (!rolled.ok) {
@@ -341,7 +366,10 @@ const createGameTools = (
         playerKey: requiredPlayerKey,
       },
     },
-    async ({ token, ...args }) => aiPlayers.actAs(args.playerKey, async (playerId) => {
+    async ({ token, ...args }, { signal }) => aiPlayers.actAs(args.playerKey, async (playerId) => {
+      // The Move is refused without a Game, so there's nothing to wait for.
+      const current = await findCurrentGame(playerId);
+      if (current && !(await playedOut(current, signal))) return text("The Move was cancelled before it was made.");
       const result = await gameService.move(playerId, token - 1);
       if (!result.ok) return refusal(result.reason);
       const { game } = result;
@@ -372,6 +400,12 @@ const createGameTools = (
 
   return server;
 };
+
+/**
+ * How long, in milliseconds, an AI Player waits beyond a Roll or Move's play-out time, as each screen gets its snapshot
+ * a little after the server sends it.
+ */
+const playOutMargin = 200;
 
 /** Whether it's the Turn of the Player with this player ID, in a Game in play. */
 const isTurnOf = (playerId: string, game: Game) => {

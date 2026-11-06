@@ -1,5 +1,5 @@
 import { useEffect, useEffectEvent, useLayoutEffect, useState } from "react";
-import type { GameMode, Seat, SnapshotBoard } from "@ludo/shared";
+import { tumbleFor, type GameMode, type Seat, type SnapshotBoard } from "@ludo/shared";
 import Board from "./Board";
 import Die from "./Die";
 import ErrorMessage from "./ErrorMessage";
@@ -9,7 +9,7 @@ import Notice from "./Notice";
 import PlayerCard from "./PlayerCard";
 import { homeCountAt, playerNameAt, seatAt } from "./boardView";
 import { boardMessages, commonMessages, leaveMessages } from "./messages";
-import { faceEvery, prefersReducedMotion, tumbleFaces, tumbleFor, tumbleForReducedMotion } from "./motion";
+import { faceEvery, prefersReducedMotion, tumbleFaces, tumbleForReducedMotion } from "./motion";
 import { playSound } from "./sound";
 import { useBoardPlayback } from "./useBoardPlayback";
 

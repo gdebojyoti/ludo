@@ -134,7 +134,8 @@ export interface TestServer {
  * its Games are created and saved.
  */
 export const startServer = async (options?: GameServerOptions): Promise<TestServer> => {
-  const server = createGameServer({ port: 0, webOrigins: [webOrigin], webAppUrl }, options);
+  // AI Players act at once, unless a test is about their pace.
+  const server = createGameServer({ port: 0, webOrigins: [webOrigin], webAppUrl }, { paceAiPlayers: false, ...options });
   await new Promise<void>((resolve) => server.httpServer.listen(0, resolve));
   const { port } = server.httpServer.address() as AddressInfo;
   const url = `http://localhost:${port}`;

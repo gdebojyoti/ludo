@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import type { GameSnapshot } from "@ludo/shared";
+import { movePlaysOutFor, rollPlaysOutFor, type GameSnapshot } from "@ludo/shared";
 
 import {
   gameCodeIn,
@@ -405,6 +405,23 @@ describe("an AI Player's Turn", () => {
     expect(view).toContain("It's your Turn, and you Rolled a 4.");
     expect(view).toContain("- Token 1: Track cell 24 to Track cell 28; could be Captured there by Ginny " +
       "Weasley's Token 1 with a 1, Ginny Weasley's Tokens 2, 3 and 4 with a 6 then a 2.");
+  });
+
+  it("waits for each Roll and Move to play out on every screen before it Moves or Rolls for the AI", async () => {
+    // The AI Rolls a 6, Moves its Token 1 out of the Yard, which earns another Roll, then Rolls a 3.
+    await server.close();
+    const numbers = [42, 0, 5, 2];
+    server = await startServer({ paceAiPlayers: true, randomInt: () => numbers.shift() ?? 0 });
+    const { ai } = await aiGameInPlay();
+    await aiRolled(ai);
+
+    let started = Date.now();
+    await ai.moveToken(1);
+    expect(Date.now() - started).toBeGreaterThanOrEqual(rollPlaysOutFor);
+
+    started = Date.now();
+    expect(await aiRolled(ai)).toContain("you Rolled a 3");
+    expect(Date.now() - started).toBeGreaterThanOrEqual(movePlaysOutFor({ area: "yard" }, 6));
   });
 
   it("refuses a Token that can't Move by the Roll", async () => {

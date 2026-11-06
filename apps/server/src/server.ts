@@ -32,6 +32,11 @@ export interface GameServerOptions {
    * Leaves a Game in the Lobby.
    */
   aiPlayerIdleTimeout?: number;
+  /**
+   * Whether an AI Player waits for each Roll and Move to play out on every screen before it Rolls or Moves, as it
+   * does unless this is false (ADR-0008). Tests turn it off to run quickly.
+   */
+  paceAiPlayers?: boolean;
 }
 
 export const createGameServer = (config: Config, options: GameServerOptions = {}): GameServer => {
@@ -66,6 +71,7 @@ export const createGameServer = (config: Config, options: GameServerOptions = {}
   handleGameMcp(app, gameService, notifier, aiPlayers, isAway, config.webAppUrl, {
     waitForTurn: options.waitForTurnTimeout ?? 30_000,
     sessionIdle: options.sessionIdleTimeout ?? 15 * 60_000,
+    paceAiPlayers: options.paceAiPlayers ?? true,
   });
 
   return { httpServer, io };
