@@ -1,5 +1,4 @@
-import { isValidPlayerName } from "@ludo/shared";
-import playerNames from "./player-names.json";
+import { isValidPlayerName, randomPlayerName } from "@ludo/shared";
 
 // Every game on the site shares one origin, so the key is namespaced.
 const storageKey = "ludo-player-name";
@@ -24,7 +23,7 @@ export const loadPlayerName = (): string => {
  * random choice the web app makes.
  */
 export const newPlayerName = (): string => {
-  const playerName = `${pick(playerNames.firstNames)} ${pick(playerNames.lastNames)}`;
+  const playerName = randomPlayerName((max) => Math.floor(Math.random() * max));
   try {
     localStorage.setItem(storageKey, playerName);
   } catch {
@@ -32,5 +31,3 @@ export const newPlayerName = (): string => {
   }
   return playerName;
 };
-
-const pick = (names: string[]): string => names[Math.floor(Math.random() * names.length)] ?? "";

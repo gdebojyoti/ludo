@@ -16,10 +16,20 @@ import { toSnapshot } from "./snapshot.js";
 
 export type GameIo = Server<ClientToServerEvents, ServerToClientEvents, object, PlayerData>;
 
-export const handleGameSockets = (io: GameIo, gameService: GameService, notifier: GameNotifier) => {
+/**
+ * Listens for Players' tabs, and returns whether a Player is Away. `isAiConnected` says whether an AI Player, which
+ * has no tabs, is connected through MCP.
+ */
+export const handleGameSockets = (
+  io: GameIo,
+  gameService: GameService,
+  notifier: GameNotifier,
+  isAiConnected: (playerId: string) => boolean,
+) => {
   const tabCount = (playerId: string) => io.sockets.adapter.rooms.get(playerRoom(playerId))?.size ?? 0;
-  // A Player is Away while none of their tabs is connected. Read when each snapshot is made, so it's never stale.
-  const isAway = (playerId: string) => tabCount(playerId) === 0;
+  // A Player is Away while none of their tabs is connected, or, for an AI Player, while it's idle. Read when each
+  // snapshot is made, so it's never stale.
+  const isAway = (playerId: string) => tabCount(playerId) === 0 && !isAiConnected(playerId);
 
   /** Sends the Game to every tab its Players have open, each as they see it. */
   const sendToPlayers = (game: Game) => {

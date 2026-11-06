@@ -12,6 +12,8 @@ export type {
   SnapshotSeat,
 } from "./events.js";
 export { indexAfter } from "./events.js";
+export { movePlaysOutFor, restFor, rollPlaysOutFor, stepEvery, tumbleFor } from "./playout.js";
+export { randomPlayerName } from "./player-names.js";
 export {
   applyMove,
   classicRules,
@@ -22,13 +24,17 @@ export {
   giveOutSeats,
   hasWon,
   isGameMode,
+  isSafeCell,
   isValidPlayerName,
   isWonByCapture,
   legalMoves,
+  positionAfter,
   positionsAlong,
   nextTakenSeat,
   playerNameMaxLength,
   seatsClockwise,
+  startCell,
+  stepsToHome,
   startingTokens,
   tokensHome,
   tokensReachHome,

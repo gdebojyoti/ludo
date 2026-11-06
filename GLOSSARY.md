@@ -18,6 +18,14 @@ _Avoid_: username, nickname, display name
 The **Player** who created a **Game**.
 _Avoid_: creator, owner, admin
 
+**AI Player**:
+A **Player** who is an AI, playing through the game server's MCP tools rather than the web app. It's an ordinary **Player** in every rule. See [ADR-0008](docs/adr/0008-ai-players-over-mcp.md).
+_Avoid_: bot, computer player
+
+**Player key**:
+What identifies an **AI Player**: given to it when it creates or joins a **Game**, and passed back with every tool call after that. It's the **AI Player**'s own secret, never shown to anyone else.
+_Avoid_: token (a **Token** is a marker on the **Board**), session ID
+
 **Away**:
 Said of a **Player** who is in a **Game** but isn't connected to it right now.
 _Avoid_: offline, disconnected (in user-facing text)

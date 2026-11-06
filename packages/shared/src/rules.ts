@@ -76,7 +76,7 @@ const trackStretch = classicRules.trackCells / classicRules.seats;
 export const startCell = (seat: Seat): number => seat * trackStretch;
 
 /** Whether the Track's Cell is a Safe cell, where no Token is Captured: a Start cell, or a Star cell. */
-const isSafeCell = (cell: number): boolean => {
+export const isSafeCell = (cell: number): boolean => {
   const fromStart = cell % trackStretch;
   return fromStart === 0 || fromStart === classicRules.starCellOffset;
 };
@@ -93,6 +93,14 @@ const distanceOf = (seat: Seat, position: Exclude<TokenPosition, { area: "yard" 
   }
   if (position.area === "homeColumn") return lastTrackDistance + 1 + position.cell;
   return homeDistance;
+};
+
+/**
+ * How many Cells a Token of the Seat, out of the Yard, has left to go to reach Home, in a Game mode where Tokens reach
+ * it: 0 once it's Home.
+ */
+export const stepsToHome = (seat: Seat, position: Exclude<TokenPosition, { area: "yard" }>): number => {
+  return homeDistance - distanceOf(seat, position);
 };
 
 /** Where a Token of the Seat is, this many Cells along its journey. */

@@ -1,4 +1,5 @@
 import { useEffect, useEffectEvent, useState, type CSSProperties } from "react";
+import { stepEvery } from "@ludo/shared";
 import type { Cell } from "./seatView";
 
 interface Props {
@@ -11,9 +12,6 @@ interface Props {
   /** Called once the Token has reached the end of its path. */
   onArrived: () => void;
 }
-
-// A step starts this often: a slide (its length is in ludo.css), then a short rest.
-const stepEvery = 220;
 
 /**
  * A Token, drawn above the Board as it Moves: it slides from each place on its path to the next.

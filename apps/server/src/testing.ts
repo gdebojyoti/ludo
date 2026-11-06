@@ -1,7 +1,10 @@
-// Test helper: starts the real server in-process, and connects Players to it the way the web app does.
+// Test helper: starts the real server in-process, and connects Players to it the way the web app does, or the way
+// an AI client does over MCP.
 import type { IncomingMessage } from "node:http";
 import type { AddressInfo } from "node:net";
 
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { NodeWebSocket } from "engine.io-client";
 import { io, type Socket } from "socket.io-client";
 import type {
@@ -17,6 +20,8 @@ import { playerIdCookieName } from "./identity.js";
 import { createGameServer, type GameServerOptions } from "./server.js";
 
 export const webOrigin = "http://localhost:8083";
+
+export const webAppUrl = `${webOrigin}/ludo`;
 
 /** What the server sent a connection, in the order it arrived. */
 type Message = { event: "game"; game: GameSnapshot } | { event: "noActiveGame" };
@@ -47,9 +52,54 @@ export interface Player {
   playerId: () => string | undefined;
 }
 
+/** What a tool call returned: its text, and whether it was refused. */
+export interface ToolResult {
+  text: string;
+  isError: boolean;
+}
+
+/**
+ * An AI client's conversation, connected to `/mcp` through the MCP SDK. It keeps the Player key that `create_game` or
+ * `join_game` gives it, and passes it to every later tool call, as the tools tell it to.
+ */
+export interface AiPlayer {
+  /** The description of each tool the server lists, by name. */
+  toolDescriptions: () => Promise<Record<string, string>>;
+  createGame: (args?: { mode?: string; playerName?: string }) => Promise<ToolResult>;
+  joinGame: (gameCode: string, args?: { playerName?: string }) => Promise<ToolResult>;
+  startGame: () => Promise<ToolResult>;
+  waitForTurn: () => Promise<ToolResult>;
+  /** Moves the Token with this number, from 1, as the Board view numbers them. */
+  moveToken: (token: number) => Promise<ToolResult>;
+  leaveGame: () => Promise<ToolResult>;
+  /**
+   * Calls a tool with any arguments, unchecked by the tool's schema and with no Player key added, as no well-behaved
+   * client would.
+   */
+  callUnchecked: (tool: string, args: Record<string, unknown>) => Promise<ToolResult>;
+  /**
+   * A new conversation whose calls arrive on this one's MCP session, as the claude.ai connector sends a second
+   * conversation's calls on the first one's session.
+   */
+  sharingSession: () => AiPlayer;
+  /** Starts a new MCP session, and carries on the conversation on it with the same Player key. */
+  moveToNewSession: () => Promise<void>;
+  /** Ends the conversation's MCP session, as a client does when it's done with it. */
+  close: () => Promise<void>;
+}
+
+/** One MCP session, which any number of conversations can send their calls on. */
+interface McpSession {
+  client: Client;
+  call: (tool: string, args: Record<string, unknown>) => Promise<ToolResult>;
+  close: () => Promise<void>;
+}
+
 export interface TestServer {
   url: string;
   createPlayer: () => Player;
+  /** Starts an MCP session and a conversation on it, as an AI client does when it's given the server's `/mcp` URL. */
+  connectAi: () => Promise<AiPlayer>;
   /**
    * A tab of a Player with no active Game, with everything sent so far already read: a new Player, or another tab
    * of `player`.
@@ -84,11 +134,13 @@ export interface TestServer {
  * its Games are created and saved.
  */
 export const startServer = async (options?: GameServerOptions): Promise<TestServer> => {
-  const server = createGameServer({ port: 0, webOrigins: [webOrigin] }, options);
+  // AI Players act at once, unless a test is about their pace.
+  const server = createGameServer({ port: 0, webOrigins: [webOrigin], webAppUrl }, { paceAiPlayers: false, ...options });
   await new Promise<void>((resolve) => server.httpServer.listen(0, resolve));
   const { port } = server.httpServer.address() as AddressInfo;
   const url = `http://localhost:${port}`;
   const sockets: Socket[] = [];
+  const aiClosers: Array<() => Promise<void>> = [];
 
   const createPlayer = (): Player => {
     const cookieJar = new Map<string, string>();
@@ -165,6 +217,66 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
     return tab;
   };
 
+  const startMcpSession = async (): Promise<McpSession> => {
+    const client = new Client({ name: "ludo-test-ai", version: "1.0.0" });
+    const transport = new StreamableHTTPClientTransport(new URL(`${url}/mcp`));
+    await client.connect(transport);
+
+    const call = async (tool: string, args: Record<string, unknown>): Promise<ToolResult> => {
+      const result = await client.callTool({ name: tool, arguments: args });
+      const content = result.content as Array<{ type: string; text?: string }>;
+      return { text: content.map((part) => part.text ?? "").join("\n"), isError: result.isError === true };
+    };
+
+    let isOpen = true;
+    const close = async () => {
+      if (!isOpen) return;
+      isOpen = false;
+      await transport.terminateSession();
+      await client.close();
+    };
+    aiClosers.push(close);
+
+    return { client, call, close };
+  };
+
+  const conversationOn = (firstSession: McpSession): AiPlayer => {
+    let session = firstSession;
+    let playerKey: string | undefined;
+
+    const call = (tool: string, args: Record<string, unknown> = {}) => {
+      return session.call(tool, playerKey === undefined ? args : { ...args, playerKey });
+    };
+
+    /** Calls `create_game` or `join_game`, and keeps the Player key it gives. */
+    const start = async (tool: string, args: Record<string, unknown> = {}) => {
+      const reply = await call(tool, args);
+      playerKey ??= playerKeyIn(reply) || undefined;
+      return reply;
+    };
+
+    return {
+      toolDescriptions: async () => {
+        const { tools } = await session.client.listTools();
+        return Object.fromEntries(tools.map((tool) => [tool.name, tool.description ?? ""]));
+      },
+      createGame: (args = {}) => start("create_game", args),
+      joinGame: (gameCode, args = {}) => start("join_game", { gameCode, ...args }),
+      startGame: () => call("start_game"),
+      waitForTurn: () => call("wait_for_turn"),
+      moveToken: (token) => call("move_token", { token }),
+      leaveGame: () => call("leave_game"),
+      callUnchecked: (tool, args) => session.call(tool, args),
+      sharingSession: () => conversationOn(session),
+      moveToNewSession: async () => {
+        session = await startMcpSession();
+      },
+      close: () => session.close(),
+    };
+  };
+
+  const connectAi = async () => conversationOn(await startMcpSession());
+
   const connectedPlayerIds = async () => (await server.io.fetchSockets()).map((socket) => socket.data.playerId);
 
   const debugGames = async () => {
@@ -175,6 +287,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
   };
 
   const close = async () => {
+    await Promise.all(aiClosers.map((closeAi) => closeAi()));
     sockets.forEach((socket) => socket.disconnect());
     await server.io.close();
   };
@@ -187,6 +300,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
   return {
     url,
     createPlayer,
+    connectAi,
     playerWithNoGame,
     hostInLobby,
     playerInLobby,
@@ -196,6 +310,12 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
     restartWithRandomNumbers,
   };
 };
+
+/** The Game code in what a tool returned. */
+export const gameCodeIn = (reply: { text: string }) => /Game code (\d{6})/.exec(reply.text)?.[1] ?? "";
+
+/** The Player key in what `create_game` or `join_game` returned. */
+export const playerKeyIn = (reply: { text: string }) => /Player key is ([\w-]+)/.exec(reply.text)?.[1] ?? "";
 
 /** Sends a Socket.IO handshake over plain HTTP, the first request a browser makes, so tests can read its headers. */
 export const handshake = (url: string, headers: Record<string, string> = {}): Promise<Response> => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { indexAfter, type Seat, type SnapshotBoard } from "@ludo/shared";
-import { prefersReducedMotion, restFor, tumbleFor } from "./motion";
+import { indexAfter, restFor, tumbleFor, type Seat, type SnapshotBoard } from "@ludo/shared";
+import { prefersReducedMotion } from "./motion";
 
 /** A Token Moving by a Roll, as the Board draws it sliding. */
 export interface TokenMoving {

@@ -6,6 +6,7 @@ import {
   applyMove,
   classicRules,
   dieFaces,
+  movePlaysOutFor,
   earnsExtraRoll,
   gameCodeLength,
   giveOutSeats,
@@ -14,6 +15,7 @@ import {
   isValidPlayerName,
   legalMoves,
   nextTakenSeat,
+  rollPlaysOutFor,
   startingTokens,
   wonByMove,
   type GameMode,
@@ -45,6 +47,9 @@ export const createGameService = (
   const oneAtATime = createQueue();
 
   const timestamp = () => now().toISOString();
+
+  /** When a Roll or Move made now, which takes this long to play out, will have played out on every screen. */
+  const playsOutAfter = (playsOutFor: number) => new Date(now().getTime() + playsOutFor).toISOString();
 
   /**
    * Saves the Game as of `savedAt`, now unless it's given, and publishes it, with the Player who just Left it if
@@ -79,7 +84,7 @@ export const createGameService = (
     });
     // `randomInt` is always below the number of Players, so this is one of their Seats.
     const turn = seatsInJoinOrder[randomInt(seatsInJoinOrder.length)] as Seat;
-    const board = { seats, turn, rolled: false, lastRoll: null, lastMove: null, winner: null };
+    const board = { seats, turn, rolled: false, lastRoll: null, lastMove: null, playsOutAt: null, winner: null };
     return { ...game, state: "playing", board };
   };
 
@@ -163,10 +168,23 @@ export const createGameService = (
     if (game.board) {
       return { ok: true, game: await save(forfeited(game, game.board, playerId), { leaverId: playerId }) };
     }
-    if (game.hostId === playerId) return { ok: true, game: await save({ ...game, state: "cancelled" }) };
-    const players = game.players.filter((player) => player.playerId !== playerId);
-    return { ok: true, game: await save({ ...game, players }, { leaverId: playerId }) };
+    return { ok: true, game: await leftLobby(game, playerId) };
   });
+
+  /** Leave, only if the Player's active Game is in the Lobby. A Game in play is left as it is. */
+  const leaveLobby = oneAtATime(async (playerId: string): Promise<CommandResult> => {
+    const game = await store.findActiveGameByPlayer(playerId);
+    if (!game) return { ok: false, reason: "noActiveGame" };
+    if (game.state !== "lobby") return { ok: false, reason: "gameNotInLobby" };
+    return { ok: true, game: await leftLobby(game, playerId) };
+  });
+
+  /** Saves the Game in the Lobby with the Player gone from it: cancelled if they're its Host, else without them. */
+  const leftLobby = async (game: Game, playerId: string): Promise<Game> => {
+    if (game.hostId === playerId) return save({ ...game, state: "cancelled" });
+    const players = game.players.filter((player) => player.playerId !== playerId);
+    return save({ ...game, players }, { leaverId: playerId });
+  };
 
   /**
    * The Game in play, with the Player gone from it: their Tokens off the Board, and their Seat empty for the rest of
@@ -194,7 +212,12 @@ export const createGameService = (
     const { game, board, seat } = turn;
     if (board.rolled) return { ok: false, reason: "alreadyRolled" };
     const number = randomInt(dieFaces) + 1;
-    const rolled = { ...board, rolled: true, lastRoll: { seat, number, index: indexAfter(board.lastRoll) } };
+    const rolled = {
+      ...board,
+      rolled: true,
+      lastRoll: { seat, number, index: indexAfter(board.lastRoll) },
+      playsOutAt: playsOutAfter(rollPlaysOutFor),
+    };
     const tokens = board.seats[seat]?.tokens ?? [];
     const canMove = legalMoves(game.mode, seat, tokens, number).length > 0;
     return { ok: true, game: await save({ ...game, board: canMove ? rolled : turnPassed(rolled) }) };
@@ -227,11 +250,12 @@ export const createGameService = (
       index: indexAfter(board.lastMove),
     };
     const seats = board.seats.map((other, index) => ({ ...other, tokens: after.seats[index] ?? other.tokens }));
+    const playsOutAt = playsOutAfter(movePlaysOutFor(from, number));
     if (wonByMove(game.mode, { tokens: moved, captured: after.captured })) {
-      const won = { ...board, seats, lastMove, rolled: false, winner: seat };
+      const won = { ...board, seats, lastMove, playsOutAt, rolled: false, winner: seat };
       return { ok: true, game: await save({ ...game, state: "won", board: won }) };
     }
-    const movedOn = { ...board, seats, lastMove };
+    const movedOn = { ...board, seats, lastMove, playsOutAt };
     // A Move that earns another Roll leaves the Turn with the Player, yet to Roll again.
     const next = earnsExtraRoll(number, lastMove) ? { ...movedOn, rolled: false } : turnPassed(movedOn);
     return { ok: true, game: await save({ ...game, board: next }) };
@@ -246,6 +270,13 @@ export const createGameService = (
   });
 
   /**
+   * The newest Game the Player is still in, even if it has ended, or undefined if there is none. A Player who Leaves
+   * is taken out of the Game, so this may then be an older one. It runs in turn with the commands, so it's never read
+   * halfway through one.
+   */
+  const findLastGame = oneAtATime(async (playerId: string) => store.findLastGameByPlayer(playerId));
+
+  /**
    * Up to `limit` Games, whatever their state, the newest created first, with how many Games there are in all. It runs
    * in turn with the commands, so the count and the Games are read with no command between them.
    */
@@ -253,7 +284,18 @@ export const createGameService = (
     return { total: await store.countGames(), games: await store.findNewestGames(limit) };
   });
 
-  return { createGame, joinGame, startGame, leaveGame, roll, move, withActiveGame, findNewestGames };
+  return {
+    createGame,
+    joinGame,
+    startGame,
+    leaveGame,
+    leaveLobby,
+    roll,
+    move,
+    withActiveGame,
+    findLastGame,
+    findNewestGames,
+  };
 };
 
 export type GameService = ReturnType<typeof createGameService>;
