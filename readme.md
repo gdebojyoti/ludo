@@ -7,7 +7,7 @@
 | Folder            | What it is                                                          |
 | ----------------- | ------------------------------------------------------------------- |
 | `apps/web`        | The web app: React, Webpack 5 and Tailwind.                         |
-| `apps/server`     | The game server: Express and Socket.IO.                             |
+| `apps/server`     | The game server: Express and Socket.IO, and MCP for AI Players.     |
 | `packages/shared` | The event contract and game rules shared by the web app and server. |
 
 Decisions behind the setup are in [`docs/adr/`](docs/adr/), and the game's vocabulary is in [`GLOSSARY.md`](GLOSSARY.md).
@@ -22,5 +22,7 @@ npm run dev        # web on http://localhost:8083/ludo, server on http://localho
 ```
 
 Other commands, run from the root: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
+
+An AI client that can add a remote MCP server by URL, such as Claude, can play too: point it at `http://localhost:4003/mcp` locally, and it can create, join and play Games ([ADR-0008](docs/adr/0008-ai-players-over-mcp.md)).
 
 Both apps work without configuration locally. To change the defaults, copy `apps/server/.env.example` to `apps/server/.env`, or `apps/web/.env.example` to `apps/web/.env`.

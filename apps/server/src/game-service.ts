@@ -163,10 +163,23 @@ export const createGameService = (
     if (game.board) {
       return { ok: true, game: await save(forfeited(game, game.board, playerId), { leaverId: playerId }) };
     }
-    if (game.hostId === playerId) return { ok: true, game: await save({ ...game, state: "cancelled" }) };
-    const players = game.players.filter((player) => player.playerId !== playerId);
-    return { ok: true, game: await save({ ...game, players }, { leaverId: playerId }) };
+    return { ok: true, game: await leftLobby(game, playerId) };
   });
+
+  /** Leave, only if the Player's active Game is in the Lobby. A Game in play is left as it is. */
+  const leaveLobby = oneAtATime(async (playerId: string): Promise<CommandResult> => {
+    const game = await store.findActiveGameByPlayer(playerId);
+    if (!game) return { ok: false, reason: "noActiveGame" };
+    if (game.state !== "lobby") return { ok: false, reason: "gameNotInLobby" };
+    return { ok: true, game: await leftLobby(game, playerId) };
+  });
+
+  /** Saves the Game in the Lobby with the Player gone from it: cancelled if they're its Host, else without them. */
+  const leftLobby = async (game: Game, playerId: string): Promise<Game> => {
+    if (game.hostId === playerId) return save({ ...game, state: "cancelled" });
+    const players = game.players.filter((player) => player.playerId !== playerId);
+    return save({ ...game, players }, { leaverId: playerId });
+  };
 
   /**
    * The Game in play, with the Player gone from it: their Tokens off the Board, and their Seat empty for the rest of
@@ -246,6 +259,12 @@ export const createGameService = (
   });
 
   /**
+   * The newest Game the Player is in, even if it has ended, or undefined if they've never been in one, or Left it
+   * during play. It runs in turn with the commands, so it's never read halfway through one.
+   */
+  const findLastGame = oneAtATime(async (playerId: string) => store.findLastGameByPlayer(playerId));
+
+  /**
    * Up to `limit` Games, whatever their state, the newest created first, with how many Games there are in all. It runs
    * in turn with the commands, so the count and the Games are read with no command between them.
    */
@@ -253,7 +272,18 @@ export const createGameService = (
     return { total: await store.countGames(), games: await store.findNewestGames(limit) };
   });
 
-  return { createGame, joinGame, startGame, leaveGame, roll, move, withActiveGame, findNewestGames };
+  return {
+    createGame,
+    joinGame,
+    startGame,
+    leaveGame,
+    leaveLobby,
+    roll,
+    move,
+    withActiveGame,
+    findLastGame,
+    findNewestGames,
+  };
 };
 
 export type GameService = ReturnType<typeof createGameService>;

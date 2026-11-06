@@ -55,6 +55,8 @@ export interface GameStore {
   save: (game: Game) => Promise<void>;
   /** The Game the Player is in, if it's active: a Player is in at most one active Game. */
   findActiveGameByPlayer: (playerId: string) => Promise<Game | undefined>;
+  /** The newest Game the Player is in, whatever its state, so one that has ended is still found. */
+  findLastGameByPlayer: (playerId: string) => Promise<Game | undefined>;
   findLobbyGameByCode: (gameCode: string) => Promise<Game | undefined>;
   /** Up to `limit` Games, whatever their state, the newest created first. */
   findNewestGames: (limit: number) => Promise<Game[]>;
@@ -71,6 +73,10 @@ export const createMemoryGameStore = (): GameStore => {
     },
     findActiveGameByPlayer: async (playerId) => {
       const game = [...games.values()].find((game) => isActive(game) && isPlayerIn(game, playerId));
+      return game && copy(game);
+    },
+    findLastGameByPlayer: async (playerId) => {
+      const game = [...games.values()].reverse().find((game) => isPlayerIn(game, playerId));
       return game && copy(game);
     },
     findLobbyGameByCode: async (gameCode) => {
