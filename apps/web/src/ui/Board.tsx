@@ -157,8 +157,8 @@ const homeSpotCentre = (turns: number, count: number, spot: number): Cell => {
 };
 
 // How far the middle of each slot in a Yard is from the Yard's middle, across and down, in Cells: half a slot and
-// half the gap between slots, 19 design pixels, on the design's 360px Board.
-const yardSlotOffset = 19 / ((360 - 14) / 15 + 1);
+// half the gap between slots, 15 design pixels, on the design's 360px Board.
+const yardSlotOffset = 15 / ((360 - 14) / 15 + 1);
 
 /** The middle of a slot in a Yard, from the Yard's top-left Cell, in Cells of the grid. Slots go across, then down. */
 const yardSlotCentre = ([row, column]: Cell, slot: number): Cell => [
@@ -265,6 +265,9 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
         {placed.length > 0 && tokensDrawing(placed, placed.some(isMovable))}
       </>
     );
+    const className = `ludo-cell ${isUnusedHomeColumn ? "ludo-cell-closed" : ""} ${
+      starCells.has(key) ? "ludo-cell-star" : ""
+    }`;
     // Any of the viewer's Tokens here that can Move would end up in the same place, so the Cell Moves the first.
     const movable = placed.find(isMovable);
     if (movable) {
@@ -272,9 +275,8 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
         <button
           key={key}
           type="button"
-          // Its own colour gives way to gold, which marks a place the viewer can Move from.
-          className="ludo-cell ludo-cell-movable"
-          style={{ ...style, backgroundColor: undefined }}
+          className={`${className} ludo-cell-movable`}
+          style={style}
           aria-label={boardMessages.moveFromHere(describe(placed))}
           disabled={disabled}
           onClick={() => onMove(movable.token)}
@@ -286,7 +288,7 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
     return (
       <div
         key={key}
-        className={`ludo-cell ${isUnusedHomeColumn ? "ludo-cell-closed" : ""} ${starCells.has(key) ? "ludo-cell-star" : ""}`}
+        className={className}
         style={style}
         role={placed.length ? "img" : undefined}
         aria-label={placed.length ? describe(placed) : undefined}
