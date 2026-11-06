@@ -29,7 +29,7 @@ export const boardView = (game: GameSnapshot): string => {
   const names = namesOf(board);
   return [
     `A ${modeNames[game.mode]} Game. The Seats, clockwise:`,
-    ...board.seats.map((_, seat) => seatLine(game.mode, board, seat, names)),
+    ...board.seats.map((_, seat) => seatLine(game.mode, board, seat)),
     "",
     ...lastPlayLines(board, names),
     stageText(game, board, names),
@@ -68,8 +68,9 @@ const lobbyView = (game: GameSnapshot) => {
 };
 
 /** One Seat, with whoever is in it and where each of its Tokens is. */
-const seatLine = (mode: GameMode, board: SnapshotBoard, seat: Seat, names: Names) => {
-  const { playerName, left, away, tokens } = board.seats[seat] ?? { playerName: null, left: false, away: false, tokens: [] };
+const seatLine = (mode: GameMode, board: SnapshotBoard, seat: Seat) => {
+  const emptySeat = { playerName: null, left: false, away: false, tokens: [] };
+  const { playerName, left, away, tokens } = board.seats[seat] ?? emptySeat;
   if (left) return `- Seat ${seat}: empty, as ${playerName} Left the Game.`;
   if (playerName === null) return `- Seat ${seat}: empty.`;
   const who = seat === board.seat ? `you, ${playerName}` : playerName + (away ? ", who is Away" : "");
@@ -164,15 +165,23 @@ const moveLine = (mode: GameMode, board: SnapshotBoard, token: number, roll: num
     effects.push("winning the Game");
   } else {
     if (to.area === "track") effects.push(...landingEffects(mode, after.seats, seat, token, to.cell, names));
+    if (from.area === "track") effects.push(...leftBehindEffects(mode, after.seats, seat, from.cell, names));
     if (earnsExtraRoll(roll, move)) effects.push("earns you another Roll");
   }
   return `- Token ${token + 1}: ${positionText(from)} to ${positionText(to)}` +
     (effects.length > 0 ? `; ${effects.join("; ")}.` : ".");
 };
 
+/** The Seat's Tokens on the Track cell, by their number, leaving out one of them. */
+const tokensOn = (seats: TokenPosition[][], seat: Seat, cell: number, leavingOut?: number) => {
+  return (seats[seat] ?? []).flatMap((position, token) => {
+    return token !== leavingOut && position.area === "track" && position.cell === cell ? [token + 1] : [];
+  });
+};
+
 /**
- * Whether the Track Cell a Token lands on keeps it safe: a Safe cell, or shared with another of its Seat's Tokens. If
- * not, which opponents' Tokens could Capture it there with their next Roll.
+ * Whether the Track cell a Token lands on keeps it safe: a Safe cell, or shared with another of its Seat's Tokens. If
+ * not, which opponents' Tokens could Capture it there on their next Turn.
  */
 const landingEffects = (
   mode: GameMode,
@@ -183,23 +192,63 @@ const landingEffects = (
   names: Names,
 ) => {
   if (isSafeCell(cell)) return ["a Safe cell"];
-  const isOn = (position: TokenPosition) => position.area === "track" && position.cell === cell;
-  const partners = (seats[seat] ?? []).flatMap((position, other) => (other !== token && isOn(position) ? [other + 1] : []));
+  const partners = tokensOn(seats, seat, cell, token);
   if (partners.length > 0) return [`joins your Token ${partners.join(" and ")}, so they protect each other`];
-  const threats = seats.flatMap((tokens, owner) => {
-    if (owner === seat) return [];
-    return tokens.flatMap((position, other) => {
-      const rolls = rollsToReach(mode, owner, position, cell);
-      return rolls.length > 0 ? [`${names.whose(owner)} Token ${other + 1} with a ${rolls.join(" or ")}`] : [];
-    });
-  });
-  return threats.length > 0 ? [`could be Captured there by ${threats.join(", ")}`] : [];
+  const threats = threatsTo(mode, seats, seat, cell, names);
+  return threats ? [`could be Captured there by ${threats}`] : [];
 };
 
-/** The Rolls that would Move a Token of this Seat from where it is onto the Track Cell. */
-const rollsToReach = (mode: GameMode, seat: Seat, position: TokenPosition, cell: number) => {
-  return Array.from({ length: dieFaces }, (_, index) => index + 1).filter((roll) => {
-    const to = positionAfter(mode, seat, position, roll);
-    return to?.area === "track" && to.cell === cell;
+/**
+ * Whether Moving a Token off a Track cell it shared with one other of its Seat's Tokens leaves that one alone there,
+ * where they protected each other, and which opponents' Tokens could then Capture it.
+ */
+const leftBehindEffects = (mode: GameMode, seats: TokenPosition[][], seat: Seat, cell: number, names: Names) => {
+  const left = tokensOn(seats, seat, cell);
+  if (isSafeCell(cell) || left.length !== 1) return [];
+  const threats = threatsTo(mode, seats, seat, cell, names);
+  return [`leaves your Token ${left[0]} alone on Track cell ${cell}` +
+    (threats ? `, where it could be Captured by ${threats}` : "")];
+};
+
+/**
+ * Which opponents' Tokens could reach the Track cell on their next Turn, and how, or null if none could. A Seat's
+ * Tokens that could reach it the same ways, such as those in its Yard, are named together.
+ */
+const threatsTo = (mode: GameMode, seats: TokenPosition[][], seat: Seat, cell: number, names: Names) => {
+  const threats = seats.flatMap((tokens, owner) => {
+    if (owner === seat) return [];
+    const tokensByWays = new Map<string, number[]>();
+    tokens.forEach((position, token) => {
+      const ways = waysToReach(mode, owner, position, cell).join(" or ");
+      if (ways) tokensByWays.set(ways, [...tokensByWays.get(ways) ?? [], token + 1]);
+    });
+    return [...tokensByWays].map(([ways, numbers]) => `${names.whose(owner)} ${tokensText(numbers)} with ${ways}`);
   });
+  return threats.length > 0 ? threats.join(", ") : null;
+};
+
+/** Tokens by their numbers, such as "Token 2" or "Tokens 2, 3 and 4". */
+const tokensText = (numbers: number[]) => {
+  if (numbers.length === 1) return `Token ${numbers[0]}`;
+  return `Tokens ${numbers.slice(0, -1).join(", ")} and ${numbers.at(-1)}`;
+};
+
+const rolls = Array.from({ length: dieFaces }, (_, index) => index + 1);
+
+/**
+ * The ways a Token of this Seat could Move from where it is onto the Track cell in one Turn, such as "a 2" or "a 6
+ * then a 2": by one Roll, or by a 6, which earns another Roll, and then that Roll. Longer runs of 6s are left out, as
+ * they're unlikely.
+ */
+const waysToReach = (mode: GameMode, seat: Seat, position: TokenPosition, cell: number) => {
+  const isOnCell = (to: TokenPosition | null) => to?.area === "track" && to.cell === cell;
+  const byOneRoll = rolls.filter((roll) => isOnCell(positionAfter(mode, seat, position, roll)));
+  const afterSix = positionAfter(mode, seat, position, dieFaces);
+  const bySixThenRoll = afterSix && !isOnCell(afterSix)
+    ? rolls.filter((roll) => isOnCell(positionAfter(mode, seat, afterSix, roll)))
+    : [];
+  return [
+    ...byOneRoll.map((roll) => `a ${roll}`),
+    ...bySixThenRoll.map((roll) => `a ${dieFaces} then a ${roll}`),
+  ];
 };

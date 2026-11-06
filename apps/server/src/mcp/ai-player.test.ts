@@ -205,7 +205,8 @@ describe("an AI Player creating a Game", () => {
 
     const reply = await ai.createGame({ mode: "quickGame" });
 
-    expect(reply).toEqual({ isError: true, text: expect.stringContaining('mode must be one of "classic", "oneKillWin"') });
+    expect(reply)
+      .toEqual({ isError: true, text: expect.stringContaining('mode must be one of "classic", "oneKillWin"') });
   });
 
   it("gives the AI a random Player name when it gives none", async () => {
@@ -268,6 +269,22 @@ describe("an AI Player creating a Game", () => {
       players: [{ playerName: "Claude", isHost: true, away: false }, { playerName: "Ginny Weasley" }],
     });
   });
+
+  it("wakes the waiting AI Host when a 4th Player joins and starts the Game, even when it's not its Turn", async () => {
+    // The Game code, then the first Player: the second to join, Ginny Weasley.
+    server = await server.restartWithRandomNumbers(42, 1);
+    const ai = await server.connectAi();
+    const gameCode = gameCodeIn(await ai.createGame({ playerName: "Claude" }));
+    for (const playerName of ["Ginny Weasley", "Fred Weasley"]) await server.playerInLobby(gameCode, { playerName });
+    await ai.waitForTurn();
+
+    const waiting = ai.waitForTurn();
+    await server.playerInLobby(gameCode, { playerName: "George Weasley" });
+    const view = (await waiting).text;
+
+    expect(view).toContain("Your Game has started.");
+    expect(view).toContain("It's Ginny Weasley's Turn.");
+  });
 });
 
 describe("an AI Player joining a Game", () => {
@@ -282,7 +299,23 @@ describe("an AI Player joining a Game", () => {
     expect(await host.nextMessage()).toMatchObject({
       game: { players: [{ playerName: "Luna Lovegood" }, { playerName: "Claude", away: false }] },
     });
-    expect((await ai.waitForTurn()).text).toBe("Still waiting for the Host to start the Game: call wait_for_turn again.");
+    expect((await ai.waitForTurn()).text)
+      .toBe("Still waiting for the Host to start the Game: call wait_for_turn again.");
+  });
+
+  it("is told once the Host starts the Game, even when it's not the AI's Turn", async () => {
+    // The Host goes first.
+    await scriptRolls(6);
+    const { host, gameCode } = await server.hostInLobby();
+    const ai = await server.connectAi();
+    await ai.joinGame(gameCode, { playerName: "Claude" });
+
+    const waiting = ai.waitForTurn();
+    await host.startGame();
+    const view = (await waiting).text;
+
+    expect(view).toContain("Your Game has started.");
+    expect(view).toContain("It's Luna Lovegood's Turn.");
   });
 
   it("refuses an unknown Game code", async () => {
@@ -371,7 +404,7 @@ describe("an AI Player's Turn", () => {
 
     expect(view).toContain("It's your Turn, and you Rolled a 4.");
     expect(view).toContain("- Token 1: Track cell 24 to Track cell 28; could be Captured there by Ginny " +
-      "Weasley's Token 1 with a 1.");
+      "Weasley's Token 1 with a 1, Ginny Weasley's Tokens 2, 3 and 4 with a 6 then a 2.");
   });
 
   it("refuses a Token that can't Move by the Roll", async () => {
@@ -399,7 +432,8 @@ describe("an AI Player's Turn", () => {
 describe("the end of an AI Player's Game", () => {
   it("tells the AI it won a One Kill Win Game with its Capture", async () => {
     // The AI's 1 Moves its Token 1 from its Start cell, Track cell 0, to 1. Ginny's 1 Moves her Token 1 from hers,
-    // Track cell 26, to 27, off the Safe cell. The AI's four 6s take its Token 1 on to 25, and its 2 could Capture hers.
+    // Track cell 26, to 27, off the Safe cell. The AI's four 6s take its Token 1 on to 25, and its 2 could Capture
+    // hers.
     await scriptRolls(1, 1, 6, 6, 6, 6, 2);
     const { ai, joiner } = await aiGameInPlay({ mode: "oneKillWin" });
     await ai.waitForTurn();
@@ -446,6 +480,21 @@ describe("the end of an AI Player's Game", () => {
     expect((await ai.leaveGame()).text).toBe("You Left the Game. Call create_game or join_game to play another.");
     expect(await gameIn(joiner, "won")).toMatchObject({ board: { winner: 2 } });
     expect(await ai.waitForTurn()).toEqual({ isError: true, text: expect.stringContaining("You're not in a Game") });
+  });
+
+  it("says the AI isn't in a Game once it Leaves, not how an earlier Game it played ended", async () => {
+    // A first Game, which the AI wins as Ginny Leaves.
+    const first = await aiGameInPlay();
+    await first.joiner.leaveGame();
+    expect((await first.ai.waitForTurn()).text).toContain("you won, as every other Player Left");
+    // A second Game, with the same Player key, which the AI Leaves.
+    const gameCode = gameCodeIn(await first.ai.createGame());
+    await server.playerInLobby(gameCode);
+    await first.ai.startGame();
+    await first.ai.leaveGame();
+
+    expect(await first.ai.waitForTurn())
+      .toEqual({ isError: true, text: expect.stringContaining("You're not in a Game") });
   });
 });
 

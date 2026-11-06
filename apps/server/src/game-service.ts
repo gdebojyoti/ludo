@@ -259,8 +259,9 @@ export const createGameService = (
   });
 
   /**
-   * The newest Game the Player is in, even if it has ended, or undefined if they've never been in one, or Left it
-   * during play. It runs in turn with the commands, so it's never read halfway through one.
+   * The newest Game the Player is still in, even if it has ended, or undefined if there is none. A Player who Leaves
+   * is taken out of the Game, so this may then be an older one. It runs in turn with the commands, so it's never read
+   * halfway through one.
    */
   const findLastGame = oneAtATime(async (playerId: string) => store.findLastGameByPlayer(playerId));
 

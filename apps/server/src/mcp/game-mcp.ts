@@ -48,7 +48,7 @@ export const handleGameMcp = (
     isAway,
     webAppUrl,
     waitForTurnTimeout: timeouts.waitForTurn,
-    shownLobbies: new Map(),
+    lastShown: new Map(),
   };
 
   app.all("/mcp", express.json(), async (req, res) => {
@@ -110,35 +110,56 @@ interface ToolContext {
   isAway: IsAway;
   webAppUrl: string;
   waitForTurnTimeout: number;
+  /** The Game each AI Player was last shown, by its player ID: one entry for each, kept as long as its key. */
+  lastShown: Map<string, ShownGame>;
+}
+
+interface ShownGame {
+  gameId: string;
   /**
-   * The Players in each AI Host's Lobby as it was last shown to it, by its player ID, so its `wait_for_turn` returns
-   * once someone joins or Leaves.
+   * The Players in the Game's Lobby when it was shown, if it was in the Lobby; otherwise null. So an AI Host's
+   * `wait_for_turn` returns once someone joins or Leaves, and any AI's once the Game starts.
    */
-  shownLobbies: Map<string, string>;
+  lobbyPlayers: string | null;
 }
 
 /** The MCP server for one session: the tools that every AI Player whose calls arrive on it plays with. */
 const createGameTools = (
-  { aiPlayers, gameService, notifier, isAway, webAppUrl, waitForTurnTimeout, shownLobbies }: ToolContext,
+  { aiPlayers, gameService, notifier, isAway, webAppUrl, waitForTurnTimeout, lastShown }: ToolContext,
 ) => {
   const server = new McpServer({ name: "ludo", version: "1.0.0" }, { instructions: guide });
 
   /** The Board view of the Game, after lines saying what just happened. */
   const viewOf = (playerId: string, game: Game, ...notes: string[]): CallToolResult => {
-    if (game.state === "lobby") shownLobbies.set(playerId, lobbyPlayersOf(game));
+    lastShown.set(playerId, { gameId: game.id, lobbyPlayers: game.state === "lobby" ? lobbyPlayersOf(game) : null });
     return text([...notes, boardView(toSnapshot(game, playerId, isAway))].join("\n\n"));
   };
 
   /**
-   * Whether the AI has something to do: it's their Turn, their Game has ended, or, as its Host, someone has joined or
-   * Left their Lobby since they were last shown it.
+   * The Game the AI last created or joined, or undefined if they've Left it. Every Game they enter is shown to them,
+   * so one they're still in is the last shown. A Player who Leaves is taken out of the Game, so the newest Game
+   * they're still in is then an older one, or none.
+   */
+  const findCurrentGame = async (playerId: string) => {
+    const game = await gameService.findLastGame(playerId);
+    return game && game.id === lastShown.get(playerId)?.gameId ? game : undefined;
+  };
+
+  /** Whether the Game started since the AI was last shown it, in the Lobby. */
+  const hasStartedSinceShown = (playerId: string, game: Game) => {
+    return game.state !== "lobby" && game.state !== "cancelled" && lastShown.get(playerId)?.lobbyPlayers != null;
+  };
+
+  /**
+   * Whether the AI has something to do: it's their Turn, their Game has started or ended, or, as its Host, someone
+   * has joined or Left their Lobby since they were last shown it.
    */
   const isReady = (playerId: string, game: Game) => {
     if (game.state === "lobby") {
-      return game.hostId === playerId && shownLobbies.get(playerId) !== lobbyPlayersOf(game);
+      return game.hostId === playerId && lastShown.get(playerId)?.lobbyPlayers !== lobbyPlayersOf(game);
     }
-    if (game.state !== "playing" || !game.board) return true;
-    return game.board.seats[game.board.turn]?.playerId === playerId;
+    if (game.state !== "playing") return true;
+    return hasStartedSinceShown(playerId, game) || isTurnOf(playerId, game);
   };
 
   /**
@@ -261,28 +282,41 @@ const createGameTools = (
     {
       description: "Waits until it's your Turn, then Rolls for you and returns the Board, with the Tokens you can " +
         "Move by your Roll. A Roll none of your Tokens can Move by passes your Turn, and it waits on. It also " +
-        "returns when your Game ends, and, while you're the Host in the Lobby, when someone joins or Leaves. If " +
-        `that takes too long, it returns saying you're still waiting: call it again. ${guide}`,
+        "returns when your Game starts or ends, and, while you're the Host in the Lobby, when someone joins or " +
+        `Leaves. If that takes too long, it returns saying you're still waiting: call it again. ${guide}`,
       inputSchema: { playerKey: requiredPlayerKey },
     },
     async (args, { signal }) => aiPlayers.actAs(args.playerKey, async (playerId) => {
       const stopped = AbortSignal.any([signal, AbortSignal.timeout(waitForTurnTimeout)]);
       const notes: string[] = [];
+      const stillWaiting = (game: Game) => {
+        return text([...notes, `Still waiting for ${waitingFor(playerId, game)}: call wait_for_turn again.`]
+          .join("\n\n"));
+      };
       for (;;) {
         // Listening before looking, so a change made in between still wakes the wait.
         const next = nextChange(playerId, stopped);
         try {
-          const game = await gameService.findLastGame(playerId);
+          const game = await findCurrentGame(playerId);
           if (!game) return refusal("noActiveGame");
           if (!isReady(playerId, game)) {
             if (await next.changed) continue;
-            return text([...notes, `Still waiting for ${waitingFor(playerId, game)}: call wait_for_turn again.`]
-              .join("\n\n"));
+            return stillWaiting(game);
           }
-          if (game.state !== "playing" || game.board?.rolled) return viewOf(playerId, game, ...notes);
+          if (hasStartedSinceShown(playerId, game)) {
+            notes.push("Your Game has started.");
+            // Said once, so a Roll that passes the Turn goes on to wait for the next.
+            lastShown.set(playerId, { gameId: game.id, lobbyPlayers: null });
+          }
+          if (game.state !== "playing" || !isTurnOf(playerId, game) || game.board?.rolled) {
+            return viewOf(playerId, game, ...notes);
+          }
           const rolled = await gameService.roll(playerId);
-          // Refused only if the Game changed since it was looked at, so it's looked at again.
-          if (!rolled.ok) continue;
+          // Refused only if the Game changed since it was looked at, so it's looked at again, unless time is up.
+          if (!rolled.ok) {
+            if (stopped.aborted) return stillWaiting(game);
+            continue;
+          }
           const { board } = rolled.game;
           if (board?.rolled) return viewOf(playerId, rolled.game, ...notes);
           notes.push(`You Rolled a ${board?.lastRoll?.number}, which none of your Tokens could Move by, so your ` +
@@ -302,7 +336,8 @@ const createGameTools = (
         `again for you if the Move earned another Roll. ${guide}`,
       inputSchema: {
         token: z.number({ error: `token must be a whole number from 1 to ${classicRules.tokensPerSeat}` })
-          .describe(`Which of your Tokens to Move, by its number on the Board, from 1 to ${classicRules.tokensPerSeat}`),
+          .describe("Which of your Tokens to Move, by its number on the Board, from 1 to " +
+            `${classicRules.tokensPerSeat}`),
         playerKey: requiredPlayerKey,
       },
     },
@@ -311,7 +346,7 @@ const createGameTools = (
       if (!result.ok) return refusal(result.reason);
       const { game } = result;
       if (game.state === "won") return viewOf(playerId, game, "Your Move won the Game!");
-      const isYourTurn = isReady(playerId, game);
+      const isYourTurn = isTurnOf(playerId, game);
       return viewOf(playerId, game, isYourTurn
         ? "Your Move earned another Roll: call wait_for_turn, which Rolls for you."
         : "Your Token Moved, and your Turn has passed. Call wait_for_turn, which returns once it's your Turn again.");
@@ -336,6 +371,11 @@ const createGameTools = (
   );
 
   return server;
+};
+
+/** Whether it's the Turn of the Player with this player ID, in a Game in play. */
+const isTurnOf = (playerId: string, game: Game) => {
+  return game.state === "playing" && game.board?.seats[game.board.turn]?.playerId === playerId;
 };
 
 /** The Players in a Game in the Lobby, so a change to who's in it can be told. */
@@ -367,7 +407,7 @@ const rules = `Ludo is a race for 2 to ${classicRules.maxPlayers} Players, each 
   `${trackCells.filter(isSafeCell).join(", ")}. On your Turn you Roll a die, then must Move one of your Tokens ` +
   "that can Move by the Roll, choosing which; if none can, your Turn passes. Only a " +
   `${classicRules.rollToLeaveYard} brings a Token out of the Yard, onto its Start cell. A Token that ends its Move ` +
-  "on a Track Cell Captures every opponent's Token alone there, sending it back to its Yard, unless it's a Safe " +
+  "on a Track cell Captures every opponent's Token alone there, sending it back to its Yard, unless it's a Safe " +
   "cell. Two or more Tokens of one Seat on a Cell protect each other. A Move that used a " +
   `${classicRules.rollToRollAgain}, made a Capture, or brought a Token Home earns another Roll in the same Turn. ` +
   "Play goes clockwise round the Seats, from a first Player picked at random. A Player who Leaves during play " +
@@ -387,11 +427,14 @@ const playLoop = "To play: call create_game to host a Game, or join_game with th
 /** How to play, which every tool repeats, as some clients never show the model the server's instructions. */
 const guide = `${rules} ${modes} ${playLoop}`;
 
-const playerKeyType = z.string({ error: "playerKey must be the Player key create_game or join_game gave you, as text" });
+const playerKeyType = z.string({
+  error: "playerKey must be the Player key create_game or join_game gave you, as text",
+});
 
 // Optional in the schema, so a missing one is refused with what to do next, as other refusals are, rather than as
 // bad arguments.
-const requiredPlayerKey = playerKeyType.optional().describe("Required: the Player key create_game or join_game gave you");
+const requiredPlayerKey = playerKeyType.optional()
+  .describe("Required: the Player key create_game or join_game gave you");
 
 const optionalPlayerKey = playerKeyType.optional()
   .describe("The Player key create_game or join_game gave you, if you've been given one in this conversation, so " +
