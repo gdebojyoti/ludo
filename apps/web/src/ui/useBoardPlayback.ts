@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { indexAfter, restFor, tumbleFor, type Seat, type SnapshotBoard } from "@ludo/shared";
+import {
+  captureReturnFor,
+  indexAfter,
+  restFor,
+  tumbleFor,
+  type Seat,
+  type SeatToken,
+  type SnapshotBoard,
+} from "@ludo/shared";
 import { prefersReducedMotion } from "./motion";
 
 /** A Token Moving by a Roll, as the Board draws it sliding. */
@@ -27,6 +35,8 @@ interface Playback {
    * snapshot of its Move.
    */
   move?: TokenMoving & { arrived: boolean };
+  /** The Tokens returning to their Yards, once the Token that Captured them has arrived. */
+  returning?: SeatToken[];
 }
 
 interface State {
@@ -37,6 +47,15 @@ interface State {
   ownRoll?: number;
   ownMove?: number;
 }
+
+/**
+ * The playback once its Token has arrived for good, with the latest Move known: any Tokens it Captured start returning
+ * to their Yards, or are simply there in a tab out of sight.
+ */
+const tokenLanded = (playback: Playback, seen: SnapshotBoard): Playback => {
+  const returning = document.hidden ? [] : seen.lastMove?.captured ?? [];
+  return { ...playback, move: undefined, returning: returning.length ? returning : undefined };
+};
 
 /**
  * What plays out once the next snapshot arrives. The same Player's Roll and Move play out together, so a Move never
@@ -59,7 +78,7 @@ const nextState = (state: State, after: SnapshotBoard): State => {
   if (roll && roll.index === state.ownRoll) return { ...state, seen: after, ownRoll: undefined };
   if (move && move.index === state.ownMove) {
     // The viewer's own Token, if it's arrived, has waited for this.
-    const arrived = playback?.move?.arrived ? { ...playback, move: undefined } : playback;
+    const arrived = playback?.move?.arrived ? tokenLanded(playback, after) : playback;
     return { ...state, seen: after, playback: arrived, ownMove: undefined };
   }
   // A tab out of sight, or a Player who'd rather not see motion, sees each change at once.
@@ -77,6 +96,7 @@ const nextState = (state: State, after: SnapshotBoard): State => {
       roll: roll ? { number: roll.number, landed: false } : samePlayers?.roll,
       // A Move is by the latest Roll, which a snapshot bringing only the Move hasn't changed.
       move: move ? { seat, token: move.token, number: after.lastRoll.number, arrived: false } : samePlayers?.move,
+      returning: move ? undefined : samePlayers?.returning,
     },
   };
 };
@@ -99,8 +119,20 @@ export const useBoardPlayback = (latestBoard: SnapshotBoard) => {
     return () => clearTimeout(timeout);
   }, [roll]);
 
-  // Rests once the die has landed and the Token has arrived, then shows the latest Board.
-  const resting = playback !== undefined && !playback.move && (!playback.roll || playback.roll.landed);
+  const returning = playback?.returning;
+  useEffect(() => {
+    if (!returning) return;
+    const land = () => setState((current) => current.playback?.returning === returning
+      ? { ...current, playback: { ...current.playback, returning: undefined } }
+      : current);
+    const timeout = setTimeout(land, captureReturnFor);
+    return () => clearTimeout(timeout);
+  }, [returning]);
+
+  // Rests once the die has landed, the Token has arrived and any it Captured are back in their Yards, then shows the
+  // latest Board.
+  const resting = playback !== undefined && !playback.move && !playback.returning &&
+    (!playback.roll || playback.roll.landed);
   useEffect(() => {
     if (!resting) return;
     const timeout = setTimeout(() => setState((current) => ({ ...current, playback: undefined })), restFor);
@@ -139,6 +171,9 @@ export const useBoardPlayback = (latestBoard: SnapshotBoard) => {
    */
   const ownMoveAnswered = (ok: boolean) => setState((current) => {
     const { playback } = current;
+    // The reply can get here before the snapshot sent ahead of it has been rendered, and that needs `ownMove` to know
+    // the Move as the viewer's, rather than play it out again.
+    if (ok && current.ownMove !== undefined) return current;
     if (playback?.seat !== current.seen.seat) return { ...current, ownMove: undefined };
     if (!ok) return { ...current, ownMove: undefined, playback: undefined };
     const move = playback.move?.arrived ? undefined : playback.move;
@@ -149,10 +184,10 @@ export const useBoardPlayback = (latestBoard: SnapshotBoard) => {
     const { playback } = current;
     if (!playback?.move) return current;
     // The viewer's own Token can arrive before the server's snapshot of its Move, and waits there for it.
-    const move = current.ownMove !== undefined && playback.seat === current.seen.seat
-      ? { ...playback.move, arrived: true }
-      : undefined;
-    return { ...current, playback: { ...playback, move } };
+    if (current.ownMove !== undefined && playback.seat === current.seen.seat) {
+      return { ...current, playback: { ...playback, move: { ...playback.move, arrived: true } } };
+    }
+    return { ...current, playback: tokenLanded(playback, current.seen) };
   });
 
   // While a Token is sliding, the Board shows it where it started. Once it's arrived, it shows where every Token is
@@ -171,6 +206,8 @@ export const useBoardPlayback = (latestBoard: SnapshotBoard) => {
     playedRoll: playback?.roll && { seat: playback.seat, ...playback.roll },
     /** The Token sliding, or waiting where it arrived, if one is. */
     moving: playback?.move,
+    /** The Captured Tokens returning to their Yards, if any are. */
+    returning: playback?.returning,
     // Whether the Board has nothing left to play out, and shows the latest snapshot.
     playedOut: !playback,
     startOwnRoll,

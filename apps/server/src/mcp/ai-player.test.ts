@@ -421,7 +421,7 @@ describe("an AI Player's Turn", () => {
 
     started = Date.now();
     expect(await aiRolled(ai)).toContain("you Rolled a 3");
-    expect(Date.now() - started).toBeGreaterThanOrEqual(movePlaysOutFor({ area: "yard" }, 6));
+    expect(Date.now() - started).toBeGreaterThanOrEqual(movePlaysOutFor({ area: "yard" }, 6, false));
   });
 
   it("refuses a Token that can't Move by the Roll", async () => {

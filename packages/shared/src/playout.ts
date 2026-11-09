@@ -8,6 +8,9 @@ export const tumbleFor = 900;
 /** How often, in milliseconds, a Moving Token takes a step: a slide onto the next place on its path, then a rest. */
 export const stepEvery = 220;
 
+/** How long, in milliseconds, a Captured Token takes to return to its Yard, once the Token that Captured it arrives. */
+export const captureReturnFor = 900;
+
 /**
  * How long, in milliseconds, the Board rests once a Roll or Move has played out, before it shows what came after,
  * such as the Turn passing, so everyone sees where things ended up before anyone can Roll again.
@@ -19,9 +22,9 @@ export const rollPlaysOutFor = tumbleFor + restFor;
 
 /**
  * How long, in milliseconds, a Move takes to play out: the Token steps a Cell at a time, or once to leave its Yard,
- * then the Board rests.
+ * any Tokens it Captured return to their Yards together, then the Board rests.
  */
-export const movePlaysOutFor = (from: TokenPosition, roll: number): number => {
+export const movePlaysOutFor = (from: TokenPosition, roll: number, capturedAny: boolean): number => {
   const steps = from.area === "yard" ? 1 : roll;
-  return steps * stepEvery + restFor;
+  return steps * stepEvery + (capturedAny ? captureReturnFor : 0) + restFor;
 };

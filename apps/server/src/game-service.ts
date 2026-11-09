@@ -250,7 +250,7 @@ export const createGameService = (
       index: indexAfter(board.lastMove),
     };
     const seats = board.seats.map((other, index) => ({ ...other, tokens: after.seats[index] ?? other.tokens }));
-    const playsOutAt = playsOutAfter(movePlaysOutFor(from, number));
+    const playsOutAt = playsOutAfter(movePlaysOutFor(from, number, after.captured.length > 0));
     if (wonByMove(game.mode, { tokens: moved, captured: after.captured })) {
       const won = { ...board, seats, lastMove, playsOutAt, rolled: false, winner: seat };
       return { ok: true, game: await save({ ...game, state: "won", board: won }) };
