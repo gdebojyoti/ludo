@@ -24,7 +24,7 @@ export const rollPlaysOutFor = tumbleFor + restFor;
  * How long, in milliseconds, a Move takes to play out: the Token steps a Cell at a time, or once to leave its Yard,
  * any Tokens it Captured return to their Yards together, then the Board rests.
  */
-export const movePlaysOutFor = (from: TokenPosition, roll: number, captured = false): number => {
+export const movePlaysOutFor = (from: TokenPosition, roll: number, capturedAny: boolean): number => {
   const steps = from.area === "yard" ? 1 : roll;
-  return steps * stepEvery + (captured ? captureReturnFor : 0) + restFor;
+  return steps * stepEvery + (capturedAny ? captureReturnFor : 0) + restFor;
 };

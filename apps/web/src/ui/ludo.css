@@ -398,7 +398,7 @@
   /* A Captured Token going back to its Yard in a straight line, above the Token that Captured it. */
   .ludo-token-returning {
     z-index: 4;
-    animation-name: ludo-token-return;
+    animation-name: ludo-step-a;
     animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
   }
 
@@ -457,7 +457,10 @@
   }
 }
 
-/* The steps of a Moving Token (.ludo-token-moving), the same twice over so each step starts its slide afresh. */
+/*
+ * The steps of a Moving Token (.ludo-token-moving), the same twice over so each step starts its slide afresh. A
+ * Captured Token going back to its Yard (.ludo-token-returning) takes just the one.
+ */
 @keyframes ludo-step-a {
   from {
     transform: translate(
@@ -468,16 +471,6 @@
 }
 
 @keyframes ludo-step-b {
-  from {
-    transform: translate(
-      calc((var(--from-column) - var(--column)) * (var(--cell) + 1px)),
-      calc((var(--from-row) - var(--row)) * (var(--cell) + 1px))
-    );
-  }
-}
-
-/* A Captured Token going back to its Yard (.ludo-token-returning), straight across the Board. */
-@keyframes ludo-token-return {
   from {
     transform: translate(
       calc((var(--from-column) - var(--column)) * (var(--cell) + 1px)),

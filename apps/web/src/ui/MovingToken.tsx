@@ -1,5 +1,6 @@
-import { useEffect, useEffectEvent, useState, type CSSProperties } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { stepEvery } from "@ludo/shared";
+import { slideStyle } from "./motion";
 import type { Cell } from "./seatView";
 
 interface Props {
@@ -31,12 +32,9 @@ export default function MovingToken({ path, colour, onArrived }: Props) {
   const to = path[step];
   if (!from || !to) return null;
   const style = {
-    "--row": to[0],
-    "--column": to[1],
-    "--from-row": from[0],
-    "--from-column": from[1],
+    ...slideStyle(from, to),
     animationName: step % 2 ? "ludo-step-a" : "ludo-step-b",
     backgroundColor: colour,
-  } as CSSProperties;
+  };
   return <span className="ludo-token ludo-token-moving" style={style} aria-hidden />;
 }

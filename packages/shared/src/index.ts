@@ -25,6 +25,7 @@ export {
   hasWon,
   isGameMode,
   isSafeCell,
+  isSameToken,
   isValidPlayerName,
   isWonByCapture,
   legalMoves,
