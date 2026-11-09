@@ -12,7 +12,7 @@ export type {
   SnapshotSeat,
 } from "./events.js";
 export { indexAfter } from "./events.js";
-export { movePlaysOutFor, restFor, rollPlaysOutFor, stepEvery, tumbleFor } from "./playout.js";
+export { captureReturnFor, movePlaysOutFor, restFor, rollPlaysOutFor, stepEvery, tumbleFor } from "./playout.js";
 export { randomPlayerName } from "./player-names.js";
 export {
   applyMove,

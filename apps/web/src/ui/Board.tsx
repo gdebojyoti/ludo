@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import {
+  captureReturnFor,
   classicRules,
   positionsAlong,
   seatsClockwise,
@@ -28,6 +29,8 @@ interface Props {
    * and nothing on the Board can be picked until it's arrived.
    */
   moving: TokenMoving | undefined;
+  /** The Tokens the latest Move Captured, drawn returning to their Yards from the Cell it ended on. */
+  returning: SeatToken[] | undefined;
   /** Called once the Token that's Moving has arrived. */
   onArrived: () => void;
 }
@@ -160,7 +163,11 @@ const homeSpotCentre = (turns: number, count: number, spot: number): Cell => {
 // half the gap between slots, 15 design pixels, on the design's 360px Board.
 const yardSlotOffset = 15 / ((360 - 14) / 15 + 1);
 
-/** The middle of a slot in a Yard, from the Yard's top-left Cell, in Cells of the grid. Slots go across, then down. */
+/**
+ * The middle of a slot in a Yard, from the Yard's top-left Cell, in Cells of the grid. Slots go across, then down.
+ * Each Token has its own slot, by its place in its Seat's list of Tokens, so the others never shift as it comes and
+ * goes.
+ */
 const yardSlotCentre = ([row, column]: Cell, slot: number): Cell => [
   row + (yardSize - 1) / 2 + (slot < 2 ? -1 : 1) * yardSlotOffset,
   column + (yardSize - 1) / 2 + (slot % 2 ? 1 : -1) * yardSlotOffset,
@@ -172,13 +179,15 @@ const starIcon = (onColour: boolean) => (
   </svg>
 );
 
-export default function Board({ mode, board, disabled, onMove, moving, onArrived }: Props) {
+export default function Board({ mode, board, disabled, onMove, moving, returning, onArrived }: Props) {
   const viewer = board.seat;
   // A Game mode whose Tokens never reach Home greys out the Home columns and Home, which it doesn't use.
   const usesHome = tokensReachHome(mode);
   const fromViewer = (seat: Seat) => seatsClockwise(viewer, seat);
   const colourOf = (seat: Seat) => seatViewOf(board, seat).colour;
   const isMoving = ({ seat, token }: SeatToken) => seat === moving?.seat && token === moving.token;
+  const isReturning = ({ seat, token }: SeatToken) =>
+    returning?.some((other) => other.seat === seat && other.token === token) ?? false;
   // Nothing can be picked while a Token is Moving.
   const isMovable = ({ seat, token }: SeatToken) =>
     moving === undefined && seat === viewer && board.moves.includes(token);
@@ -309,9 +318,11 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
       : boardMessages.yardOf(playerNameAt(board, seat), seat === viewer, inYard.length);
     const slots = (
       <div className="ludo-yard-inner">
-        {yardSlots.map((slot) => (
-          <div key={slot} className="ludo-slot">{inYard[slot] && tokenSpan(inYard[slot], slot)}</div>
-        ))}
+        {yardSlots.map((slot) => {
+          const placed = inYard.find(({ token }) => token === slot);
+          // A Token returning keeps its slot empty until it lands.
+          return <div key={slot} className="ludo-slot">{placed && !isReturning(placed) && tokenSpan(placed, slot)}</div>;
+        })}
       </div>
     );
     const className = `ludo-yard ${empty ? "ludo-yard-empty" : ""}`;
@@ -353,9 +364,8 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
     if (!from) return [];
     const turns = fromViewer(seat);
     const homeCount = tokensHome(tokens);
-    const yardSlot = tokens.slice(0, token).filter((position) => position.area === "yard").length;
     const placeOf = (position: TokenPosition): Cell => {
-      if (position.area === "yard") return yardSlotCentre(seatView(turns).yardCorner, yardSlot);
+      if (position.area === "yard") return yardSlotCentre(seatView(turns).yardCorner, token);
       if (position.area === "home") return homeSpotCentre(turns, homeCount + 1, homeCount);
       return gridCell(position, seat, viewer) as Cell;
     };
@@ -363,6 +373,23 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
   };
   const path = moving ? movingPath(moving) : [];
   const movingFrom = path[0];
+
+  /** A Captured Token, drawn returning from the Cell the Move ended on to its slot in its Yard. */
+  const returningToken = ({ seat, token }: SeatToken) => {
+    const from = board.lastMove && gridCell(board.lastMove.to, board.lastMove.seat, viewer);
+    if (!from) return null;
+    const { yardCorner } = seatView(fromViewer(seat));
+    const [row, column] = yardSlotCentre(yardCorner, token);
+    const style = {
+      "--row": row,
+      "--column": column,
+      "--from-row": from[0],
+      "--from-column": from[1],
+      animationDuration: `${captureReturnFor}ms`,
+      backgroundColor: colourOf(seat),
+    } as CSSProperties;
+    return <span key={`${seat}-${token}`} className="ludo-token ludo-token-returning" style={style} aria-hidden />;
+  };
 
   return (
     <div className="ludo-board">
@@ -401,6 +428,7 @@ export default function Board({ mode, board, disabled, onMove, moving, onArrived
           onArrived={onArrived}
         />
       )}
+      {returning?.map(returningToken)}
     </div>
   );
 }

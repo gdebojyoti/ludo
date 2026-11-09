@@ -377,18 +377,29 @@
    * the middle of the Cell at --row and --column, and slides there flat from the one at --from-row and --from-column.
    * A Cell is a 15th of the Board, less the 1px gaps between them.
    */
-  .ludo-token-moving {
+  .ludo-token-moving,
+  .ludo-token-returning {
     --cell: calc((100cqi - 14px) / 15);
     position: absolute;
     left: calc(var(--column) * (var(--cell) + 1px) + var(--cell) / 2);
     top: calc(var(--row) * (var(--cell) + 1px) + var(--cell) / 2);
     z-index: 3;
     margin: calc(-8.5 * var(--u)) 0 0 calc(-8.5 * var(--u));
-    box-shadow: 0 0 0 2px var(--color-ludo-maroon), 0 3px 4px rgb(40 10 10 / 0.55);
     pointer-events: none;
+    animation-fill-mode: both;
+  }
+
+  .ludo-token-moving {
+    box-shadow: 0 0 0 2px var(--color-ludo-maroon), 0 3px 4px rgb(40 10 10 / 0.55);
     animation-duration: 190ms;
     animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
-    animation-fill-mode: both;
+  }
+
+  /* A Captured Token going back to its Yard in a straight line, above the Token that Captured it. */
+  .ludo-token-returning {
+    z-index: 4;
+    animation-name: ludo-token-return;
+    animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
   }
 
   /* 5 or more Tokens in one Cell: a count, ringed in each Seat's share. */
@@ -457,6 +468,16 @@
 }
 
 @keyframes ludo-step-b {
+  from {
+    transform: translate(
+      calc((var(--from-column) - var(--column)) * (var(--cell) + 1px)),
+      calc((var(--from-row) - var(--row)) * (var(--cell) + 1px))
+    );
+  }
+}
+
+/* A Captured Token going back to its Yard (.ludo-token-returning), straight across the Board. */
+@keyframes ludo-token-return {
   from {
     transform: translate(
       calc((var(--from-column) - var(--column)) * (var(--cell) + 1px)),
