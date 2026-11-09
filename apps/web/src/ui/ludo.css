@@ -147,12 +147,13 @@
   }
 }
 
+/* Not in the style guide: a filled B2 in red, for the one action in a dialog that can't be undone. */
 @utility ludo-button-danger {
   height: 54px;
   width: 100%;
-  border: 1.5px solid var(--color-ludo-danger-line);
-  border-radius: 12px;
-  color: var(--color-ludo-danger);
+  border-radius: 14px;
+  background: var(--color-ludo-danger-line);
+  color: var(--color-ludo-ivory);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
