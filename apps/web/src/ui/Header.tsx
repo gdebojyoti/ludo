@@ -12,15 +12,15 @@ interface Props {
 export default function Header({ subtitle, action }: Props) {
   return (
     <header
-      className="flex h-11 w-full flex-none items-center justify-between gap-3 lg:h-[85px] lg:gap-4 lg:border-b
-        lg:border-ludo-ivory/12 lg:px-8"
+      className="flex h-11 w-full flex-none items-center justify-between gap-3 xl:h-[85px] xl:gap-4 xl:border-b
+        xl:border-ludo-ivory/12 xl:px-8"
     >
-      <div className="flex min-w-0 items-center gap-3 lg:gap-3.5">
-        <span className="font-ludo-display text-[22px] tracking-[0.08em] uppercase lg:text-2xl">
+      <div className="flex min-w-0 items-center gap-3 xl:gap-3.5">
+        <span className="font-ludo-display text-[22px] tracking-[0.08em] uppercase xl:text-2xl">
           {commonMessages.wordmark}
         </span>
-        <span className="h-5 w-px bg-ludo-ivory/30 lg:h-[22px]" />
-        <span className="truncate text-[13px] text-ludo-tan lg:text-sm">{subtitle}</span>
+        <span className="h-5 w-px bg-ludo-ivory/30 xl:h-[22px]" />
+        <span className="truncate text-[13px] text-ludo-tan xl:text-sm">{subtitle}</span>
       </div>
       {action}
     </header>

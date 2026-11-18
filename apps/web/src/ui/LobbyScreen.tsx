@@ -107,13 +107,15 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
   const gameCodeCard = () => (
     <section
       className="flex flex-col items-center gap-3.5 rounded-[22px] bg-ludo-ivory px-5 pt-6 pb-[22px] text-ludo-maroon
-        lg:px-6 lg:pt-7 lg:pb-6"
+        xl:px-6 xl:pt-7 xl:pb-6"
     >
-      <h2 className="m-0 text-xs font-bold tracking-[0.12em] text-ludo-brown uppercase">{lobbyMessages.gameCodeHeading}</h2>
+      <h2 className="m-0 text-xs font-bold tracking-[0.12em] text-ludo-brown uppercase">
+        {lobbyMessages.gameCodeHeading}
+      </h2>
       {/* Plain numerals, not a box, so it doesn't look editable. */}
       <p
         className="m-0 pt-0.5 pb-1 font-ludo-display text-[50px] leading-none tracking-[0.14em] whitespace-nowrap
-          lg:text-[56px]"
+          xl:text-[56px]"
         role="img"
         aria-label={lobbyMessages.gameCodeLabel(gameCode)}
       >
@@ -140,7 +142,9 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
   const playerList = () => (
     <section className="flex flex-col gap-2.5">
       <div className="flex items-baseline justify-between">
-        <h2 className="m-0 text-xs font-semibold tracking-widest text-ludo-tan uppercase">{lobbyMessages.playersHeading}</h2>
+        <h2 className="m-0 text-xs font-semibold tracking-widest text-ludo-tan uppercase">
+          {lobbyMessages.playersHeading}
+        </h2>
         <span className="text-[13px] text-ludo-tan">{lobbyMessages.playerCount(players.length)}</span>
       </div>
       {/* In join order. Two Players can share a Player name, so they're told apart by their place. */}
@@ -175,7 +179,7 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
   // On desktop, the header is a bar across the window, and below it the Game code is on the left and the Players on the
   // right. The wrappers that make those columns are left out of the layout on phones, where it's one column.
   return (
-    <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-8 lg:gap-0 lg:p-0">
+    <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-8 xl:gap-0 xl:p-0">
       <Header
         subtitle={lobbyMessages.subtitle(game.mode)}
         action={
@@ -186,19 +190,21 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
           />
         }
       />
-      <div className="contents lg:flex lg:flex-1 lg:items-center lg:justify-center lg:p-10">
-        <div className="contents lg:grid lg:w-full lg:max-w-[1000px] lg:grid-cols-2 lg:items-start lg:gap-14">
-          <div className="contents lg:flex lg:flex-col lg:gap-7">
+      <div className="contents xl:flex xl:flex-1 xl:items-center xl:justify-center xl:p-10">
+        <div className="contents xl:grid xl:w-full xl:max-w-[1000px] xl:grid-cols-2 xl:items-start xl:gap-14">
+          <div className="contents xl:flex xl:flex-col xl:gap-7">
             <Notice notice={notice} />
-            <div className="px-1 lg:p-0">
-              <h1 className="m-0 font-ludo-display text-[30px] font-normal lg:text-4xl">{lobbyMessages.heading}</h1>
-              <p className="mt-1.5 mb-0 text-sm text-ludo-tan lg:mt-2 lg:text-[15px]">{lobbyMessages.shareHint(isHost)}</p>
+            <div className="px-1 xl:p-0">
+              <h1 className="m-0 font-ludo-display text-[30px] font-normal xl:text-4xl">{lobbyMessages.heading}</h1>
+              <p className="mt-1.5 mb-0 text-sm text-ludo-tan xl:mt-2 xl:text-[15px]">
+                {lobbyMessages.shareHint(isHost)}
+              </p>
             </div>
             {gameCodeCard()}
           </div>
-          <div className="contents lg:flex lg:flex-col lg:gap-7">
+          <div className="contents xl:flex xl:flex-col xl:gap-7">
             {playerList()}
-            <div className="flex-1 lg:hidden" />
+            <div className="flex-1 xl:hidden" />
             {startPrompt()}
             <ErrorMessage error={error} />
           </div>

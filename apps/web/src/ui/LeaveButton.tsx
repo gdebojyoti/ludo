@@ -35,13 +35,13 @@ export default function LeaveButton({ disabled, text, onLeave }: Props) {
       {/* Only an icon on phones; on desktop, an icon and its text, as the design has room for it. */}
       <button
         type="button"
-        className="ludo-button-icon text-ludo-ivory lg:h-12 lg:w-auto lg:gap-2 lg:px-5 lg:text-base lg:font-semibold"
+        className="ludo-button-icon text-ludo-ivory xl:h-12 xl:w-auto xl:gap-2 xl:px-5 xl:text-base xl:font-semibold"
         title={text.label}
         onClick={() => dialogRef.current?.showModal()}
       >
-        <Icon name="leave" className="lg:size-4.5" />
-        <span className="sr-only lg:hidden">{text.label}</span>
-        <span className="hidden lg:inline">{text.button}</span>
+        <Icon name="leave" className="xl:size-4.5" />
+        <span className="sr-only xl:hidden">{text.label}</span>
+        <span className="hidden xl:inline">{text.button}</span>
       </button>
       <dialog
         ref={dialogRef}

@@ -16,13 +16,13 @@ export default function CancelledScreen({ game, onBackToStart }: Props) {
   // the button just below the message rather than at the bottom of the window. The column is left out of the layout on
   // phones.
   return (
-    <div className="flex flex-1 flex-col items-center px-6 pt-3.5 pb-9 lg:p-0">
+    <div className="flex flex-1 flex-col items-center px-6 pt-3.5 pb-9 xl:p-0">
       <Header subtitle={resultMessages.cancelledSubtitle} />
       <div
-        className="contents lg:mx-auto lg:flex lg:w-full lg:max-w-[430px] lg:flex-1 lg:flex-col lg:items-center
-          lg:justify-center lg:gap-10 lg:px-6 lg:pt-10 lg:pb-12"
+        className="contents xl:mx-auto xl:flex xl:w-full xl:max-w-[430px] xl:flex-1 xl:flex-col xl:items-center
+          xl:justify-center xl:gap-10 xl:px-6 xl:pt-10 xl:pb-12"
       >
-        <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center lg:flex-none">
+        <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center xl:flex-none">
           <div
             className="flex size-[120px] items-center justify-center rounded-full border-2 border-ludo-gold
               text-ludo-gold-light"

@@ -49,11 +49,11 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
   // On desktop, the header is a bar across the window, and the rest is in a phone-width column down the middle. The
   // column is left out of the layout on phones.
   return (
-    <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-9 lg:gap-0 lg:p-0">
+    <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-9 xl:gap-0 xl:p-0">
       <Header subtitle={resultMessages.subtitle(mode)} />
       <div
-        className="contents lg:mx-auto lg:flex lg:w-full lg:max-w-[430px] lg:flex-1 lg:flex-col lg:gap-[22px] lg:px-5
-          lg:pt-10 lg:pb-12"
+        className="contents xl:mx-auto xl:flex xl:w-full xl:max-w-[430px] xl:flex-1 xl:flex-col xl:gap-[22px] xl:px-5
+          xl:pt-10 xl:pb-12"
       >
         <section
           className="flex flex-col items-center gap-3 rounded-[22px] border-t-8 bg-ludo-ivory px-[22px] py-[26px]
@@ -109,7 +109,7 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
             ))}
           </section>
         )}
-        <div className="flex-1 lg:hidden" />
+        <div className="flex-1 xl:hidden" />
         <button type="button" className="ludo-button-gold" onClick={onBackToStart}>{resultMessages.backToStart}</button>
       </div>
     </div>
