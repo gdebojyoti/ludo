@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
 import { commonMessages } from "./messages";
+import SettingsButton from "./SettingsButton";
 
 interface Props {
   /** What the screen is, beside the wordmark, such as the Game mode and how many Players it has. */
   subtitle: string;
-  /** A button on the right, such as Leave. */
+  /** A button on the right, such as Leave. Settings is to its right. */
   action?: ReactNode;
 }
 
@@ -22,7 +23,12 @@ export default function Header({ subtitle, action }: Props) {
         <span className="h-5 w-px bg-ludo-ivory/30 xl:h-[22px]" />
         <span className="truncate text-[13px] text-ludo-tan xl:text-sm">{subtitle}</span>
       </div>
-      {action}
+      {action && (
+        <div className="flex flex-none items-center gap-2 xl:gap-3">
+          {action}
+          <SettingsButton />
+        </div>
+      )}
     </header>
   );
 }
