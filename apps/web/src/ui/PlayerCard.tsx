@@ -40,7 +40,7 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
 
   return (
     <div
-      className={`flex h-16 min-w-0 flex-1 items-center gap-2.5 rounded-[14px] px-2.5 py-2 ${direction} ${
+      className={`flex h-16 min-w-0 flex-1 items-center gap-2.5 rounded-[14px] px-2.5 py-2 xl:flex-none ${direction} ${
         isTurn ? "border-2 border-ludo-gold bg-ludo-gold/14" : "border border-ludo-ivory/16 bg-ludo-ivory/7"
       }`}
     >

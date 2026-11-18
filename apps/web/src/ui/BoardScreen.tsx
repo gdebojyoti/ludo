@@ -175,6 +175,7 @@ export default function BoardScreen({
     if (!snapshotSeat) return null;
     return (
       <PlayerCard
+        key={seatsFromViewer}
         seat={snapshotSeat}
         seatsFromViewer={seatsFromViewer}
         mirrored={mirrored}
@@ -280,50 +281,103 @@ export default function BoardScreen({
   // TODO: Move this to Settings panel
   const isSwapped = true;
 
+  // On phones, the Player cards are in a row above the Board and a row below it, by where their Seats are on it. On
+  // desktop, they're in a list on the left, the viewer's first and then clockwise, and the Seats nobody has are left
+  // out, as the list doesn't stand for the Board. Each layout has its own cards, hidden in the other.
+  const desktopCards = [0, 1, 2, 3].map((seatsFromViewer) =>
+    board.seats[seatAt(board, seatsFromViewer)]?.playerName === null ? null : card(seatsFromViewer, false),
+  );
+
+  // On desktop, the header is a bar across the window, and below it the Players, the Board and the Turn status are in
+  // three columns, top-aligned. The Board is as big as the window's height allows, less the header, the space round the
+  // columns and its own frame, or as wide as is left once the side columns have their least width (250px for the
+  // Players, 300px for the Turn status) and the 56px gaps between columns, whichever is smaller, and never more than
+  // 750px across, so it doesn't fill large screens. The Players column then takes what's left, up to 300px.
+  //
+  // The columns sit in the middle of the height below the header, unless that would leave more than 150px above them,
+  // besides the 32px padding: then they're 150px down, and the rest of the space is below them. The Board is always the
+  // tallest column, so the space to share is the window's height less the header (85px), the padding above and below
+  // the columns (32px and 40px) and the Board.
+  //
+  // The Board's size uses the screen's width in cqw, as it's a size container, not %: in the padding, % would mean a
+  // different width than in the columns, and the gap above would be worked out for the wrong size of Board. The width
+  // left for the Board is the screen's width less the padding at the sides (40px each) and the other columns and gaps.
+  //
+  // The wrappers that make those columns are left out of the layout on phones, where it's one column, and the Notice,
+  // above the cards there, is above the Turn status on desktop.
   return (
-    <div className="flex flex-1 flex-col items-center gap-3.5 px-[15px] pt-3.5 pb-7">
+    <div className="flex flex-1 flex-col items-center gap-3.5 px-[15px] pt-3.5 pb-7 xl:@container xl:gap-0 xl:p-0">
       <Header
         subtitle={boardMessages.subtitle(mode, playerCount)}
         action={<LeaveButton disabled={disabled} text={leaveMessages.inPlay(otherNames)} onLeave={onLeaveGame} />}
       />
-      <Notice notice={notice} />
-      <div className="flex w-full gap-2.5">
-        {card(1, false)}
-        {card(2, true)}
-      </div>
-      <Board
-        mode={mode}
-        board={board}
-        disabled={disabled}
-        onMove={moveToken}
-        moving={moving}
-        returning={returning}
-        onArrived={playback.tokenArrived}
-      />
-      <div className="flex w-full gap-2.5">
-        {card(0, false)}
-        {card(3, true)}
-      </div>
-      {/*
-        The Turn status, beside the die. The same height whatever it says, so nothing on the screen shifts as the Turn
-        moves on. The text and the die both start at the top, and the title and the detail are each cut short at two
-        lines, so they always fit. On another Player's Turn, both are dimmed.
-      */}
-      <div className={`flex ${isSwapped ? "flex-row-reverse" : ""} h-36 w-full flex-none items-start justify-between gap-4 px-1.5 pt-2`}>
-        <div
-          className={`flex min-w-0 flex-1 flex-col gap-1.5 ${isOwnTurn ? "" : "opacity-75"} ${isSwapped ? "items-end text-right" : ""}`}
-          aria-live="polite"
-        >
-          <p className="m-0 line-clamp-2 font-ludo-display text-2xl leading-tight">{title}</p>
-          {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-ludo-tan">{detail}</p>}
+      <div
+        className="contents xl:grid xl:w-full xl:flex-1 xl:content-start xl:items-start xl:justify-center xl:gap-14
+          xl:px-10 xl:pb-10 xl:grid-cols-[minmax(250px,300px)_var(--ludo-board-size)_300px]
+          xl:[--ludo-board-size:min(max(320px,calc(100dvh-170px)),calc(100cqw-742px),750px)]
+          xl:pt-[calc(32px+clamp(0px,calc((100dvh-157px-var(--ludo-board-size))/2),150px))]"
+      >
+        <section className="hidden xl:flex xl:flex-col xl:gap-2.5" aria-labelledby="players-heading">
+          <h2 id="players-heading" className="m-0 mb-1 text-xs font-semibold tracking-widest text-ludo-tan uppercase">
+            {boardMessages.playersHeading}
+          </h2>
+          {desktopCards}
+        </section>
+        <div className="contents xl:block">
+          <div className="contents xl:hidden">
+            <Notice notice={notice} />
+          </div>
+          <div className="flex w-full gap-2.5 xl:hidden">
+            {card(1, false)}
+            {card(2, true)}
+          </div>
+          <Board
+            mode={mode}
+            board={board}
+            disabled={disabled}
+            onMove={moveToken}
+            moving={moving}
+            returning={returning}
+            onArrived={playback.tokenArrived}
+          />
+          <div className="flex w-full gap-2.5 xl:hidden">
+            {card(0, false)}
+            {card(3, true)}
+          </div>
         </div>
+        <div className="contents xl:flex xl:flex-col xl:gap-7">
+          <div className="hidden xl:contents">
+            <Notice notice={notice} />
+          </div>
+          {/*
+            The Turn status, beside the die, or on desktop above it. The same height whatever it says, so nothing on
+            the screen shifts as the Turn moves on. The text and the die both start at the top, and the title and the
+            detail are each cut short at two lines, so they always fit. On desktop, the text is always at least as tall
+            as a line of title and two of detail, so the die below it stays put. On another Player's Turn, both are
+            dimmed.
+          */}
+          <div
+            className={`flex ${isSwapped ? "flex-row-reverse" : ""} h-36 w-full flex-none items-start justify-between
+              gap-4 px-1.5 pt-2 xl:h-auto xl:flex-col xl:justify-start xl:gap-7 xl:p-0`}
+          >
+            <div
+              className={`flex min-w-0 flex-1 flex-col gap-1.5 ${isOwnTurn ? "" : "opacity-75"} ${
+                isSwapped ? "items-end text-right" : ""
+              } xl:min-h-[85px] xl:w-full xl:flex-none xl:items-start xl:text-left`}
+              aria-live="polite"
+            >
+              <p className="m-0 line-clamp-2 font-ludo-display text-2xl leading-tight xl:text-[30px]">{title}</p>
+              {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-ludo-tan xl:text-[15px]">{detail}</p>}
+            </div>
 
-        {/* A fixed slot, the size of the die and the Roll button, so they and the text never resize each other. */}
-        <div className={`size-20 flex-none ${isOwnTurn ? "" : "opacity-85"}`}>
-          {dieArea()}
+            {/* A fixed slot, the size of the die and the Roll button, so they and the text never resize each other. */}
+            <div className={`size-20 flex-none ${isOwnTurn ? "" : "opacity-85"}`}>
+              {dieArea()}
+            </div>
+          </div>
+          <ErrorMessage error={error} />
         </div>
       </div>
-      <ErrorMessage error={error} />
     </div>
   );
 }

@@ -46,65 +46,72 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
     return resultMessages.capture(named(winner), captured.map(({ seat }) => named(seat)));
   };
 
+  // On desktop, the header is a bar across the window, and the rest is in a phone-width column down the middle. The
+  // column is left out of the layout on phones.
   return (
-    <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-9">
+    <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-9 xl:gap-0 xl:p-0">
       <Header subtitle={resultMessages.subtitle(mode)} />
-      <section
-        className="flex flex-col items-center gap-3 rounded-[22px] border-t-8 bg-ludo-ivory px-[22px] py-[26px] text-center
-          text-ludo-maroon"
-        style={{ borderTopColor: colours(winner).colour }}
+      <div
+        className="contents xl:mx-auto xl:flex xl:w-full xl:max-w-[430px] xl:flex-1 xl:flex-col xl:gap-[22px] xl:px-5
+          xl:pt-10 xl:pb-12"
       >
-        <h2 className="m-0 text-xs font-bold tracking-[0.14em] text-ludo-brown uppercase">{resultMessages.won}</h2>
-        <Avatar
-          playerName={winnerName}
-          colours={colours(winner)}
-          ringed
-          className="size-[72px] border-[3px]! border-ludo-cream! text-[30px] font-normal!"
-        />
-        <h1 className="m-0 font-ludo-display text-[30px] leading-[1.15] font-normal wrap-anywhere" aria-live="polite">
-          {resultMessages.winner(winnerName, winner === viewer)}
-        </h1>
-        <p className="m-0 text-sm text-ludo-brown">{howWon()}</p>
-      </section>
-      {/* No Token reaches Home in a Game mode without it, so there's no count to show. */}
-      {tokensReachHome(mode) && others.length > 0 && (
-        <section className="flex flex-col gap-2.5">
-          <h2 className="m-0 text-xs font-semibold tracking-widest text-ludo-tan uppercase">
-            {resultMessages.tokensHomeHeading}
-          </h2>
-          {others.map(({ playerName, left, index }) => (
-            <div
-              key={index}
-              className="flex items-center gap-3 rounded-[14px] border border-ludo-ivory/16 bg-ludo-ivory/7 px-3.5 py-3"
-            >
-              <Avatar playerName={playerName ?? ""} colours={colours(index)} />
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{playerName}</span>
-                {(index === viewer || left) && (
-                  <span className="text-xs text-ludo-tan">{left ? boardMessages.left : commonMessages.you}</span>
-                )}
-              </span>
-              <span
-                className="flex flex-none gap-1"
-                role="img"
-                aria-label={resultMessages.tokensHome(homeCount(index))}
+        <section
+          className="flex flex-col items-center gap-3 rounded-[22px] border-t-8 bg-ludo-ivory px-[22px] py-[26px]
+            text-center text-ludo-maroon"
+          style={{ borderTopColor: colours(winner).colour }}
+        >
+          <h2 className="m-0 text-xs font-bold tracking-[0.14em] text-ludo-brown uppercase">{resultMessages.won}</h2>
+          <Avatar
+            playerName={winnerName}
+            colours={colours(winner)}
+            ringed
+            className="size-[72px] border-[3px]! border-ludo-cream! text-[30px] font-normal!"
+          />
+          <h1 className="m-0 font-ludo-display text-[30px] leading-[1.15] font-normal wrap-anywhere" aria-live="polite">
+            {resultMessages.winner(winnerName, winner === viewer)}
+          </h1>
+          <p className="m-0 text-sm text-ludo-brown">{howWon()}</p>
+        </section>
+        {/* No Token reaches Home in a Game mode without it, so there's no count to show. */}
+        {tokensReachHome(mode) && others.length > 0 && (
+          <section className="flex flex-col gap-2.5">
+            <h2 className="m-0 text-xs font-semibold tracking-widest text-ludo-tan uppercase">
+              {resultMessages.tokensHomeHeading}
+            </h2>
+            {others.map(({ playerName, left, index }) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 rounded-[14px] border border-ludo-ivory/16 bg-ludo-ivory/7 px-3.5 py-3"
               >
-                {tokenSpots.map((spot) => (
-                  <span
-                    key={spot}
-                    className={`size-3 rounded-full border-[1.5px] ${
+                <Avatar playerName={playerName ?? ""} colours={colours(index)} />
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{playerName}</span>
+                  {(index === viewer || left) && (
+                    <span className="text-xs text-ludo-tan">{left ? boardMessages.left : commonMessages.you}</span>
+                  )}
+                </span>
+                <span
+                  className="flex flex-none gap-1"
+                  role="img"
+                  aria-label={resultMessages.tokensHome(homeCount(index))}
+                >
+                  {tokenSpots.map((spot) => (
+                    <span
+                      key={spot}
+                      className={`size-3 rounded-full border-[1.5px] ${
                       spot < homeCount(index) ? "border-ludo-ivory" : "border-ludo-ivory/40"
                     }`}
-                    style={spot < homeCount(index) ? { backgroundColor: colours(index).colour } : {}}
-                  />
-                ))}
-              </span>
-            </div>
-          ))}
-        </section>
-      )}
-      <div className="flex-1" />
-      <button type="button" className="ludo-button-gold" onClick={onBackToStart}>{resultMessages.backToStart}</button>
+                      style={spot < homeCount(index) ? { backgroundColor: colours(index).colour } : {}}
+                    />
+                  ))}
+                </span>
+              </div>
+            ))}
+          </section>
+        )}
+        <div className="flex-1 xl:hidden" />
+        <button type="button" className="ludo-button-gold" onClick={onBackToStart}>{resultMessages.backToStart}</button>
+      </div>
     </div>
   );
 }

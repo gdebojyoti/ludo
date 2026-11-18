@@ -119,6 +119,7 @@ export const lobbyMessages = {
 export const leaveMessages = {
   asHostInLobby: (otherNames: string[]): LeaveText => ({
     label: "Leave and cancel the game",
+    button: "Leave lobby",
     title: "Cancel this game?",
     message: "You're the host, so leaving cancels the game for everyone." +
       (otherNames.length ? ` ${nameList(otherNames)} will be sent back to the start.` : ""),
@@ -127,6 +128,7 @@ export const leaveMessages = {
   }),
   inLobby: {
     label: "Leave the lobby",
+    button: "Leave lobby",
     title: "Leave this lobby?",
     message: "Your place opens up for someone else. You can join again with the code while the game hasn't started.",
     stay: "Stay in the lobby",
@@ -134,6 +136,7 @@ export const leaveMessages = {
   } satisfies LeaveText,
   inPlay: (otherNames: string[]): LeaveText => ({
     label: "Leave the game",
+    button: "Leave game",
     title: "Leave this game?",
     message: "You'll forfeit. Your tokens come off the board and your seat stays empty. " + (
       otherNames.length === 1 ? `${nameList(otherNames)} wins.` : `${nameList(otherNames)} keep playing.`
@@ -145,6 +148,7 @@ export const leaveMessages = {
 
 export const boardMessages = {
   subtitle: (mode: GameMode, playerCount: number) => `${modeName(mode)} · ${playerCount} players`,
+  playersHeading: "Players",
   emptySeat: "Empty seat",
   left: "Left",
   home: (count: number) => `${count} home`,

@@ -3,8 +3,10 @@ import Icon from "./Icon";
 
 /** What the Leave button and its question say, which depends on what Leaving does there. */
 export interface LeaveText {
-  /** The icon button's label, for screen readers. */
+  /** The button's label for screen readers on phones, where it's only an icon, and its tooltip. */
   label: string;
+  /** The button's text on desktop, beside its icon. */
+  button: string;
   title: string;
   /** What Leaving does. */
   message: string;
@@ -30,14 +32,16 @@ export default function LeaveButton({ disabled, text, onLeave }: Props) {
 
   return (
     <>
+      {/* Only an icon on phones; on desktop, an icon and its text, as the design has room for it. */}
       <button
         type="button"
-        className="ludo-button-icon text-ludo-ivory"
-        aria-label={text.label}
+        className="ludo-button-icon text-ludo-ivory xl:h-12 xl:w-auto xl:gap-2 xl:px-5 xl:text-base xl:font-semibold"
         title={text.label}
         onClick={() => dialogRef.current?.showModal()}
       >
-        <Icon name="leave" />
+        <Icon name="leave" className="xl:size-4.5" />
+        <span className="sr-only xl:hidden">{text.label}</span>
+        <span className="hidden xl:inline">{text.button}</span>
       </button>
       <dialog
         ref={dialogRef}

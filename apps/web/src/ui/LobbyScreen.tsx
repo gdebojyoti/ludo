@@ -104,8 +104,82 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
   const otherNames = players.flatMap((player, index) => (index === viewerIndex ? [] : [player.playerName]));
   const openPlaces = Math.max(classicRules.maxPlayers - players.length, 0);
 
+  const gameCodeCard = () => (
+    <section
+      className="flex flex-col items-center gap-3.5 rounded-[22px] bg-ludo-ivory px-5 pt-6 pb-[22px] text-ludo-maroon
+        xl:px-6 xl:pt-7 xl:pb-6"
+    >
+      <h2 className="m-0 text-xs font-bold tracking-[0.12em] text-ludo-brown uppercase">
+        {lobbyMessages.gameCodeHeading}
+      </h2>
+      {/* Plain numerals, not a box, so it doesn't look editable. */}
+      <p
+        className="m-0 pt-0.5 pb-1 font-ludo-display text-[50px] leading-none tracking-[0.14em] whitespace-nowrap
+          xl:text-[56px]"
+        role="img"
+        aria-label={lobbyMessages.gameCodeLabel(gameCode)}
+      >
+        {spacedGameCode(gameCode)}
+      </p>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <button type="button" className="ludo-button-outline h-12" onClick={shareJoinLink}>
+          <Icon name="share" size={18} />
+          <span aria-live="polite">{copied === "joinLink" ? lobbyMessages.copied : lobbyMessages.shareJoinLink}</span>
+        </button>
+        <button
+          type="button"
+          className="inline-flex h-12 flex-none cursor-pointer items-center gap-1.5 px-1.5 text-[13px] font-medium
+            text-ludo-brown underline underline-offset-[3px]"
+          onClick={() => copy("gameCode", gameCode)}
+        >
+          <Icon name="copy" size={15} />
+          <span aria-live="polite">{copied === "gameCode" ? lobbyMessages.copied : lobbyMessages.copyCode}</span>
+        </button>
+      </div>
+    </section>
+  );
+
+  const playerList = () => (
+    <section className="flex flex-col gap-2.5">
+      <div className="flex items-baseline justify-between">
+        <h2 className="m-0 text-xs font-semibold tracking-widest text-ludo-tan uppercase">
+          {lobbyMessages.playersHeading}
+        </h2>
+        <span className="text-[13px] text-ludo-tan">{lobbyMessages.playerCount(players.length)}</span>
+      </div>
+      {/* In join order. Two Players can share a Player name, so they're told apart by their place. */}
+      <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
+        {players.map((player, index) => (
+          <li
+            key={index}
+            className="flex items-center gap-3 rounded-[14px] border border-ludo-ivory/16 bg-ludo-ivory/7 px-3.5 py-3"
+          >
+            <Avatar playerName={player.playerName} ringed={index === viewerIndex} away={player.away} />
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{player.playerName}</span>
+              {index === viewerIndex && <span className="text-xs text-ludo-tan">{commonMessages.you}</span>}
+            </span>
+            {player.away && <Tag size="lobby" icon="away">{commonMessages.away}</Tag>}
+            {player.isHost && <Tag size="lobby" tone="gold">{lobbyMessages.host}</Tag>}
+          </li>
+        ))}
+        {Array.from({ length: openPlaces }, (_, index) => (
+          <li
+            key={`open-${index}`}
+            className="flex items-center gap-3 rounded-[14px] border border-dashed border-ludo-ivory/30 px-3.5 py-3"
+          >
+            <span className="size-9 flex-none rounded-full border-2 border-dashed border-ludo-ivory/35" aria-hidden />
+            <span className="text-[15px] text-ludo-tan">{lobbyMessages.openPlace}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+
+  // On desktop, the header is a bar across the window, and below it the Game code is on the left and the Players on the
+  // right. The wrappers that make those columns are left out of the layout on phones, where it's one column.
   return (
-    <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-8">
+    <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-8 xl:gap-0 xl:p-0">
       <Header
         subtitle={lobbyMessages.subtitle(game.mode)}
         action={
@@ -116,72 +190,26 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
           />
         }
       />
-      <Notice notice={notice} />
-      <div className="px-1">
-        <h1 className="m-0 font-ludo-display text-[30px] font-normal">{lobbyMessages.heading}</h1>
-        <p className="mt-1.5 mb-0 text-sm text-ludo-tan">{lobbyMessages.shareHint(isHost)}</p>
+      <div className="contents xl:flex xl:flex-1 xl:items-center xl:justify-center xl:p-10">
+        <div className="contents xl:grid xl:w-full xl:max-w-[1000px] xl:grid-cols-2 xl:items-start xl:gap-14">
+          <div className="contents xl:flex xl:flex-col xl:gap-7">
+            <Notice notice={notice} />
+            <div className="px-1 xl:p-0">
+              <h1 className="m-0 font-ludo-display text-[30px] font-normal xl:text-4xl">{lobbyMessages.heading}</h1>
+              <p className="mt-1.5 mb-0 text-sm text-ludo-tan xl:mt-2 xl:text-[15px]">
+                {lobbyMessages.shareHint(isHost)}
+              </p>
+            </div>
+            {gameCodeCard()}
+          </div>
+          <div className="contents xl:flex xl:flex-col xl:gap-7">
+            {playerList()}
+            <div className="flex-1 xl:hidden" />
+            {startPrompt()}
+            <ErrorMessage error={error} />
+          </div>
+        </div>
       </div>
-      <section className="flex flex-col items-center gap-3.5 rounded-[22px] bg-ludo-ivory px-5 pt-6 pb-[22px] text-ludo-maroon">
-        <h2 className="m-0 text-xs font-bold tracking-[0.12em] text-ludo-brown uppercase">{lobbyMessages.gameCodeHeading}</h2>
-        {/* Plain numerals, not a box, so it doesn't look editable. */}
-        <p
-          className="m-0 pt-0.5 pb-1 font-ludo-display text-[50px] leading-none tracking-[0.14em] whitespace-nowrap"
-          role="img"
-          aria-label={lobbyMessages.gameCodeLabel(gameCode)}
-        >
-          {spacedGameCode(gameCode)}
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <button type="button" className="ludo-button-outline h-12" onClick={shareJoinLink}>
-            <Icon name="share" size={18} />
-            <span aria-live="polite">{copied === "joinLink" ? lobbyMessages.copied : lobbyMessages.shareJoinLink}</span>
-          </button>
-          <button
-            type="button"
-            className="inline-flex h-12 flex-none cursor-pointer items-center gap-1.5 px-1.5 text-[13px] font-medium
-              text-ludo-brown underline underline-offset-[3px]"
-            onClick={() => copy("gameCode", gameCode)}
-          >
-            <Icon name="copy" size={15} />
-            <span aria-live="polite">{copied === "gameCode" ? lobbyMessages.copied : lobbyMessages.copyCode}</span>
-          </button>
-        </div>
-      </section>
-      <section className="flex flex-col gap-2.5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="m-0 text-xs font-semibold tracking-widest text-ludo-tan uppercase">{lobbyMessages.playersHeading}</h2>
-          <span className="text-[13px] text-ludo-tan">{lobbyMessages.playerCount(players.length)}</span>
-        </div>
-        {/* In join order. Two Players can share a Player name, so they're told apart by their place. */}
-        <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
-          {players.map((player, index) => (
-            <li
-              key={index}
-              className="flex items-center gap-3 rounded-[14px] border border-ludo-ivory/16 bg-ludo-ivory/7 px-3.5 py-3"
-            >
-              <Avatar playerName={player.playerName} ringed={index === viewerIndex} away={player.away} />
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{player.playerName}</span>
-                {index === viewerIndex && <span className="text-xs text-ludo-tan">{commonMessages.you}</span>}
-              </span>
-              {player.away && <Tag size="lobby" icon="away">{commonMessages.away}</Tag>}
-              {player.isHost && <Tag size="lobby" tone="gold">{lobbyMessages.host}</Tag>}
-            </li>
-          ))}
-          {Array.from({ length: openPlaces }, (_, index) => (
-            <li
-              key={`open-${index}`}
-              className="flex items-center gap-3 rounded-[14px] border border-dashed border-ludo-ivory/30 px-3.5 py-3"
-            >
-              <span className="size-9 flex-none rounded-full border-2 border-dashed border-ludo-ivory/35" aria-hidden />
-              <span className="text-[15px] text-ludo-tan">{lobbyMessages.openPlace}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
-      <div className="flex-1" />
-      {startPrompt()}
-      <ErrorMessage error={error} />
     </div>
   );
 }
