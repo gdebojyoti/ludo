@@ -18,8 +18,9 @@ interface Props {
   onLeave: () => void;
 }
 
-// Leave always asks first, so a misclick can't take the Player out, cancel the Game, or forfeit it. Staying is the
-// first choice, so it's the one a stray tap or Enter lands on.
+// Leave always asks first, so a misclick can't take the Player out, cancel the Game, or forfeit it. Leaving is the
+// prominent button, as it's what the Player opened the dialog to do, but staying is the first choice, so it's the one
+// a stray tap or Enter lands on.
 export default function LeaveButton({ disabled, text, onLeave }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -54,7 +55,11 @@ export default function LeaveButton({ disabled, text, onLeave }: Props) {
           <h2 id="leave-title" className="m-0 font-ludo-display text-[26px] font-normal">{text.title}</h2>
           <p className="m-0 text-[15px] leading-normal text-ludo-brown">{text.message}</p>
           <div className="mt-2 flex w-full flex-col gap-2.5">
-            <button type="button" className="ludo-button-maroon" onClick={() => dialogRef.current?.close()}>
+            <button
+              type="button"
+              className="ludo-button-outline h-[54px] w-full"
+              onClick={() => dialogRef.current?.close()}
+            >
               {text.stay}
             </button>
             <button type="button" className="ludo-button-danger" disabled={disabled} onClick={leave}>
