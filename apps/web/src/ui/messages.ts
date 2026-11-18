@@ -116,6 +116,18 @@ export const lobbyMessages = {
   orStartsByItself: `Or it starts by itself when a ${classicRules.maxPlayers}th player joins.`,
 };
 
+export const settingsMessages = {
+  label: "Settings",
+  button: "Settings",
+  title: "Settings",
+  diceOnLeft: "Dice on the left",
+  diceOnLeftDetail: "Handy if you play with your left thumb.",
+  theme: "Theme",
+  themeDetail: "Try a different look.",
+  changeTheme: "Change",
+  done: "Done",
+};
+
 export const leaveMessages = {
   asHostInLobby: (otherNames: string[]): LeaveText => ({
     label: "Leave and cancel the game",
