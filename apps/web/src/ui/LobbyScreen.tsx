@@ -78,10 +78,16 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
     if (!isHost) {
       return (
         <div
-          className="flex items-center gap-3.5 rounded-2xl border-[1.5px] border-dashed border-ludo-accent/60 px-[18px] py-4"
+          className="flex items-center gap-3.5 rounded-2xl border-[1.5px] border-dashed border-ludo-accent/60 px-[18px] py-4
+            christmas:border-ludo-page-line"
           role="status"
         >
-          <Icon name="waiting" size={26} strokeWidth={1.8} className="flex-none text-ludo-accent-light" />
+          <Icon
+            name="waiting"
+            size={26}
+            strokeWidth={1.8}
+            className="flex-none text-ludo-accent-light christmas:text-ludo-on-page-muted"
+          />
           <div className="flex flex-col gap-[3px]">
             <span className="text-[15px] font-semibold">{lobbyMessages.waitingForHost(host?.playerName ?? "")}</span>
             <span className="text-[13px] text-ludo-on-page-muted">{lobbyMessages.orStartsByItself}</span>
@@ -165,7 +171,7 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
               key={index}
               className="flex items-center gap-3 rounded-[14px] border border-ludo-row-line bg-ludo-row px-3.5 py-3"
             >
-              <Avatar playerName={player.playerName} ringed={index === viewerIndex} away={player.away} />
+              <Avatar playerName={player.playerName} ringed={index === viewerIndex} absent={player.away} />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{player.playerName}</span>
                 {about.length > 0 && <span className="text-xs text-ludo-on-page-muted">{about.join(" · ")}</span>}

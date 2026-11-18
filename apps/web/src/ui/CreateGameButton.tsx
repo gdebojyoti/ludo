@@ -16,10 +16,12 @@ const modes = [
   { mode: "quick", available: false },
 ] as const;
 
-// How a Game mode's option looks, by whether it can be chosen yet.
+// How a Game mode's option looks, by whether it can be chosen yet. The chosen one's icon is gold, or in the Christmas
+// theme, pale blue.
 const availableStyles = {
   label: "cursor-pointer",
-  icon: "bg-ludo-card-sunk text-ludo-ink group-has-checked:bg-ludo-ink group-has-checked:text-ludo-accent-light",
+  icon: `bg-ludo-card-sunk text-ludo-ink group-has-checked:bg-ludo-ink group-has-checked:text-ludo-accent-light
+    christmas:group-has-checked:text-ludo-on-page-muted`,
   name: "font-bold",
   radio: `cursor-pointer border-ludo-line bg-ludo-card checked:border-ludo-ink
     checked:bg-[radial-gradient(circle,var(--color-ludo-ink)_0_5px,var(--color-ludo-card)_5.5px)]`,

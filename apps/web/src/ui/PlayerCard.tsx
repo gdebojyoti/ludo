@@ -2,7 +2,6 @@ import type { SnapshotSeat } from "@ludo/shared";
 import Avatar from "./Avatar";
 import { boardMessages, commonMessages } from "./messages";
 import { seatView } from "./seatView";
-import Tag from "./Tag";
 
 interface Props {
   seat: SnapshotSeat;
@@ -19,10 +18,11 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
   const { playerName, left, away } = seat;
   const direction = mirrored ? "flex-row-reverse text-right" : "";
 
-  // What's under the Player name: whether they Left or are Away, which matters more than the detail it replaces.
+  // What's under the Player name: whether they Left or are Away, which matters more than the detail it replaces, and is
+  // never picked out as the Turn is.
   const belowName = () => {
-    if (left) return <Tag>{boardMessages.left}</Tag>;
-    if (away) return <Tag icon="away">{commonMessages.away}</Tag>;
+    const status = left ? boardMessages.left : away ? commonMessages.away : "";
+    if (status) return <span className="text-xs text-ludo-on-page-muted">{status}</span>;
     const emphasis = isTurn ? "font-semibold text-ludo-accent-light" : "text-ludo-on-page-muted";
     return detail && <span className={`text-xs ${emphasis}`}>{detail}</span>;
   };
@@ -48,7 +48,7 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
         isTurn ? "border-2 border-ludo-accent bg-ludo-turn-card" : "border border-ludo-row-line bg-ludo-row"
       }`}
     >
-      <Avatar playerName={playerName} colours={seatView(seatsFromViewer)} ringed={isTurn} away={away} />
+      <Avatar playerName={playerName} colours={seatView(seatsFromViewer)} ringed={isTurn} absent={away || left} />
       <span className={`flex min-w-0 flex-col gap-0.5 ${mirrored ? "items-end" : ""}`}>
         <span className="line-clamp-2 text-sm leading-tight font-semibold wrap-anywhere">{playerName}</span>
         {belowName()}
