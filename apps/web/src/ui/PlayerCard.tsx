@@ -21,8 +21,8 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
 
   // What's under the Player name: whether they Left or are Away, which matters more than the detail it replaces.
   const belowName = () => {
-    if (left) return <Tag size="card">{boardMessages.left}</Tag>;
-    if (away) return <Tag size="card" icon="away">{commonMessages.away}</Tag>;
+    if (left) return <Tag>{boardMessages.left}</Tag>;
+    if (away) return <Tag icon="away">{commonMessages.away}</Tag>;
     const emphasis = isTurn ? "font-semibold text-ludo-gold-light" : "text-ludo-tan";
     return detail && <span className={`text-xs ${emphasis}`}>{detail}</span>;
   };

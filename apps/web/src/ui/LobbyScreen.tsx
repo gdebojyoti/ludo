@@ -8,7 +8,6 @@ import { joinLinkFor } from "./joinLink";
 import LeaveButton from "./LeaveButton";
 import Notice from "./Notice";
 import { commonMessages, leaveMessages, lobbyMessages, spacedGameCode } from "./messages";
-import Tag from "./Tag";
 
 interface Props {
   game: GameSnapshot;
@@ -149,20 +148,26 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
       </div>
       {/* In join order. Two Players can share a Player name, so they're told apart by their place. */}
       <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
-        {players.map((player, index) => (
-          <li
-            key={index}
-            className="flex items-center gap-3 rounded-[14px] border border-ludo-ivory/16 bg-ludo-ivory/7 px-3.5 py-3"
-          >
-            <Avatar playerName={player.playerName} ringed={index === viewerIndex} away={player.away} />
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{player.playerName}</span>
-              {index === viewerIndex && <span className="text-xs text-ludo-tan">{commonMessages.you}</span>}
-            </span>
-            {player.away && <Tag size="lobby" icon="away">{commonMessages.away}</Tag>}
-            {player.isHost && <Tag size="lobby" tone="gold">{lobbyMessages.host}</Tag>}
-          </li>
-        ))}
+        {players.map((player, index) => {
+          // The line under the name, such as "You · Host" or "Host · Away". The viewer is never away.
+          const about = [
+            index === viewerIndex && commonMessages.you,
+            player.isHost && lobbyMessages.host,
+            player.away && commonMessages.away,
+          ].filter(Boolean);
+          return (
+            <li
+              key={index}
+              className="flex items-center gap-3 rounded-[14px] border border-ludo-ivory/16 bg-ludo-ivory/7 px-3.5 py-3"
+            >
+              <Avatar playerName={player.playerName} ringed={index === viewerIndex} away={player.away} />
+              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{player.playerName}</span>
+                {about.length > 0 && <span className="text-xs text-ludo-tan">{about.join(" · ")}</span>}
+              </span>
+            </li>
+          );
+        })}
         {Array.from({ length: openPlaces }, (_, index) => (
           <li
             key={`open-${index}`}
