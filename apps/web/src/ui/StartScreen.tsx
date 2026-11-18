@@ -50,8 +50,9 @@ export default function StartScreen({
 
   return (
     // Clipped, so the sheet sliding in from below the screen doesn't make the page scroll. Not hidden, which would
-    // also make this a scroll container. On desktop, the logo is on the left and the sheet is a panel on the right.
-    <div className="relative flex min-h-full flex-1 flex-col overflow-clip text-ludo-ink xl:flex-row">
+    // also make this a scroll container. On desktop, the logo is on the left and the sheet is a panel on the right, and
+    // this is a size container, so the panel can tell where the screen's left edge is.
+    <div className="relative flex min-h-full flex-1 flex-col overflow-clip text-ludo-ink xl:@container xl:flex-row">
       {/* Where it is in the header on the other screens, so it stays put when the Player goes on to the Lobby. On
           desktop, that's over the panel, so it's coloured for the panel, and lifted above it, as the panel is
           positioned too. */}
@@ -98,15 +99,19 @@ export default function StartScreen({
       </div>
       {/* Laid out but hidden while waiting, so the logo doesn't move when it slides in. On desktop, it's already in
           place, so it only appears. In the Christmas theme, it rises out of snowy hills rather than having a rounded top,
-          and has trees along its bottom, behind what's on it. */}
+          and has trees along its bottom, behind what's on it. On desktop, its trees carry on from the page's beside it,
+          with the one on the edge half in each: they're laid out from the screen's left edge, as the page's are, and
+          clipped to the panel. */}
       <div
         className={`relative isolate flex flex-col gap-5 rounded-t-[28px] bg-ludo-card px-6 pt-[26px] pb-9
-          christmas:rounded-none xl:w-[520px] xl:flex-none xl:justify-center xl:gap-[22px] xl:rounded-none xl:px-16
-          xl:py-14 ${waiting ? "invisible" : "motion-safe:animate-ludo-sheet-in xl:motion-safe:animate-none"}`}
+          christmas:rounded-none xl:w-[520px] xl:flex-none xl:justify-center xl:gap-[22px] xl:overflow-clip
+          xl:rounded-none xl:px-16 xl:py-14 ${
+          waiting ? "invisible" : "motion-safe:animate-ludo-sheet-in xl:motion-safe:animate-none"
+        }`}
         inert={waiting}
       >
         <SnowHills />
-        <SnowTrees light className="absolute bottom-0 left-0 -z-10" />
+        <SnowTrees light className="absolute bottom-0 left-0 -z-10 xl:left-[calc(520px-100cqw)] xl:w-[100cqw]" />
         <div className="flex items-center gap-3">
           {/* Ringed in the viewer's own colour, as their Seat is on every Board they see. */}
           <Avatar
