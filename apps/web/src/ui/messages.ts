@@ -120,10 +120,10 @@ export const settingsMessages = {
   label: "Settings",
   button: "Settings",
   title: "Settings",
-  diceOnLeft: "Switch dice to left",
-  diceOnLeftDetail: "Put the die on the left, for an easier reach with your left thumb.",
+  diceOnLeft: "Dice on the left",
+  diceOnLeftDetail: "Handy if you play with your left thumb.",
   theme: "Theme",
-  themeDetail: "Change how the board and screens look.",
+  themeDetail: "Try a different look.",
   changeTheme: "Change",
   done: "Done",
 };
