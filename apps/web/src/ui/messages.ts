@@ -165,7 +165,7 @@ export const boardMessages = {
   left: "Left",
   home: (count: number) => `${count} home`,
   yourTurn: "Your turn",
-  waitingForTurn: "Waiting for your turn",
+  waitingForTurn: "Opponent's turn",
   isAway: (playerName: string) => `${firstName(playerName)} is away`,
   rollToStart: "Roll the die to start your turn",
   stillRolling: "Still rolling. Waiting for the result…",
