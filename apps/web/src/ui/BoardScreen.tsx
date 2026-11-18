@@ -277,6 +277,9 @@ export default function BoardScreen({
     );
   };
 
+  // TODO: Move this to Settings panel
+  const isSwapped = true;
+
   return (
     <div className="flex flex-1 flex-col items-center gap-3.5 px-[15px] pt-3.5 pb-7">
       <Header
@@ -306,14 +309,15 @@ export default function BoardScreen({
         moves on. The text and the die both start at the top, and the title and the detail are each cut short at two
         lines, so they always fit. On another Player's Turn, both are dimmed.
       */}
-      <div className="flex h-36 w-full flex-none items-start justify-between gap-4 px-1.5 pt-2">
+      <div className={`flex ${isSwapped ? "flex-row-reverse" : ""} h-36 w-full flex-none items-start justify-between gap-4 px-1.5 pt-2`}>
         <div
-          className={`flex min-w-0 flex-1 flex-col gap-1.5 ${isOwnTurn ? "" : "opacity-75"}`}
+          className={`flex min-w-0 flex-1 flex-col gap-1.5 ${isOwnTurn ? "" : "opacity-75"} ${isSwapped ? "items-end text-right" : ""}`}
           aria-live="polite"
         >
           <p className="m-0 line-clamp-2 font-ludo-display text-2xl leading-tight">{title}</p>
           {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-ludo-tan">{detail}</p>}
         </div>
+
         {/* A fixed slot, the size of the die and the Roll button, so they and the text never resize each other. */}
         <div className={`size-20 flex-none ${isOwnTurn ? "" : "opacity-85"}`}>
           {dieArea()}
