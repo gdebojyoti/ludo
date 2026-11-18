@@ -44,32 +44,45 @@ export default function StartScreen({
 
   return (
     // Clipped, so the sheet sliding in from below the screen doesn't make the page scroll. Not hidden, which would
-    // also make this a scroll container.
-    <div className="flex min-h-full flex-1 flex-col overflow-clip text-ludo-maroon">
-      <div className="flex flex-1 flex-col items-center justify-center gap-7 px-6 pt-10 pb-8">
+    // also make this a scroll container. On desktop, the logo is on the left and the sheet is a panel on the right.
+    <div className="flex min-h-full flex-1 flex-col overflow-clip text-ludo-maroon lg:flex-row">
+      <div className="flex flex-1 flex-col items-center justify-center gap-7 px-6 pt-10 pb-8 lg:min-w-0 lg:gap-9 lg:p-12">
         <div
-          className="grid size-[220px] grid-cols-2 gap-2.5 rounded-[26px] border-2 border-ludo-gold p-2.5"
+          className="grid size-[220px] grid-cols-2 gap-2.5 rounded-[26px] border-2 border-ludo-gold p-2.5 lg:size-[300px]
+            lg:gap-3 lg:rounded-[30px] lg:p-3"
           aria-hidden
         >
           {logoYards.map((colour) => (
-            <div key={colour} className="flex items-center justify-center rounded-[18px]" style={{ background: colour }}>
-              <span className="grid aspect-square w-[58%] grid-cols-2 gap-1.5 rounded-full bg-ludo-ivory p-3.5">
+            <div
+              key={colour}
+              className="flex items-center justify-center rounded-[18px] lg:rounded-[22px]"
+              style={{ background: colour }}
+            >
+              <span
+                className="grid aspect-square w-[58%] grid-cols-2 gap-1.5 rounded-full bg-ludo-ivory p-3.5 lg:gap-2
+                  lg:p-[18px]"
+              >
                 {[0, 1, 2, 3].map((slot) => <i key={slot} className="block aspect-square rounded-full bg-ludo-parchment" />)}
               </span>
             </div>
           ))}
         </div>
         <div className="text-center">
-          <h1 className="m-0 font-ludo-display text-[46px] font-normal tracking-[0.14em] text-ludo-gold-light uppercase">
+          <h1
+            className="m-0 font-ludo-display text-[46px] font-normal tracking-[0.14em] text-ludo-gold-light uppercase
+              lg:text-[64px]"
+          >
             {commonMessages.wordmark}
           </h1>
-          <p className="mt-1 mb-0 text-[15px] text-ludo-tan">{startMessages.tagline}</p>
+          <p className="mt-1 mb-0 text-[15px] text-ludo-tan lg:mt-1.5 lg:text-[17px]">{startMessages.tagline}</p>
         </div>
       </div>
-      {/* Laid out but hidden while waiting, so the logo doesn't move when it slides in. */}
+      {/* Laid out but hidden while waiting, so the logo doesn't move when it slides in. On desktop, it's already in
+          place, so it only appears. */}
       <div
-        className={`flex flex-col gap-5 rounded-t-[28px] bg-ludo-ivory px-6 pt-[26px] pb-9 ${
-          waiting ? "invisible" : "motion-safe:animate-ludo-sheet-in"
+        className={`flex flex-col gap-5 rounded-t-[28px] bg-ludo-ivory px-6 pt-[26px] pb-9 lg:w-[520px] lg:flex-none
+          lg:justify-center lg:gap-[22px] lg:rounded-none lg:px-16 lg:py-14 ${
+          waiting ? "invisible" : "motion-safe:animate-ludo-sheet-in lg:motion-safe:animate-none"
         }`}
         inert={waiting}
       >

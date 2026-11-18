@@ -175,6 +175,7 @@ export default function BoardScreen({
     if (!snapshotSeat) return null;
     return (
       <PlayerCard
+        key={seatsFromViewer}
         seat={snapshotSeat}
         seatsFromViewer={seatsFromViewer}
         mirrored={mirrored}
@@ -280,50 +281,92 @@ export default function BoardScreen({
   // TODO: Move this to Settings panel
   const isSwapped = true;
 
+  // On phones, the Player cards are in a row above the Board and a row below it, by where their Seats are on it. On
+  // desktop, they're in a list on the left, the viewer's first and then clockwise, and the Seats nobody has are left
+  // out, as the list doesn't stand for the Board. Each layout has its own cards, hidden in the other.
+  const desktopCards = [0, 1, 2, 3].map((seatsFromViewer) =>
+    board.seats[seatAt(board, seatsFromViewer)]?.playerName === null ? null : card(seatsFromViewer, false),
+  );
+
+  // On desktop, the header is a bar across the window, and below it the Players, the Board and the Turn status are in
+  // three columns, top-aligned. The Board is as big as the window's height allows, less the header, the space round the
+  // columns and its own frame, or as wide as is left once the side columns have their least width (220px each) and the
+  // gaps between columns (40px, or 56px on wider screens), whichever is smaller. The side columns then share what's
+  // left, up to 300px each. The wrappers that make those columns are left out of the layout on phones, where it's one
+  // column, and the Notice, above the cards there, is above the Turn status on desktop.
   return (
-    <div className="flex flex-1 flex-col items-center gap-3.5 px-[15px] pt-3.5 pb-7">
+    <div className="flex flex-1 flex-col items-center gap-3.5 px-[15px] pt-3.5 pb-7 lg:gap-0 lg:p-0">
       <Header
         subtitle={boardMessages.subtitle(mode, playerCount)}
         action={<LeaveButton disabled={disabled} text={leaveMessages.inPlay(otherNames)} onLeave={onLeaveGame} />}
       />
-      <Notice notice={notice} />
-      <div className="flex w-full gap-2.5">
-        {card(1, false)}
-        {card(2, true)}
-      </div>
-      <Board
-        mode={mode}
-        board={board}
-        disabled={disabled}
-        onMove={moveToken}
-        moving={moving}
-        returning={returning}
-        onArrived={playback.tokenArrived}
-      />
-      <div className="flex w-full gap-2.5">
-        {card(0, false)}
-        {card(3, true)}
-      </div>
-      {/*
-        The Turn status, beside the die. The same height whatever it says, so nothing on the screen shifts as the Turn
-        moves on. The text and the die both start at the top, and the title and the detail are each cut short at two
-        lines, so they always fit. On another Player's Turn, both are dimmed.
-      */}
-      <div className={`flex ${isSwapped ? "flex-row-reverse" : ""} h-36 w-full flex-none items-start justify-between gap-4 px-1.5 pt-2`}>
-        <div
-          className={`flex min-w-0 flex-1 flex-col gap-1.5 ${isOwnTurn ? "" : "opacity-75"} ${isSwapped ? "items-end text-right" : ""}`}
-          aria-live="polite"
-        >
-          <p className="m-0 line-clamp-2 font-ludo-display text-2xl leading-tight">{title}</p>
-          {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-ludo-tan">{detail}</p>}
+      <div
+        className="contents lg:grid lg:w-full lg:flex-1 lg:content-center lg:items-start lg:justify-center lg:gap-10
+          lg:px-10 lg:pt-8 lg:pb-10 lg:grid-cols-[minmax(220px,300px)_var(--ludo-board-size)_minmax(220px,300px)]
+          lg:[--ludo-board-size:min(max(320px,calc(100dvh-170px)),calc(100%-520px))] xl:gap-14
+          xl:[--ludo-board-size:min(max(320px,calc(100dvh-170px)),calc(100%-552px))]"
+      >
+        <section className="hidden lg:flex lg:flex-col lg:gap-2.5" aria-labelledby="players-heading">
+          <h2 id="players-heading" className="m-0 mb-1 text-xs font-semibold tracking-widest text-ludo-tan uppercase">
+            {boardMessages.playersHeading}
+          </h2>
+          {desktopCards}
+        </section>
+        <div className="contents lg:block">
+          <div className="contents lg:hidden">
+            <Notice notice={notice} />
+          </div>
+          <div className="flex w-full gap-2.5 lg:hidden">
+            {card(1, false)}
+            {card(2, true)}
+          </div>
+          <Board
+            mode={mode}
+            board={board}
+            disabled={disabled}
+            onMove={moveToken}
+            moving={moving}
+            returning={returning}
+            onArrived={playback.tokenArrived}
+          />
+          <div className="flex w-full gap-2.5 lg:hidden">
+            {card(0, false)}
+            {card(3, true)}
+          </div>
         </div>
+        <div className="contents lg:flex lg:flex-col lg:gap-7">
+          <div className="hidden lg:contents">
+            <Notice notice={notice} />
+          </div>
+          {/*
+            The Turn status, beside the die, or on desktop above it. The same height whatever it says, so nothing on
+            the screen shifts as the Turn moves on. The text and the die both start at the top, and the title and the
+            detail are each cut short at two lines, so they always fit. On desktop, the text is always at least as tall
+            as a line of title and two of detail, so the die below it stays put. On another Player's Turn, both are
+            dimmed.
+          */}
+          <div
+            className={`flex ${isSwapped ? "flex-row-reverse" : ""} h-36 w-full flex-none items-start justify-between
+              gap-4 px-1.5 pt-2 lg:h-auto lg:flex-col lg:justify-start lg:gap-7 lg:p-0`}
+          >
+            <div
+              className={`flex min-w-0 flex-1 flex-col gap-1.5 ${isOwnTurn ? "" : "opacity-75"} ${
+                isSwapped ? "items-end text-right" : ""
+              } lg:min-h-[85px] lg:w-full lg:flex-none lg:items-start lg:text-left`}
+              aria-live="polite"
+            >
+              <p className="m-0 line-clamp-2 font-ludo-display text-2xl leading-tight lg:text-[30px]">{title}</p>
+              {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-ludo-tan lg:text-[15px]">{detail}</p>}
+            </div>
 
-        {/* A fixed slot, the size of the die and the Roll button, so they and the text never resize each other. */}
-        <div className={`size-20 flex-none ${isOwnTurn ? "" : "opacity-85"}`}>
-          {dieArea()}
+            {/* A fixed slot, the size of the die and the Roll button, so they and the text never resize each other. */}
+            <div className={`size-20 flex-none ${isOwnTurn ? "" : "opacity-85"}`}>
+              {dieArea()}
+            </div>
+          </div>
+          <ErrorMessage error={error} />
         </div>
       </div>
-      <ErrorMessage error={error} />
     </div>
   );
 }

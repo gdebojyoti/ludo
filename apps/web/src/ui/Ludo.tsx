@@ -87,11 +87,12 @@ export default function Ludo() {
     );
   };
 
-  // The colours sit on this element, not the page, so the host app's page keeps its own. On wider screens the game
-  // keeps its phone layout, in a channel down the middle.
+  // The colours sit on this element, not the page, so the host app's page keeps its own. On screens wider than a phone
+  // but narrower than desktop, the game keeps its phone layout, in a channel down the middle. From desktop width
+  // (Tailwind's lg) on, each screen has its own desktop layout, across the whole window.
   return (
     <div className="min-h-dvh bg-ludo-maroon-deep font-ludo-ui text-ludo-ivory">
-      <main className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-ludo-maroon">
+      <main className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-ludo-maroon lg:max-w-none">
         <ServerStatus status={status} />
         <div className="flex flex-1 flex-col">{screen()}</div>
       </main>
