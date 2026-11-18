@@ -13,9 +13,9 @@ interface Props {
 export default function SettingsButton({ colours = "text-ludo-ivory" }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const settings = useSettings();
-  const { diceOnRight } = settings;
+  const { diceOnLeft } = settings;
 
-  const toggleDiceOnRight = () => changeSettings({ diceOnRight: !diceOnRight });
+  const toggleDiceOnLeft = () => changeSettings({ diceOnLeft: !diceOnLeft });
 
   // Nothing draws the theme yet, so changing it is only logged.
   const changeTheme = () => {
@@ -55,25 +55,25 @@ export default function SettingsButton({ colours = "text-ludo-ivory" }: Props) {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span id="settings-dice-label" className="text-base font-semibold">{settingsMessages.diceOnRight}</span>
+              <span id="settings-dice-label" className="text-base font-semibold">{settingsMessages.diceOnLeft}</span>
               <span id="settings-dice-detail" className="text-[13px] leading-snug text-ludo-brown">
-                {settingsMessages.diceOnRightDetail}
+                {settingsMessages.diceOnLeftDetail}
               </span>
             </div>
             <button
               type="button"
               role="switch"
-              aria-checked={diceOnRight}
+              aria-checked={diceOnLeft}
               aria-labelledby="settings-dice-label"
               aria-describedby="settings-dice-detail"
               className={`relative h-7 w-12 flex-none cursor-pointer rounded-full transition-colors ${
-                diceOnRight ? "bg-ludo-maroon" : "bg-ludo-board-line"
+                diceOnLeft ? "bg-ludo-maroon" : "bg-ludo-board-line"
               }`}
-              onClick={toggleDiceOnRight}
+              onClick={toggleDiceOnLeft}
             >
               <span
                 className={`absolute top-1 left-1 size-5 rounded-full bg-ludo-cream shadow transition-transform ${
-                  diceOnRight ? "translate-x-5" : ""
+                  diceOnLeft ? "translate-x-5" : ""
                 }`}
               />
             </button>

@@ -9,12 +9,12 @@ export const themes = ["heritage"] as const;
 export type Theme = (typeof themes)[number];
 
 export interface Settings {
-  /** Whether the die is on the right of the Turn status on phones, rather than the left. */
-  diceOnRight: boolean;
+  /** Whether the die is on the left of the Turn status on phones, rather than the right. */
+  diceOnLeft: boolean;
   theme: Theme;
 }
 
-const defaultSettings: Settings = { diceOnRight: false, theme: themes[0] };
+const defaultSettings: Settings = { diceOnLeft: false, theme: themes[0] };
 
 /**
  * The settings this browser keeps, all in one entry. Any that weren't kept, or that the browser won't give, or that
@@ -24,9 +24,9 @@ const loadSettings = (): Settings => {
   try {
     const kept: unknown = JSON.parse(localStorage.getItem(storageKey) ?? "{}");
     if (typeof kept !== "object" || kept === null) return defaultSettings;
-    const { diceOnRight, theme } = kept as Record<string, unknown>;
+    const { diceOnLeft, theme } = kept as Record<string, unknown>;
     return {
-      diceOnRight: typeof diceOnRight === "boolean" ? diceOnRight : defaultSettings.diceOnRight,
+      diceOnLeft: typeof diceOnLeft === "boolean" ? diceOnLeft : defaultSettings.diceOnLeft,
       theme: themes.find((known) => known === theme) ?? defaultSettings.theme,
     };
   } catch {
