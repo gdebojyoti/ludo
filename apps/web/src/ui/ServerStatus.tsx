@@ -16,7 +16,7 @@ export default function ServerStatus({ status }: { status: ConnectionStatus }) {
       className={status === "connected"
         ? "sr-only"
         : `fixed top-0 left-1/2 z-10 m-0 flex w-full max-w-[430px] -translate-x-1/2 items-center justify-center gap-2
-          bg-ludo-maroon-deep/95 py-1.5 text-[13px] text-ludo-tan xl:max-w-none`}
+          bg-ludo-page-deep/95 py-1.5 text-[13px] text-ludo-on-page-muted xl:max-w-none`}
       role="status"
     >
       <span className={`size-2.5 rounded-full ${dotColours[status]}`} aria-hidden />

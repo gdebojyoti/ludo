@@ -30,13 +30,15 @@ export default function Avatar({
   };
   // In the Lobby, an Away Player's avatar is only an outline.
   const look = () => {
-    if (colours) return `border-2 border-ludo-ivory ${away ? "border-dashed" : ""}`;
-    return away ? "border-2 border-dashed border-ludo-tan text-ludo-ivory" : "bg-ludo-ivory text-ludo-maroon";
+    if (colours) return `border-2 border-ludo-on-page ${away ? "border-dashed" : ""}`;
+    return away
+      ? "border-2 border-dashed border-ludo-on-page-muted text-ludo-on-page christmas:bg-ludo-page"
+      : "bg-ludo-card text-ludo-ink";
   };
   return (
     <span
       className={`flex flex-none items-center justify-center rounded-full font-ludo-display font-semibold ${look()} ${
-        ringed ? "shadow-[0_0_0_3px_var(--color-ludo-gold)]" : ""
+        ringed ? "shadow-[0_0_0_3px_var(--color-ludo-accent)]" : ""
       } ${className}`}
       style={style}
       aria-hidden

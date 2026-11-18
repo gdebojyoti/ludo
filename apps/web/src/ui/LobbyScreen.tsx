@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { classicRules, type GameSnapshot } from "@ludo/shared";
 import Avatar from "./Avatar";
 import ErrorMessage from "./ErrorMessage";
+import Frost from "./Frost";
 import Header from "./Header";
 import Icon from "./Icon";
 import { joinLinkFor } from "./joinLink";
 import LeaveButton from "./LeaveButton";
 import Notice from "./Notice";
 import { commonMessages, leaveMessages, lobbyMessages, spacedGameCode } from "./messages";
+import SnowCap from "./SnowCap";
 
 interface Props {
   game: GameSnapshot;
@@ -76,26 +78,27 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
     if (!isHost) {
       return (
         <div
-          className="flex items-center gap-3.5 rounded-2xl border-[1.5px] border-dashed border-ludo-gold/60 px-[18px] py-4"
+          className="flex items-center gap-3.5 rounded-2xl border-[1.5px] border-dashed border-ludo-accent/60 px-[18px] py-4"
           role="status"
         >
-          <Icon name="waiting" size={26} strokeWidth={1.8} className="flex-none text-ludo-gold-light" />
+          <Icon name="waiting" size={26} strokeWidth={1.8} className="flex-none text-ludo-accent-light" />
           <div className="flex flex-col gap-[3px]">
             <span className="text-[15px] font-semibold">{lobbyMessages.waitingForHost(host?.playerName ?? "")}</span>
-            <span className="text-[13px] text-ludo-tan">{lobbyMessages.orStartsByItself}</span>
+            <span className="text-[13px] text-ludo-on-page-muted">{lobbyMessages.orStartsByItself}</span>
           </div>
         </div>
       );
     }
     if (players.length < classicRules.minPlayers) {
-      return <p className="m-0 text-center text-[13px] text-ludo-tan">{lobbyMessages.waitingForPlayers}</p>;
+      return <p className="m-0 text-center text-[13px] text-ludo-on-page-muted">{lobbyMessages.waitingForPlayers}</p>;
     }
     return (
       <div className="flex flex-col items-center gap-2.5">
-        <button type="button" className="ludo-button-gold" disabled={disabled} onClick={onStartGame}>
+        <button type="button" className="ludo-button-accent" disabled={disabled} onClick={onStartGame}>
+          <Frost />
           {lobbyMessages.start(players.length)}
         </button>
-        <span className="text-center text-[13px] text-ludo-tan">{lobbyMessages.startsByItself}</span>
+        <span className="text-center text-[13px] text-ludo-on-page-muted">{lobbyMessages.startsByItself}</span>
       </div>
     );
   };
@@ -105,10 +108,11 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
 
   const gameCodeCard = () => (
     <section
-      className="flex flex-col items-center gap-3.5 rounded-[22px] bg-ludo-ivory px-5 pt-6 pb-[22px] text-ludo-maroon
-        xl:px-6 xl:pt-7 xl:pb-6"
+      className="relative flex flex-col items-center gap-3.5 rounded-[22px] bg-ludo-card px-5 pt-6 pb-[22px]
+        text-ludo-ink xl:px-6 xl:pt-7 xl:pb-6"
     >
-      <h2 className="m-0 text-xs font-bold tracking-[0.12em] text-ludo-brown uppercase">
+      <SnowCap />
+      <h2 className="m-0 text-xs font-bold tracking-[0.12em] text-ludo-ink-muted uppercase">
         {lobbyMessages.gameCodeHeading}
       </h2>
       {/* Plain numerals, not a box, so it doesn't look editable. */}
@@ -122,13 +126,14 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
       </p>
       <div className="flex flex-wrap items-center justify-center gap-3">
         <button type="button" className="ludo-button-outline h-12" onClick={shareJoinLink}>
+          <Frost light />
           <Icon name="share" size={18} />
           <span aria-live="polite">{copied === "joinLink" ? lobbyMessages.copied : lobbyMessages.shareJoinLink}</span>
         </button>
         <button
           type="button"
           className="inline-flex h-12 flex-none cursor-pointer items-center gap-1.5 px-1.5 text-[13px] font-medium
-            text-ludo-brown underline underline-offset-[3px]"
+            text-ludo-ink-muted underline underline-offset-[3px]"
           onClick={() => copy("gameCode", gameCode)}
         >
           <Icon name="copy" size={15} />
@@ -141,10 +146,10 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
   const playerList = () => (
     <section className="flex flex-col gap-2.5">
       <div className="flex items-baseline justify-between">
-        <h2 className="m-0 text-xs font-semibold tracking-widest text-ludo-tan uppercase">
+        <h2 className="m-0 text-xs font-semibold tracking-widest text-ludo-on-page-muted uppercase">
           {lobbyMessages.playersHeading}
         </h2>
-        <span className="text-[13px] text-ludo-tan">{lobbyMessages.playerCount(players.length)}</span>
+        <span className="text-[13px] text-ludo-on-page-muted">{lobbyMessages.playerCount(players.length)}</span>
       </div>
       {/* In join order. Two Players can share a Player name, so they're told apart by their place. */}
       <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
@@ -158,12 +163,12 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
           return (
             <li
               key={index}
-              className="flex items-center gap-3 rounded-[14px] border border-ludo-ivory/16 bg-ludo-ivory/7 px-3.5 py-3"
+              className="flex items-center gap-3 rounded-[14px] border border-ludo-row-line bg-ludo-row px-3.5 py-3"
             >
               <Avatar playerName={player.playerName} ringed={index === viewerIndex} away={player.away} />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{player.playerName}</span>
-                {about.length > 0 && <span className="text-xs text-ludo-tan">{about.join(" · ")}</span>}
+                {about.length > 0 && <span className="text-xs text-ludo-on-page-muted">{about.join(" · ")}</span>}
               </span>
             </li>
           );
@@ -171,10 +176,15 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
         {Array.from({ length: openPlaces }, (_, index) => (
           <li
             key={`open-${index}`}
-            className="flex items-center gap-3 rounded-[14px] border border-dashed border-ludo-ivory/30 px-3.5 py-3"
+            className="flex items-center gap-3 rounded-[14px] border border-dashed border-ludo-on-page/30 px-3.5 py-3
+              christmas:border-ludo-page-line christmas:bg-ludo-page"
           >
-            <span className="size-9 flex-none rounded-full border-2 border-dashed border-ludo-ivory/35" aria-hidden />
-            <span className="text-[15px] text-ludo-tan">{lobbyMessages.openPlace}</span>
+            <span
+              className="size-9 flex-none rounded-full border-2 border-dashed border-ludo-on-page/35
+                christmas:border-ludo-page-line"
+              aria-hidden
+            />
+            <span className="text-[15px] text-ludo-on-page-muted">{lobbyMessages.openPlace}</span>
           </li>
         ))}
       </ol>
@@ -201,7 +211,7 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
             <Notice notice={notice} />
             <div className="px-1 xl:p-0">
               <h1 className="m-0 font-ludo-display text-[30px] font-normal xl:text-4xl">{lobbyMessages.heading}</h1>
-              <p className="mt-1.5 mb-0 text-sm text-ludo-tan xl:mt-2 xl:text-[15px]">
+              <p className="mt-1.5 mb-0 text-sm text-ludo-on-page-muted xl:mt-2 xl:text-[15px]">
                 {lobbyMessages.shareHint(isHost)}
               </p>
             </div>

@@ -255,8 +255,8 @@ export default function BoardScreen({
       return (
         <button
           type="button"
-          className="ludo-die cursor-pointer font-ludo-display text-2xl tracking-[0.06em] text-ludo-maroon uppercase
-            [--ludo-die-ring:var(--color-ludo-gold)]"
+          className="ludo-die cursor-pointer font-ludo-display text-2xl tracking-[0.06em] text-ludo-ink uppercase
+            [--ludo-die-ring:var(--color-ludo-accent)]"
           disabled={disabled}
           onClick={() => rollDie()}
         >
@@ -318,7 +318,7 @@ export default function BoardScreen({
           xl:pt-[calc(32px+clamp(0px,calc((100dvh-157px-var(--ludo-board-size))/2),150px))]"
       >
         <section className="hidden xl:flex xl:flex-col xl:gap-2.5" aria-labelledby="players-heading">
-          <h2 id="players-heading" className="m-0 mb-1 text-xs font-semibold tracking-widest text-ludo-tan uppercase">
+          <h2 id="players-heading" className="m-0 mb-1 text-xs font-semibold tracking-widest text-ludo-on-page-muted uppercase">
             {boardMessages.playersHeading}
           </h2>
           {desktopCards}
@@ -367,7 +367,7 @@ export default function BoardScreen({
               aria-live="polite"
             >
               <p className="m-0 line-clamp-2 font-ludo-display text-2xl leading-tight xl:text-[30px]">{title}</p>
-              {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-ludo-tan xl:text-[15px]">{detail}</p>}
+              {detail && <p className="m-0 line-clamp-2 text-sm leading-snug text-ludo-on-page-muted xl:text-[15px]">{detail}</p>}
             </div>
 
             {/* A fixed slot, the size of the die and the Roll button, so they and the text never resize each other. */}

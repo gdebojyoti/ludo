@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import DialogCard from "./DialogCard";
+import Frost from "./Frost";
 import Icon from "./Icon";
 
 /** What the Leave button and its question say, which depends on what Leaving does there. */
@@ -36,7 +37,7 @@ export default function LeaveButton({ disabled, text, onLeave }: Props) {
       {/* Only an icon on phones; on desktop, an icon and its text, as the design has room for it. */}
       <button
         type="button"
-        className="ludo-button-icon text-ludo-ivory xl:h-12 xl:w-auto xl:gap-2 xl:px-5 xl:text-base xl:font-semibold"
+        className="ludo-button-icon text-ludo-on-page xl:h-12 xl:w-auto xl:gap-2 xl:px-5 xl:text-base xl:font-semibold"
         title={text.label}
         onClick={() => dialogRef.current?.showModal()}
       >
@@ -46,9 +47,10 @@ export default function LeaveButton({ disabled, text, onLeave }: Props) {
       </button>
       {/* A tap on the scrim, outside the card, is a choice to stay. */}
       <DialogCard ref={dialogRef} icon="leave" title={text.title}>
-        <p className="m-0 text-center text-[15px] leading-normal text-ludo-brown">{text.message}</p>
+        <p className="m-0 text-center text-[15px] leading-normal text-ludo-ink-muted">{text.message}</p>
         <div className="mt-2 flex flex-col gap-2.5">
-          <button type="button" className="ludo-button-maroon" onClick={() => dialogRef.current?.close()}>
+          <button type="button" className="ludo-button-solid" onClick={() => dialogRef.current?.close()}>
+            <Frost />
             {text.stay}
           </button>
           <button type="button" className="ludo-button-danger" disabled={disabled} onClick={leave}>

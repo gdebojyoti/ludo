@@ -11,8 +11,8 @@ interface Props {
 export default function Tag({ icon, children }: Props) {
   return (
     <span
-      className="flex h-[18px] w-fit flex-none items-center gap-1 rounded-[9px] bg-ludo-tan px-[7px] text-[11px] font-bold
-        text-ludo-maroon"
+      className="flex h-[18px] w-fit flex-none items-center gap-1 rounded-[9px] bg-ludo-on-page-muted px-[7px] text-[11px]
+        font-bold text-ludo-ink"
     >
       {icon && <Icon name={icon} size={11} strokeWidth={2.6} />}
       {children}

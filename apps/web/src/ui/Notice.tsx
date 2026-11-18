@@ -7,10 +7,10 @@ export default function Notice({ notice }: { notice: string | undefined }) {
   return (
     <p
       className="m-0 flex w-full items-start gap-3 rounded-2xl border-[1.5px] border-ludo-notice-line bg-ludo-notice p-4 text-sm
-        leading-[1.45] text-ludo-maroon"
+        leading-[1.45] text-ludo-ink"
       role="status"
     >
-      <Icon name="info" size={22} className="mt-px flex-none text-ludo-brown" />
+      <Icon name="info" size={22} className="mt-px flex-none text-ludo-ink-muted" />
       <span>{notice}</span>
     </p>
   );

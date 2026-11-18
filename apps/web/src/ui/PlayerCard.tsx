@@ -23,17 +23,21 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
   const belowName = () => {
     if (left) return <Tag>{boardMessages.left}</Tag>;
     if (away) return <Tag icon="away">{commonMessages.away}</Tag>;
-    const emphasis = isTurn ? "font-semibold text-ludo-gold-light" : "text-ludo-tan";
+    const emphasis = isTurn ? "font-semibold text-ludo-accent-light" : "text-ludo-on-page-muted";
     return detail && <span className={`text-xs ${emphasis}`}>{detail}</span>;
   };
 
   if (playerName === null) {
     return (
       <div className={`flex h-16 min-w-0 flex-1 items-center gap-2.5 rounded-[14px] border-[1.5px] border-dashed
-        border-ludo-ivory/30 px-2.5 py-2 ${direction}`}
+        border-ludo-on-page/30 px-2.5 py-2 christmas:border-ludo-page-line christmas:bg-ludo-page ${direction}`}
       >
-        <span className="size-9 flex-none rounded-full border-2 border-dashed border-ludo-ivory/45" aria-hidden />
-        <span className="text-sm text-ludo-tan">{boardMessages.emptySeat}</span>
+        <span
+          className="size-9 flex-none rounded-full border-2 border-dashed border-ludo-on-page/45
+            christmas:border-ludo-page-line"
+          aria-hidden
+        />
+        <span className="text-sm text-ludo-on-page-muted">{boardMessages.emptySeat}</span>
       </div>
     );
   }
@@ -41,7 +45,7 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
   return (
     <div
       className={`flex h-16 min-w-0 flex-1 items-center gap-2.5 rounded-[14px] px-2.5 py-2 xl:flex-none ${direction} ${
-        isTurn ? "border-2 border-ludo-gold bg-ludo-gold/14" : "border border-ludo-ivory/16 bg-ludo-ivory/7"
+        isTurn ? "border-2 border-ludo-accent bg-ludo-turn-card" : "border border-ludo-row-line bg-ludo-row"
       }`}
     >
       <Avatar playerName={playerName} colours={seatView(seatsFromViewer)} ringed={isTurn} away={away} />

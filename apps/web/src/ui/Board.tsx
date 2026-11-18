@@ -138,6 +138,10 @@ const gridArea = ([row, column]: Cell, span = 1): CSSProperties => ({
 // clockwise from the viewer's that Seat is: the viewer's own from the bottom, then left, top and right.
 const homeTriangles = ["0,3 3,3 1.5,1.5", "0,0 1.5,1.5 0,3", "0,0 3,0 1.5,1.5", "3,0 3,3 1.5,1.5"];
 
+// The Christmas theme's star in the middle of Home, in place of its ring.
+const homeStar = "1.5,1.02 1.623,1.35 1.976,1.365 1.7,1.585 1.794,1.925 1.5,1.73 1.206,1.925 1.3,1.585 1.024,1.365 " +
+  "1.377,1.35";
+
 // Where Tokens Home sit in their Seat's quarter, in a 70-unit square: across it, then in from its outer edge.
 const homeSpots: [across: number, inFromEdge: number][][] = [
   [],
@@ -328,7 +332,7 @@ export default function Board({ mode, board, disabled, onMove, moving, returning
         })}
       </div>
     );
-    const className = `ludo-yard ${empty ? "ludo-yard-empty" : ""}`;
+    const className = `ludo-yard ${empty ? "ludo-yard-empty" : "ludo-dots"}`;
     const style = { ...gridArea(yardCorner, yardSize), backgroundColor: empty ? emptySeatColour : colour };
     const movable = inYard.find(isMovable);
     if (movable) {
@@ -398,10 +402,23 @@ export default function Board({ mode, board, disabled, onMove, moving, returning
             <polygon
               key={points}
               points={points}
-              fill={!usesHome || isEmptySeat(seatAt(board, turns)) ? emptySeatColour : seatView(turns).colour}
+              style={{ fill: !usesHome || isEmptySeat(seatAt(board, turns)) ? emptySeatColour : seatView(turns).colour }}
             />
           ))}
-          <circle cx="1.5" cy="1.5" r="0.32" className="fill-ludo-ivory stroke-ludo-gold" strokeWidth="0.08" />
+          {/* In the middle: a ring, or in the Christmas theme, a star. */}
+          <circle
+            cx="1.5"
+            cy="1.5"
+            r="0.32"
+            className="fill-ludo-cell stroke-ludo-accent christmas:hidden"
+            strokeWidth="0.08"
+          />
+          <polygon
+            points={homeStar}
+            className="hidden fill-ludo-accent stroke-ludo-cell christmas:inline"
+            strokeWidth="0.06"
+            strokeLinejoin="round"
+          />
         </svg>
         {homeCounts.flatMap(({ seat, turns, count }) =>
           (homeSpots[count] ?? []).map(([across, inFromEdge], index) => {

@@ -3,8 +3,8 @@ import { useSyncExternalStore } from "react";
 // Every game on the site shares one origin, so the key is namespaced.
 const storageKey = "ludo-settings";
 
-/** The themes, in the order Change theme goes through them. Only the Heritage design so far. */
-export const themes = ["heritage"] as const;
+/** The themes, in the order Change theme goes through them. The first, Heritage, is the default. */
+export const themes = ["heritage", "christmas"] as const;
 
 export type Theme = (typeof themes)[number];
 

@@ -23,7 +23,7 @@ export default function Die({ number, label, ringed = false, className = "" }: P
   return (
     <div
       className={`ludo-die grid grid-cols-3 grid-rows-3 gap-0.5 p-3.5 ${
-        ringed ? "[--ludo-die-ring:var(--color-ludo-gold)]" : ""
+        ringed ? "[--ludo-die-ring:var(--color-ludo-accent)]" : ""
       } ${className}`}
       role={label ? "img" : undefined}
       aria-label={label}
@@ -32,7 +32,7 @@ export default function Die({ number, label, ringed = false, className = "" }: P
       {spots.map((spot) => (
         <span
           key={spot}
-          className={`size-3 place-self-center rounded-full bg-ludo-maroon ${
+          className={`size-3 place-self-center rounded-full bg-ludo-ink ${
             pipSpots[number]?.includes(spot) ? "" : "invisible"
           }`}
         />
