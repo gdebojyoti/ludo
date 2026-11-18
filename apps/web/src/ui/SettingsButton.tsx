@@ -53,7 +53,8 @@ export default function SettingsButton({ colours = "text-ludo-ivory" }: Props) {
               {settingsMessages.title}
             </h2>
           </div>
-          <div className="flex items-center gap-4">
+          {/* Only on phones: on desktop, the die is always below the Turn status, so this would change nothing. */}
+          <div className="flex items-center gap-4 xl:hidden">
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span id="settings-dice-label" className="text-base font-semibold">{settingsMessages.diceOnLeft}</span>
               <span id="settings-dice-detail" className="text-[13px] leading-snug text-ludo-brown">
