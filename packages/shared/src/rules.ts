@@ -164,6 +164,9 @@ export interface SeatToken {
   token: number;
 }
 
+/** Whether these are the same one of a Seat's Tokens. */
+export const isSameToken = (a: SeatToken, b: SeatToken): boolean => a.seat === b.seat && a.token === b.token;
+
 /**
  * Every Seat's Tokens, by Seat, after one of this Seat's Moves by the Roll, which must be one of its legal Moves, and
  * the opponents' Tokens it Captured, each now back in its Yard.
@@ -186,7 +189,7 @@ export const applyMove = (
     return onCell.length === 1 ? onCell : [];
   });
   const isCaptured = (owner: Seat, ownToken: number) => {
-    return captured.some((capture) => capture.seat === owner && capture.token === ownToken);
+    return captured.some((capture) => isSameToken(capture, { seat: owner, token: ownToken }));
   };
   const seatsAfter = seats.map((tokens, owner) => {
     if (owner === seat) return moved;

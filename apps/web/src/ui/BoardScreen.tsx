@@ -56,7 +56,7 @@ export default function BoardScreen({
   onPlayedOut,
 }: Props) {
   const playback = useBoardPlayback(latestBoard);
-  const { playedRoll, moving } = playback;
+  const { playedRoll, moving, returning } = playback;
   // The Board as it was when the viewer tapped the die, shown until it lands, as what came after would give the Roll
   // away: whose Turn it is, and which Tokens can Move.
   const [heldBoard, setHeldBoard] = useState<SnapshotBoard>();
@@ -294,6 +294,7 @@ export default function BoardScreen({
         disabled={disabled}
         onMove={moveToken}
         moving={moving}
+        returning={returning}
         onArrived={playback.tokenArrived}
       />
       <div className="flex w-full gap-2.5">
