@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import DialogCard from "./DialogCard";
 import Icon from "./Icon";
 import { settingsMessages } from "./messages";
 import { changeSettings, nextTheme, useSettings } from "./settings";
@@ -36,23 +37,8 @@ export default function SettingsButton({ colours = "text-ludo-ivory" }: Props) {
         <span className="sr-only xl:hidden">{settingsMessages.label}</span>
         <span className="hidden xl:inline">{settingsMessages.button}</span>
       </button>
-      <dialog
-        ref={dialogRef}
-        className="ludo-dialog m-auto w-[calc(100%-48px)] max-w-[342px] rounded-[22px] bg-ludo-ivory px-[22px] pt-7 pb-[22px]
-          font-ludo-ui text-ludo-maroon shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
-        aria-labelledby="settings-title"
-        // A tap on the scrim, outside the card, closes it.
-        onClick={(event) => event.target === dialogRef.current && dialogRef.current.close()}
-      >
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-col items-center gap-3.5">
-            <span className="flex size-16 items-center justify-center rounded-full bg-ludo-parchment">
-              <Icon name="settings" size={28} />
-            </span>
-            <h2 id="settings-title" className="m-0 font-ludo-display text-[26px] font-normal">
-              {settingsMessages.title}
-            </h2>
-          </div>
+      <DialogCard ref={dialogRef} icon="settings" title={settingsMessages.title}>
+        <div className="mt-1.5 flex flex-col gap-5">
           {/* Only on phones: on desktop, the die is always below the Turn status, so this would change nothing. */}
           <div className="flex items-center gap-4 xl:hidden">
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -99,7 +85,7 @@ export default function SettingsButton({ colours = "text-ludo-ivory" }: Props) {
             {settingsMessages.done}
           </button>
         </div>
-      </dialog>
+      </DialogCard>
     </>
   );
 }

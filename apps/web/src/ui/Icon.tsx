@@ -33,8 +33,10 @@ const paths = {
   closedDoor: ["M4 21h16M6 21V4.5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1V21", "M14 12.5v.01"],
 };
 
+export type IconName = keyof typeof paths;
+
 interface Props {
-  name: keyof typeof paths;
+  name: IconName;
   size?: number;
   strokeWidth?: number;
   className?: string;
