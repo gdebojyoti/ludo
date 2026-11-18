@@ -341,8 +341,8 @@ export default function BoardScreen({
           {/*
             The Turn status, beside the die, or on desktop above it. The same height whatever it says, so nothing on
             the screen shifts as the Turn moves on. The text and the die both start at the top, and the title and the
-            detail are each cut short at two lines, so they always fit. On desktop, the text is always at least as tall
-            as a line of title and two of detail, so the die below it stays put. On another Player's Turn, both are
+            detail are each cut short at two lines, so they always fit. On desktop, the text is always exactly as tall
+            as two lines of title, the gap and two of detail, so the die below it never moves. On another Player's Turn, both are
             dimmed.
           */}
           <div
@@ -352,7 +352,7 @@ export default function BoardScreen({
             <div
               className={`flex min-w-0 flex-1 flex-col gap-1.5 ${isOwnTurn ? "" : "opacity-75"} ${
                 isSwapped ? "items-end text-right" : ""
-              } lg:min-h-[85px] lg:w-full lg:flex-none lg:items-start lg:text-left`}
+              } lg:h-[calc(2*1.25*30px+6px+2*1.375*15px)] lg:w-full lg:flex-none lg:items-start lg:text-left`}
               aria-live="polite"
             >
               <p className="m-0 line-clamp-2 font-ludo-display text-2xl leading-tight lg:text-[30px]">{title}</p>
