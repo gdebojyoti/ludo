@@ -10,6 +10,7 @@ import PlayerCard from "./PlayerCard";
 import { homeCountAt, playerNameAt, seatAt } from "./boardView";
 import { boardMessages, commonMessages, leaveMessages } from "./messages";
 import { faceEvery, prefersReducedMotion, tumbleFaces, tumbleForReducedMotion } from "./motion";
+import { useSettings } from "./settings";
 import { playSound } from "./sound";
 import { useBoardPlayback } from "./useBoardPlayback";
 
@@ -278,8 +279,7 @@ export default function BoardScreen({
     );
   };
 
-  // TODO: Move this to Settings panel
-  const isSwapped = true;
+  const { diceOnRight: isSwapped } = useSettings();
 
   // On phones, the Player cards are in a row above the Board and a row below it, by where their Seats are on it. On
   // desktop, they're in a list on the left, the viewer's first and then clockwise, and the Seats nobody has are left
@@ -357,12 +357,12 @@ export default function BoardScreen({
             dimmed.
           */}
           <div
-            className={`flex ${isSwapped ? "flex-row-reverse" : ""} h-36 w-full flex-none items-start justify-between
+            className={`flex ${isSwapped ? "" : "flex-row-reverse"} h-36 w-full flex-none items-start justify-between
               gap-4 px-1.5 pt-2 xl:h-auto xl:flex-col xl:justify-start xl:gap-7 xl:p-0`}
           >
             <div
               className={`flex min-w-0 flex-1 flex-col gap-1.5 ${isOwnTurn ? "" : "opacity-75"} ${
-                isSwapped ? "items-end text-right" : ""
+                isSwapped ? "" : "items-end text-right"
               } xl:min-h-[85px] xl:w-full xl:flex-none xl:items-start xl:text-left`}
               aria-live="polite"
             >

@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import Icon from "./Icon";
 import { settingsMessages } from "./messages";
-import { loadSettings, nextTheme, saveSettings, type Settings } from "./settings";
+import { changeSettings, nextTheme, useSettings } from "./settings";
 
 interface Props {
   /** Its colours, for what it's drawn on: ivory on the dark background by default. */
@@ -12,14 +12,8 @@ interface Props {
 // opens the settings in a card like Leave's question.
 export default function SettingsButton({ colours = "text-ludo-ivory" }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [settings, setSettings] = useState(loadSettings);
+  const settings = useSettings();
   const { diceOnRight } = settings;
-
-  const changeSettings = (changed: Partial<Settings>) => {
-    const next = { ...settings, ...changed };
-    setSettings(next);
-    saveSettings(next);
-  };
 
   const toggleDiceOnRight = () => changeSettings({ diceOnRight: !diceOnRight });
 
