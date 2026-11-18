@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ludo · Christmas · Snowfall 1b · Game</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&amp;family=Nunito+Sans:wght@400;600;700;800&amp;display=swap">
+<style>
+body{margin:0}
+.icon{width:44px;height:44px;border-radius:999px;border:1.5px solid #4A6390;background:transparent;color:#EEF4FF;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+.board{width:360px;height:360px;box-sizing:border-box;display:grid;grid-template-columns:repeat(15,minmax(0,1fr));grid-template-rows:repeat(15,minmax(0,1fr));gap:1px;background:#C5D3E8;border-radius:10px;overflow:hidden;box-shadow:0 0 0 4px #0E1C36,0 0 0 5px #4A6390}
+.yard-tl{grid-row:1/7;grid-column:1/7}.yard-tr{grid-row:1/7;grid-column:10/16}.yard-br{grid-row:10/16;grid-column:10/16}.yard-bl{grid-row:10/16;grid-column:1/7}
+.ctr{grid-row:7/10;grid-column:7/10;background:#FBFDFF}
+.cell{background:#FBFDFF;position:relative;display:flex;align-items:center;justify-content:center}
+.c-s0,.t-s0{background:#D3283E}.c-s1,.t-s1{background:#1E8B5C}.c-s2,.t-s2{background:#F1B53A}.c-s3,.t-s3{background:#3E8EDB}
+.y-s0{background-color:#D3283E;background-image:radial-gradient(circle,#DF6474 0 1.7px,transparent 2.3px),radial-gradient(circle,#DF6474 0 1.1px,transparent 1.7px);background-size:19px 19px,13px 13px;background-position:0 0,6px 9px}.y-s1{background-color:#1E8B5C;background-image:radial-gradient(circle,#5DAB8A 0 1.7px,transparent 2.3px),radial-gradient(circle,#5DAB8A 0 1.1px,transparent 1.7px);background-size:19px 19px,13px 13px;background-position:0 0,6px 9px}.y-s2{background-color:#F1B53A;background-image:radial-gradient(circle,#F5CA71 0 1.7px,transparent 2.3px),radial-gradient(circle,#F5CA71 0 1.1px,transparent 1.7px);background-size:19px 19px,13px 13px;background-position:0 0,6px 9px}.y-s3{background-color:#3E8EDB;background-image:radial-gradient(circle,#74AEE5 0 1.7px,transparent 2.3px),radial-gradient(circle,#74AEE5 0 1.1px,transparent 1.7px);background-size:19px 19px,13px 13px;background-position:0 0,6px 9px}
+.star{width:15px;height:15px;fill:none;stroke:#7D93B8;stroke-width:1.7;stroke-linejoin:round}
+.c-s0 .star,.c-s1 .star,.c-s2 .star,.c-s3 .star{stroke:#FFFFFF}
+.yard{display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
+.yin{width:104px;height:104px;flex:none;box-sizing:border-box;background:#FBFDFF;border-radius:50%;display:grid;grid-template-columns:repeat(2,34px);grid-template-rows:repeat(2,34px);place-content:center;gap:4px}
+.slot{width:34px;height:34px;border-radius:50%;background:#DCE6F3;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+.tok{flex:none;width:17px;height:17px;border-radius:50%;box-sizing:border-box;border:2px solid #FFFFFF;position:relative;display:block}
+.tok::after{content:"";position:absolute;inset:2px;border-radius:50%;border:1.5px solid #FFFFFF}
+.tok.t-s0{box-shadow:0 1.5px 0 #891A28}.tok.t-s1{box-shadow:0 1.5px 0 #145A3C}.tok.t-s2{box-shadow:0 1.5px 0 #9D7626}.tok.t-s3{box-shadow:0 1.5px 0 #285C8E}
+.tok.t-s0::after{border-color:#EEADB6}.tok.t-s1::after{border-color:#AAD3C1}.tok.t-s2::after{border-color:#FAE3B4}.tok.t-s3::after{border-color:#B6D4F1}
+.slot .tok{width:22px;height:22px}
+.grp{position:absolute;inset:0;z-index:2}
+.grp .tok{position:absolute;border-width:1.5px}
+.g2 .tok,.g3 .tok,.g4 .tok{width:11px;height:11px}
+.g2 .tok::after,.g3 .tok::after,.g4 .tok::after{inset:1px;border-width:1px}
+.g2 .tok{left:50%;top:50%}
+.g2 .tok:nth-child(1){margin:-11.4px 0 0 -8.45px}.g2 .tok:nth-child(2){margin:0.4px 0 0 -2.55px}
+.g3 .tok:nth-child(1){left:50%;top:0;margin-left:-5.5px}.g3 .tok:nth-child(2){left:0;bottom:0}.g3 .tok:nth-child(3){right:0;bottom:0}
+.g4 .tok:nth-child(1){left:0;top:0}.g4 .tok:nth-child(2){right:0;top:0}.g4 .tok:nth-child(3){left:0;bottom:0}.g4 .tok:nth-child(4){right:0;bottom:0}
+.chipring{position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:2}
+.chip-in{width:calc(100% - 6px);height:calc(100% - 6px);border-radius:50%;background:#0E1C36;color:#EEF4FF;font:700 9px/1 'Nunito Sans', sans-serif;letter-spacing:-0.02em;display:flex;align-items:center;justify-content:center}
+.plq{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:#172A4B;border:1px solid #2A4470;box-sizing:border-box;height:64px}
+.plq.r{flex-direction:row-reverse;text-align:right}
+.plq.turn{border:2px solid #F4C152;background:#363F4C;padding:7px 9px}
+.plq.turn .av{box-shadow:0 0 0 3px #F4C152}
+.av{width:36px;height:36px;flex:none;border-radius:50%;border:2px solid #FFFFFF;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font:800 15px 'Bricolage Grotesque', sans-serif;color:#FFFFFF}
+.av.t-s2{color:#0E1C36}
+.pt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.nm{font-size:14px;font-weight:700;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.sub{font-size:12px;color:#A3B6D4}
+.sub.on{color:#F4C152;font-weight:800}
+.roll{width:88px;height:88px;flex:none;border:none;border-radius:22px;background:#FFFFFF;color:#0E1C36;font:800 24px 'Bricolage Grotesque', sans-serif;letter-spacing:0.06em;box-shadow:inset 0 -6px 0 #C9D6EA,0 0 0 3px #F4C152,0 5px 0 #06101F;cursor:pointer}
+@keyframes sf-fall{from{transform:translateY(0)}to{transform:translateY(150px)}}
+@keyframes sf-sway{0%,100%{transform:translateX(-5px)}50%{transform:translateX(5px)}}
+.sf-far{animation:sf-fall 30s linear infinite}
+.sf-near{animation:sf-fall 16s linear infinite}
+.sf-sway{animation:sf-sway 9s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.sf-far,.sf-near,.sf-sway{animation:none}}
+.tok.t-s0,.tok.t-s1,.tok.t-s2,.tok.t-s3{box-shadow:0 1px 2px rgba(40,10,10,.5)}
+.grp .tok.t-s0,.grp .tok.t-s1,.grp .tok.t-s2,.grp .tok.t-s3{box-shadow:0 1px 2px rgba(40,10,10,.55)}
+.icon{background:#172A4B}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; box-sizing: border-box; background: #0E1C36; color: #EEF4FF; font-family: 'Nunito Sans', sans-serif; overflow: hidden">
+<div aria-hidden="true" style="position: absolute; inset: 0; z-index: 0; overflow: hidden"><div class="sf-sway" style="position: absolute; inset: -8px"><svg class="sf-far" aria-hidden="true" width="100%" style="position: absolute; left: 0; top: -150px; height: calc(100% + 150px)"><defs><pattern id="sf-page-far" width="150" height="150" patternUnits="userSpaceOnUse"><circle cx="50" cy="48" r="1.6" fill="#2E4A77"></circle><circle cx="120" cy="60" r="1.3" fill="#2E4A77"></circle><circle cx="36" cy="78" r="1.2" fill="#2E4A77"></circle><circle cx="104" cy="140" r="1.5" fill="#2E4A77"></circle><circle cx="140" cy="32" r="1.1" fill="#2E4A77"></circle><circle cx="62" cy="128" r="1.2" fill="#2E4A77"></circle><circle cx="8" cy="60" r="1.3" fill="#2E4A77"></circle><circle cx="86" cy="40" r="1.0" fill="#2E4A77"></circle><circle cx="20" cy="10" r="1.1" fill="#2E4A77"></circle><circle cx="132" cy="98" r="1.2" fill="#2E4A77"></circle></pattern></defs><rect width="100%" height="100%" fill="url(#sf-page-far)"></rect></svg><svg class="sf-near" aria-hidden="true" width="100%" style="position: absolute; left: 0; top: -150px; height: calc(100% + 150px)"><defs><pattern id="sf-page-near" width="150" height="150" patternUnits="userSpaceOnUse"><g transform="translate(22 26)" stroke="#22395F" stroke-width="1.4" stroke-linecap="round"><line x1="0" y1="-7" x2="0" y2="7" transform="rotate(0)"></line><line x1="0" y1="-7" x2="0" y2="7" transform="rotate(60)"></line><line x1="0" y1="-7" x2="0" y2="7" transform="rotate(120)"></line><line x1="-2.4" y1="-5.2" x2="0" y2="-3.1" transform="rotate(0)"></line><line x1="2.4" y1="-5.2" x2="0" y2="-3.1" transform="rotate(0)"></line><line x1="-2.4" y1="-5.2" x2="0" y2="-3.1" transform="rotate(60)"></line><line x1="2.4" y1="-5.2" x2="0" y2="-3.1" transform="rotate(60)"></line><line x1="-2.4" y1="-5.2" x2="0" y2="-3.1" transform="rotate(120)"></line><line x1="2.4" y1="-5.2" x2="0" y2="-3.1" transform="rotate(120)"></line><line x1="-2.4" y1="-5.2" x2="0" y2="-3.1" transform="rotate(180)"></line><line x1="2.4" y1="-5.2" x2="0" y2="-3.1" transform="rotate(180)"></line><line x1="-2.4" y1="-5.2" x2="0" y2="-3.1" transform="rotate(240)"></line><line x1="2.4" y1="-5.2" x2="0" y2="-3.1" transform="rotate(240)"></line><line x1="-2.4" y1="-5.2" x2="0" y2="-3.1" transform="rotate(300)"></line><line x1="2.4" y1="-5.2" x2="0" y2="-3.1" transform="rotate(300)"></line></g><g transform="translate(98 18)" stroke="#2E4A77" stroke-width="1.2" stroke-linecap="round"><line x1="0" y1="-4" x2="0" y2="4" transform="rotate(0)"></line><line x1="0" y1="-4" x2="0" y2="4" transform="rotate(60)"></line><line x1="0" y1="-4" x2="0" y2="4" transform="rotate(120)"></line><line x1="-1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(0)"></line><line x1="1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(0)"></line><line x1="-1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(60)"></line><line x1="1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(60)"></line><line x1="-1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(120)"></line><line x1="1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(120)"></line><line x1="-1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(180)"></line><line x1="1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(180)"></line><line x1="-1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(240)"></line><line x1="1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(240)"></line><line x1="-1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(300)"></line><line x1="1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(300)"></line></g><g transform="translate(70 84)" stroke="#22395F" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="-9" x2="0" y2="9" transform="rotate(0)"></line><line x1="0" y1="-9" x2="0" y2="9" transform="rotate(60)"></line><line x1="0" y1="-9" x2="0" y2="9" transform="rotate(120)"></line><line x1="-3.1" y1="-6.8" x2="0" y2="-4.0" transform="rotate(0)"></line><line x1="3.1" y1="-6.8" x2="0" y2="-4.0" transform="rotate(0)"></line><line x1="-3.1" y1="-6.8" x2="0" y2="-4.0" transform="rotate(60)"></line><line x1="3.1" y1="-6.8" x2="0" y2="-4.0" transform="rotate(60)"></line><line x1="-3.1" y1="-6.8" x2="0" y2="-4.0" transform="rotate(120)"></line><line x1="3.1" y1="-6.8" x2="0" y2="-4.0" transform="rotate(120)"></line><line x1="-3.1" y1="-6.8" x2="0" y2="-4.0" transform="rotate(180)"></line><line x1="3.1" y1="-6.8" x2="0" y2="-4.0" transform="rotate(180)"></line><line x1="-3.1" y1="-6.8" x2="0" y2="-4.0" transform="rotate(240)"></line><line x1="3.1" y1="-6.8" x2="0" y2="-4.0" transform="rotate(240)"></line><line x1="-3.1" y1="-6.8" x2="0" y2="-4.0" transform="rotate(300)"></line><line x1="3.1" y1="-6.8" x2="0" y2="-4.0" transform="rotate(300)"></line></g><g transform="translate(126 112)" stroke="#2E4A77" stroke-width="1.2" stroke-linecap="round"><line x1="0" y1="-5" x2="0" y2="5" transform="rotate(0)"></line><line x1="0" y1="-5" x2="0" y2="5" transform="rotate(60)"></line><line x1="0" y1="-5" x2="0" y2="5" transform="rotate(120)"></line><line x1="-1.8" y1="-3.8" x2="0" y2="-2.2" transform="rotate(0)"></line><line x1="1.8" y1="-3.8" x2="0" y2="-2.2" transform="rotate(0)"></line><line x1="-1.8" y1="-3.8" x2="0" y2="-2.2" transform="rotate(60)"></line><line x1="1.8" y1="-3.8" x2="0" y2="-2.2" transform="rotate(60)"></line><line x1="-1.8" y1="-3.8" x2="0" y2="-2.2" transform="rotate(120)"></line><line x1="1.8" y1="-3.8" x2="0" y2="-2.2" transform="rotate(120)"></line><line x1="-1.8" y1="-3.8" x2="0" y2="-2.2" transform="rotate(180)"></line><line x1="1.8" y1="-3.8" x2="0" y2="-2.2" transform="rotate(180)"></line><line x1="-1.8" y1="-3.8" x2="0" y2="-2.2" transform="rotate(240)"></line><line x1="1.8" y1="-3.8" x2="0" y2="-2.2" transform="rotate(240)"></line><line x1="-1.8" y1="-3.8" x2="0" y2="-2.2" transform="rotate(300)"></line><line x1="1.8" y1="-3.8" x2="0" y2="-2.2" transform="rotate(300)"></line></g><g transform="translate(18 118)" stroke="#2E4A77" stroke-width="1.2" stroke-linecap="round"><line x1="0" y1="-4" x2="0" y2="4" transform="rotate(0)"></line><line x1="0" y1="-4" x2="0" y2="4" transform="rotate(60)"></line><line x1="0" y1="-4" x2="0" y2="4" transform="rotate(120)"></line><line x1="-1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(0)"></line><line x1="1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(0)"></line><line x1="-1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(60)"></line><line x1="1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(60)"></line><line x1="-1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(120)"></line><line x1="1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(120)"></line><line x1="-1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(180)"></line><line x1="1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(180)"></line><line x1="-1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(240)"></line><line x1="1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(240)"></line><line x1="-1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(300)"></line><line x1="1.4" y1="-3.0" x2="0" y2="-1.8" transform="rotate(300)"></line></g></pattern></defs><rect width="100%" height="100%" fill="url(#sf-page-near)"></rect></svg></div></div><svg aria-hidden="true" viewBox="0 0 390 90" width="390" height="90" style="position: absolute; left: 0; bottom: 0; z-index: 0"><polygon points="2.2,90.0 27.8,90.0 15.0,71.0" fill="#15284A"></polygon><polygon points="5.0,78.4 25.0,78.4 15.0,59.4" fill="#15284A"></polygon><polygon points="7.8,66.8 22.2,66.8 15.0,47.8" fill="#15284A"></polygon><polygon points="12.0,56.1 18.0,56.1 15.0,47.8" fill="#2B4570"></polygon><rect x="13.4" y="90.0" width="3.2" height="5.3" fill="#15284A"></rect><polygon points="30.6,90.0 47.4,90.0 39.0,77.6" fill="#15284A"></polygon><polygon points="32.5,82.4 45.5,82.4 39.0,70.0" fill="#15284A"></polygon><polygon points="34.3,74.9 43.7,74.9 39.0,62.5" fill="#15284A"></polygon><polygon points="37.0,67.9 41.0,67.9 39.0,62.5" fill="#2B4570"></polygon><rect x="37.4" y="90.0" width="3.2" height="4.2" fill="#15284A"></rect><polygon points="42.8,90.0 75.2,90.0 59.0,66.0" fill="#15284A"></polygon><polygon points="46.4,75.4 71.6,75.4 59.0,51.4" fill="#15284A"></polygon><polygon points="49.9,60.8 68.1,60.8 59.0,36.8" fill="#15284A"></polygon><polygon points="55.2,47.2 62.8,47.2 59.0,36.8" fill="#2B4570"></polygon><rect x="57.4" y="90.0" width="3.2" height="6.2" fill="#15284A"></rect><polygon points="75.0,90.0 95.0,90.0 85.0,75.1" fill="#15284A"></polygon><polygon points="77.2,80.9 92.8,80.9 85.0,66.0" fill="#15284A"></polygon><polygon points="79.4,71.9 90.6,71.9 85.0,57.0" fill="#15284A"></polygon><polygon points="82.6,63.4 87.4,63.4 85.0,57.0" fill="#2B4570"></polygon><rect x="83.4" y="90.0" width="3.2" height="4.6" fill="#15284A"></rect><polygon points="105.7,90.0 120.3,90.0 113.0,79.2" fill="#15284A"></polygon><polygon points="107.3,83.4 118.7,83.4 113.0,72.7" fill="#15284A"></polygon><polygon points="108.9,76.9 117.1,76.9 113.0,66.1" fill="#15284A"></polygon><polygon points="111.3,70.8 114.7,70.8 113.0,66.1" fill="#2B4570"></polygon><rect x="111.4" y="90.0" width="3.2" height="3.9" fill="#15284A"></rect><polygon points="138.7,90.0 163.3,90.0 151.0,71.8" fill="#15284A"></polygon><polygon points="141.4,78.9 160.6,78.9 151.0,60.7" fill="#15284A"></polygon><polygon points="144.1,67.8 157.9,67.8 151.0,49.6" fill="#15284A"></polygon><polygon points="148.1,57.5 153.9,57.5 151.0,49.6" fill="#2B4570"></polygon><rect x="149.4" y="90.0" width="3.2" height="5.2" fill="#15284A"></rect><polygon points="161.7,90.0 196.3,90.0 179.0,64.3" fill="#15284A"></polygon><polygon points="165.5,74.4 192.5,74.4 179.0,48.7" fill="#15284A"></polygon><polygon points="169.3,58.8 188.7,58.8 179.0,33.1" fill="#15284A"></polygon><polygon points="174.9,44.2 183.1,44.2 179.0,33.1" fill="#2B4570"></polygon><rect x="177.4" y="90.0" width="3.2" height="6.5" fill="#15284A"></rect><polygon points="195.5,90.0 214.5,90.0 205.0,75.9" fill="#15284A"></polygon><polygon points="197.6,81.4 212.4,81.4 205.0,67.4" fill="#15284A"></polygon><polygon points="199.7,72.9 210.3,72.9 205.0,58.8" fill="#15284A"></polygon><polygon points="202.8,64.9 207.2,64.9 205.0,58.8" fill="#2B4570"></polygon><rect x="203.4" y="90.0" width="3.2" height="4.4" fill="#15284A"></rect><polygon points="229.2,90.0 244.8,90.0 237.0,78.4" fill="#15284A"></polygon><polygon points="230.9,82.9 243.1,82.9 237.0,71.4" fill="#15284A"></polygon><polygon points="232.6,75.9 241.4,75.9 237.0,64.3" fill="#15284A"></polygon><polygon points="235.2,69.3 238.8,69.3 237.0,64.3" fill="#2B4570"></polygon><rect x="235.4" y="90.0" width="3.2" height="4.0" fill="#15284A"></rect><polygon points="249.1,90.0 276.9,90.0 263.0,69.3" fill="#15284A"></polygon><polygon points="252.1,77.4 273.9,77.4 263.0,56.7" fill="#15284A"></polygon><polygon points="255.2,64.8 270.8,64.8 263.0,44.1" fill="#15284A"></polygon><polygon points="259.7,53.1 266.3,53.1 263.0,44.1" fill="#2B4570"></polygon><rect x="261.4" y="90.0" width="3.2" height="5.6" fill="#15284A"></rect><polygon points="280.4,90.0 301.6,90.0 291.0,74.3" fill="#15284A"></polygon><polygon points="282.7,80.4 299.3,80.4 291.0,64.7" fill="#15284A"></polygon><polygon points="285.1,70.8 296.9,70.8 291.0,55.1" fill="#15284A"></polygon><polygon points="288.5,62.0 293.5,62.0 291.0,55.1" fill="#2B4570"></polygon><rect x="289.4" y="90.0" width="3.2" height="4.7" fill="#15284A"></rect><polygon points="300.6,90.0 337.4,90.0 319.0,62.7" fill="#15284A"></polygon><polygon points="304.6,73.4 333.4,73.4 319.0,46.0" fill="#15284A"></polygon><polygon points="308.7,56.7 329.3,56.7 319.0,29.4" fill="#15284A"></polygon><polygon points="314.7,41.3 323.3,41.3 319.0,29.4" fill="#2B4570"></polygon><rect x="317.4" y="90.0" width="3.2" height="6.8" fill="#15284A"></rect><polygon points="338.1,90.0 355.9,90.0 347.0,76.8" fill="#15284A"></polygon><polygon points="340.0,81.9 354.0,81.9 347.0,68.7" fill="#15284A"></polygon><polygon points="342.0,73.9 352.0,73.9 347.0,60.6" fill="#15284A"></polygon><polygon points="344.9,66.4 349.1,66.4 347.0,60.6" fill="#2B4570"></polygon><rect x="345.4" y="90.0" width="3.2" height="4.3" fill="#15284A"></rect><polygon points="359.6,90.0 386.4,90.0 373.0,70.1" fill="#15284A"></polygon><polygon points="362.6,77.9 383.4,77.9 373.0,58.0" fill="#15284A"></polygon><polygon points="365.5,65.8 380.5,65.8 373.0,45.9" fill="#15284A"></polygon><polygon points="369.9,54.6 376.1,54.6 373.0,45.9" fill="#2B4570"></polygon><rect x="371.4" y="90.0" width="3.2" height="5.5" fill="#15284A"></rect></svg>
+<div style="position: relative; z-index: 1; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; padding: 14px 15px 28px; gap: 14px">
+<header style="width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<div style="display: flex; align-items: center; gap: 12px; min-width: 0">
+<span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 0.04em; color: #FFFFFF">LUDO</span>
+<span style="width: 1px; height: 20px; background: #34507E"></span>
+<span style="font-size: 13px; color: #A3B6D4">Classic · 4 players</span>
+</div>
+<button class="icon" aria-label="Leave the game"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4H5v16h5M14 16l4-4-4-4M18 12H9"></path></svg></button>
+</header>
+<div style="width: 100%; display: flex; gap: 10px">
+<div class="plq"><span class="av t-s1">H</span><span class="pt"><span class="nm">Hermione Weasley</span></span></div>
+<div class="plq r"><span class="av t-s2">B</span><span class="pt"><span class="nm">Bartemius Shacklebolt</span></span></div>
+</div>
+<div class="board">
+<sc-for list="{{yards}}" as="y" hint-placeholder-count="4">
+<div class="{{y.cls}}"><div class="yin">
+<sc-for list="{{y.slots}}" as="s" hint-placeholder-count="4"><div class="slot"><sc-if value="{{s.tok}}" hint-placeholder-val="{{ true }}"><span class="{{s.cls}}"></span></sc-if></div></sc-for>
+</div></div>
+</sc-for>
+<div class="ctr"><svg viewBox="0 0 3 3" width="100%" height="100%" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,0 1.5,1.5 0,3" fill="#1E8B5C"></polygon><polygon points="0,0 3,0 1.5,1.5" fill="#F1B53A"></polygon><polygon points="3,0 3,3 1.5,1.5" fill="#3E8EDB"></polygon><polygon points="0,3 3,3 1.5,1.5" fill="#D3283E"></polygon><polygon points="1.500,1.020 1.623,1.350 1.976,1.365 1.700,1.585 1.794,1.925 1.500,1.730 1.206,1.925 1.300,1.585 1.024,1.365 1.377,1.350" fill="#F4C152" stroke="#FFFFFF" stroke-width="0.06" stroke-linejoin="round"></polygon></svg></div>
+<sc-for list="{{cells}}" as="cell" hint-placeholder-count="72">
+<div class="{{cell.cls}}">
+<sc-if value="{{cell.star}}" hint-placeholder-val="{{ false }}"><svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"></path></svg></sc-if>
+<sc-for list="{{cell.tokens}}" as="t" hint-placeholder-count="0"><span class="{{t.cls}}"></span></sc-for>
+<sc-if value="{{cell.group}}" hint-placeholder-val="{{ false }}">
+<div class="{{cell.gcls}}" role="img" aria-label="{{cell.label}}"><sc-for list="{{cell.gtoks}}" as="g" hint-placeholder-count="2"><span class="{{g.cls}}"></span></sc-for></div>
+</sc-if>
+<sc-if value="{{cell.chip}}" hint-placeholder-val="{{ false }}">
+<div class="chipring" style="background: {{cell.ring}}" role="img" aria-label="{{cell.label}}"><span class="chip-in">{{cell.count}}</span></div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div style="width: 100%; display: flex; gap: 10px">
+<div class="plq turn"><span class="av t-s0">N</span><span class="pt"><span class="nm">Neville Lovegood</span><span class="sub on">You · your turn</span></span></div>
+<div class="plq r"><span class="av t-s3">L</span><span class="pt"><span class="nm">Luna Diggory</span></span></div>
+</div>
+<div style="flex: 1; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 6px; box-sizing: border-box">
+<div style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
+<div style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 26px; line-height: 1.05; color: #FFFFFF">Your turn</div>
+<div style="font-size: 14px; color: #A3B6D4; line-height: 1.4">Last roll: Luna Diggory rolled a 3</div>
+</div>
+<button class="roll">Roll</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    // Seats, numbered clockwise from the viewer, never colours (ADR-0006):
+    // s0 = you, bottom-left · s1 = top-left · s2 = top-right · s3 = bottom-right.
+    const NAMES = { s1: 'Hermione', s2: 'Bartemius', s3: 'Luna' };
+    const home = (r, c) => (r === 7 && c >= 1 && c <= 5) ? 's1' : (c === 7 && r >= 1 && r <= 5) ? 's2' : (r === 7 && c >= 9 && c <= 13) ? 's3' : (c === 7 && r >= 9 && r <= 13) ? 's0' : '';
+    const starts = { '6,1': 's1', '1,8': 's2', '8,13': 's3', '13,6': 's0' };
+    const stars = { '2,6': 1, '6,12': 1, '12,8': 1, '8,2': 1 };
+    // A realistic mid-game (same position as Desktop 1): every seat has exactly 4 tokens.
+    // Tokens of different seats share a cell only on a safe cell.
+    const toks = {
+      '10,6': ['s0'],
+      '4,6': ['s0', 's0'],
+      '6,4': ['s1'],
+      '0,8': ['s1'],
+      '12,8': ['s1', 's3'],
+      '6,12': ['s2'],
+      '13,8': ['s2'],
+      '7,11': ['s3']
+    };
+    const yardN = { s0: 1, s1: 1, s2: 2, s3: 2 };
+    const tok = (x) => ({ cls: 'tok t-' + x });
+    const hex = { s0: '#D3283E', s1: '#1E8B5C', s2: '#F1B53A', s3: '#3E8EDB' };
+    const ringOf = (list) => {
+      let at = 0; const stops = [];
+      ['s0', 's1', 's2', 's3'].forEach(x => { const n = list.filter(y => y === x).length; if (!n) return; const to = at + n / list.length * 100; stops.push(hex[x] + ' ' + at.toFixed(2) + '% ' + to.toFixed(2) + '%'); at = to; });
+      return 'conic-gradient(' + stops.join(', ') + ')';
+    };
+    const labelOf = (list) => {
+      const n = {}; list.forEach(x => { n[x] = (n[x] || 0) + 1; });
+      return list.length + ' tokens here: ' + Object.keys(n).map(x => n[x] + ' ' + (x === 's0' ? 'yours' : NAMES[x] + '’s')).join(', ');
+    };
+    const cells = [];
+    for (let r = 0; r < 15; r++) for (let c = 0; c < 15; c++) {
+      if ((r >= 6 && r <= 8) === (c >= 6 && c <= 8)) continue;
+      const k = r + ',' + c;
+      const col = home(r, c) || starts[k] || '';
+      const list = toks[k] || [];
+      const n = list.length;
+      cells.push({ cls: 'cell' + (col ? ' c-' + col : ''), star: n < 2 && !!(stars[k] || starts[k]), tokens: n === 1 ? list.map(tok) : [], group: n >= 2 && n <= 4, gcls: 'grp g' + n, gtoks: list.map(tok), chip: n >= 5, count: n, ring: n >= 5 ? ringOf(list) : '', label: labelOf(list) });
+    }
+    const yards = [['s1', 'tl'], ['s2', 'tr'], ['s3', 'br'], ['s0', 'bl']].map(([s, pos]) => ({ cls: 'yard yard-' + pos + ' y-' + s, slots: [0, 1, 2, 3].map(i => ({ tok: i < yardN[s], cls: 'tok t-' + s })) }));
+    return { cells, yards };
+  }
+}
+</script>
+</body>
+</html>
