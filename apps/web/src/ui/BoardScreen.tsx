@@ -290,20 +290,32 @@ export default function BoardScreen({
 
   // On desktop, the header is a bar across the window, and below it the Players, the Board and the Turn status are in
   // three columns, top-aligned. The Board is as big as the window's height allows, less the header, the space round the
-  // columns and its own frame, or as wide as is left once the side columns have their least width (220px for the
-  // Players, 300px for the Turn status) and the 56px gaps between columns, whichever is smaller. The Players column
-  // then takes what's left, up to 300px. The wrappers that make those columns are left out of the layout on phones,
-  // where it's one column, and the Notice, above the cards there, is above the Turn status on desktop.
+  // columns and its own frame, or as wide as is left once the side columns have their least width (250px for the
+  // Players, 300px for the Turn status) and the 56px gaps between columns, whichever is smaller, and never more than
+  // 750px across, so it doesn't fill large screens. The Players column then takes what's left, up to 300px.
+  //
+  // The columns sit in the middle of the height below the header, unless that would leave more than 150px above them,
+  // besides the 32px padding: then they're 150px down, and the rest of the space is below them. The Board is always the
+  // tallest column, so the space to share is the window's height less the header (85px), the padding above and below
+  // the columns (32px and 40px) and the Board.
+  //
+  // The Board's size uses the screen's width in cqw, as it's a size container, not %: in the padding, % would mean a
+  // different width than in the columns, and the gap above would be worked out for the wrong size of Board. The width
+  // left for the Board is the screen's width less the padding at the sides (40px each) and the other columns and gaps.
+  //
+  // The wrappers that make those columns are left out of the layout on phones, where it's one column, and the Notice,
+  // above the cards there, is above the Turn status on desktop.
   return (
-    <div className="flex flex-1 flex-col items-center gap-3.5 px-[15px] pt-3.5 pb-7 xl:gap-0 xl:p-0">
+    <div className="flex flex-1 flex-col items-center gap-3.5 px-[15px] pt-3.5 pb-7 xl:@container xl:gap-0 xl:p-0">
       <Header
         subtitle={boardMessages.subtitle(mode, playerCount)}
         action={<LeaveButton disabled={disabled} text={leaveMessages.inPlay(otherNames)} onLeave={onLeaveGame} />}
       />
       <div
-        className="contents xl:grid xl:w-full xl:flex-1 xl:content-center xl:items-start xl:justify-center xl:gap-14
-          xl:px-10 xl:pt-8 xl:pb-10 xl:grid-cols-[minmax(220px,300px)_var(--ludo-board-size)_300px]
-          xl:[--ludo-board-size:min(max(320px,calc(100dvh-170px)),calc(100%-632px))]"
+        className="contents xl:grid xl:w-full xl:flex-1 xl:content-start xl:items-start xl:justify-center xl:gap-14
+          xl:px-10 xl:pb-10 xl:grid-cols-[minmax(250px,300px)_var(--ludo-board-size)_300px]
+          xl:[--ludo-board-size:min(max(320px,calc(100dvh-170px)),calc(100cqw-742px),750px)]
+          xl:pt-[calc(32px+clamp(0px,calc((100dvh-157px-var(--ludo-board-size))/2),150px))]"
       >
         <section className="hidden xl:flex xl:flex-col xl:gap-2.5" aria-labelledby="players-heading">
           <h2 id="players-heading" className="m-0 mb-1 text-xs font-semibold tracking-widest text-ludo-tan uppercase">
