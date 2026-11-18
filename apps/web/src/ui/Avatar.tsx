@@ -6,8 +6,8 @@ interface Props {
   colours?: { colour: string; textColour: string };
   /** A gold ring, marking whose Turn it is, or the viewer in the Lobby. */
   ringed?: boolean;
-  /** A dashed edge, marking a Player who is Away. */
-  away?: boolean;
+  /** A dashed edge, marking a Player who is Away, or one who has Left during play. */
+  absent?: boolean;
   className?: string;
   style?: CSSProperties;
 }
@@ -20,7 +20,7 @@ export default function Avatar({
   playerName,
   colours,
   ringed = false,
-  away = false,
+  absent = false,
   className = "size-9 text-[15px]",
   style: extraStyle,
 }: Props) {
@@ -30,13 +30,15 @@ export default function Avatar({
   };
   // In the Lobby, an Away Player's avatar is only an outline.
   const look = () => {
-    if (colours) return `border-2 border-ludo-ivory ${away ? "border-dashed" : ""}`;
-    return away ? "border-2 border-dashed border-ludo-tan text-ludo-ivory" : "bg-ludo-ivory text-ludo-maroon";
+    if (colours) return `border-2 border-ludo-on-page ${absent ? "border-dashed" : ""}`;
+    return absent
+      ? "border-2 border-dashed border-ludo-on-page-muted text-ludo-on-page christmas:bg-ludo-page"
+      : "bg-ludo-card text-ludo-ink";
   };
   return (
     <span
       className={`flex flex-none items-center justify-center rounded-full font-ludo-display font-semibold ${look()} ${
-        ringed ? "shadow-[0_0_0_3px_var(--color-ludo-gold)]" : ""
+        ringed ? "shadow-[0_0_0_3px_var(--color-ludo-accent)]" : ""
       } ${className}`}
       style={style}
       aria-hidden

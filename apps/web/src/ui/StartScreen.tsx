@@ -2,10 +2,15 @@ import { useState, type CSSProperties, type FormEvent } from "react";
 import { gameCodeLength, type GameMode } from "@ludo/shared";
 import Avatar from "./Avatar";
 import CreateGameButton from "./CreateGameButton";
+import Frost from "./Frost";
 import Icon from "./Icon";
 import { commonMessages, startMessages } from "./messages";
 import { seatView } from "./seatView";
 import SettingsButton from "./SettingsButton";
+import SnowCap from "./SnowCap";
+import SnowHills from "./SnowHills";
+import SnowTrees from "./SnowTrees";
+import Sparkles from "./Sparkles";
 
 interface Props {
   /**
@@ -45,70 +50,83 @@ export default function StartScreen({
 
   return (
     // Clipped, so the sheet sliding in from below the screen doesn't make the page scroll. Not hidden, which would
-    // also make this a scroll container. On desktop, the logo is on the left and the sheet is a panel on the right.
-    <div className="relative flex min-h-full flex-1 flex-col overflow-clip text-ludo-maroon xl:flex-row">
+    // also make this a scroll container. On desktop, the logo is on the left and the sheet is a panel on the right, and
+    // this is a size container, so the panel can tell where the screen's left edge is.
+    <div className="relative flex min-h-full flex-1 flex-col overflow-clip text-ludo-ink xl:@container xl:flex-row">
       {/* Where it is in the header on the other screens, so it stays put when the Player goes on to the Lobby. On
-          desktop, that's over the panel, so it's coloured for the panel. */}
-      <div className="flex justify-end px-5 pt-3.5 xl:absolute xl:top-[18.5px] xl:right-8 xl:p-0">
-        <SettingsButton colours="text-ludo-ivory xl:border-ludo-tan-border xl:text-ludo-maroon" />
+          desktop, that's over the panel, so it's coloured for the panel, and lifted above it, as the panel is
+          positioned too. */}
+      <div className="flex justify-end px-5 pt-3.5 xl:absolute xl:top-[18.5px] xl:right-8 xl:z-10 xl:p-0">
+        <SettingsButton
+          colours="text-ludo-on-page xl:border-ludo-line xl:text-ludo-ink xl:[--ludo-button-icon-fill:transparent]"
+        />
       </div>
       <div
-        className="flex flex-1 flex-col items-center justify-center gap-6 px-6 pt-6 pb-8 xl:min-w-0 xl:gap-9 xl:p-12"
+        className="relative flex flex-1 flex-col items-center justify-center gap-6 px-6 pt-6 pb-8 xl:min-w-0 xl:gap-9
+          xl:p-12"
       >
+        <Sparkles />
         <div
-          className="grid size-[180px] grid-cols-2 gap-2 rounded-[22px] border-2 border-ludo-gold p-2
-            xl:size-[300px] xl:gap-3 xl:rounded-[30px] xl:p-3"
+          className="relative grid size-[180px] grid-cols-2 gap-2 rounded-[22px] border-2 border-ludo-accent p-2
+            christmas:border-ludo-card xl:size-[300px] xl:gap-3 xl:rounded-[30px] xl:p-3"
           aria-hidden
         >
+          <SnowCap logo />
           {logoYards.map((colour) => (
             <div
               key={colour}
-              className="flex items-center justify-center rounded-[15px] xl:rounded-[22px]"
+              className="ludo-dots flex items-center justify-center rounded-[15px] xl:rounded-[22px]"
               style={{ background: colour }}
             >
               <span
-                className="grid aspect-square w-[58%] grid-cols-2 gap-1 rounded-full bg-ludo-ivory p-3 xl:gap-2
+                className="grid aspect-square w-[58%] grid-cols-2 gap-1 rounded-full bg-ludo-cell p-3 xl:gap-2
                   xl:p-[18px]"
               >
-                {[0, 1, 2, 3].map((slot) => <i key={slot} className="block aspect-square rounded-full bg-ludo-parchment" />)}
+                {[0, 1, 2, 3].map((slot) => <i key={slot} className="block aspect-square rounded-full bg-ludo-card-sunk" />)}
               </span>
             </div>
           ))}
         </div>
         <div className="text-center">
           <h1
-            className="m-0 font-ludo-display text-[40px] font-normal tracking-[0.14em] text-ludo-gold-light uppercase
-              xl:text-[64px]"
+            className="m-0 font-ludo-display text-[40px] font-normal tracking-[0.14em] text-ludo-accent-light uppercase
+              christmas:tracking-[0.04em] christmas:text-white xl:text-[64px]"
           >
             {commonMessages.wordmark}
           </h1>
-          <p className="text-[15px] text-ludo-tan xl:mt-1.5 xl:text-[17px]">{startMessages.tagline}</p>
+          <p className="text-[15px] text-ludo-on-page-muted xl:mt-1.5 xl:text-[17px]">{startMessages.tagline}</p>
         </div>
       </div>
       {/* Laid out but hidden while waiting, so the logo doesn't move when it slides in. On desktop, it's already in
-          place, so it only appears. */}
+          place, so it only appears. In the Christmas theme, it rises out of snowy hills rather than having a rounded top,
+          and has trees along its bottom, behind what's on it. On desktop, its trees carry on from the page's beside it,
+          with the one on the edge half in each: they're laid out from the screen's left edge, as the page's are, and
+          clipped to the panel. */}
       <div
-        className={`flex flex-col gap-5 rounded-t-[28px] bg-ludo-ivory px-6 pt-[26px] pb-9 xl:w-[520px] xl:flex-none
-          xl:justify-center xl:gap-[22px] xl:rounded-none xl:px-16 xl:py-14 ${
+        className={`relative isolate flex flex-col gap-5 rounded-t-[28px] bg-ludo-card px-6 pt-[26px] pb-9
+          christmas:rounded-none xl:w-[520px] xl:flex-none xl:justify-center xl:gap-[22px] xl:overflow-clip
+          xl:rounded-none xl:px-16 xl:py-14 ${
           waiting ? "invisible" : "motion-safe:animate-ludo-sheet-in xl:motion-safe:animate-none"
         }`}
         inert={waiting}
       >
+        <SnowHills />
+        <SnowTrees light className="absolute bottom-0 left-0 -z-10 xl:left-[calc(520px-100cqw)] xl:w-[100cqw]" />
         <div className="flex items-center gap-3">
           {/* Ringed in the viewer's own colour, as their Seat is on every Board they see. */}
           <Avatar
             playerName={playerName}
             colours={seatView(0)}
-            className="size-10 text-base shadow-[0_0_0_2px_var(--ludo-own-colour)] border-ludo-cream!"
+            className="size-10 text-base shadow-[0_0_0_2px_var(--ludo-own-colour)] border-ludo-card-raised!"
             style={{ "--ludo-own-colour": seatView(0).colour } as CSSProperties}
           />
           <span className="flex min-w-0 flex-1 flex-col gap-px">
-            <span className="text-xs text-ludo-brown">{startMessages.playingAs}</span>
+            <span className="text-xs text-ludo-ink-muted">{startMessages.playingAs}</span>
             <span className="text-[17px] font-bold wrap-anywhere" aria-live="polite">{playerName}</span>
           </span>
           <button
             type="button"
-            className="ludo-button-icon border-ludo-tan-border text-ludo-maroon"
+            className="ludo-button-icon border-ludo-line text-ludo-ink christmas:[--ludo-button-icon-fill:transparent]"
             aria-label={startMessages.newName}
             title={startMessages.newName}
             disabled={disabled}
@@ -119,14 +137,14 @@ export default function StartScreen({
         </div>
         <CreateGameButton disabled={disabled} onCreateGame={onCreateGame} />
         <form className="flex flex-col gap-2" onSubmit={joinGame}>
-          <label htmlFor="game-code" className="text-xs font-bold tracking-widest text-ludo-brown uppercase">
+          <label htmlFor="game-code" className="text-xs font-bold tracking-widest text-ludo-ink-muted uppercase">
             {startMessages.gameCodeLabel}
           </label>
           <div className="flex gap-2.5">
             <input
               id="game-code"
               className={`h-[54px] min-w-0 flex-1 rounded-[14px] bg-white px-4 text-xl font-semibold tracking-[0.3em]
-                text-ludo-maroon placeholder:text-[15px] placeholder:font-normal placeholder:tracking-[0.04em]
+                text-ludo-ink christmas:rounded-full placeholder:text-[15px] placeholder:font-normal placeholder:tracking-[0.04em]
                 placeholder:text-ludo-placeholder ${
                   error ? "border-2 border-ludo-danger-line" : "border-[1.5px] border-ludo-board-line"
                 }`}
@@ -145,6 +163,7 @@ export default function StartScreen({
               className="ludo-button-outline h-[54px]"
               disabled={disabled || gameCode.length !== gameCodeLength}
             >
+              <Frost light />
               {startMessages.joinGame}
             </button>
           </div>

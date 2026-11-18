@@ -1,4 +1,5 @@
 import type { GameSnapshot } from "@ludo/shared";
+import Frost from "./Frost";
 import Header from "./Header";
 import Icon from "./Icon";
 import { resultMessages } from "./messages";
@@ -24,17 +25,20 @@ export default function CancelledScreen({ game, onBackToStart }: Props) {
       >
         <div className="flex flex-1 flex-col items-center justify-center gap-5 text-center xl:flex-none">
           <div
-            className="flex size-[120px] items-center justify-center rounded-full border-2 border-ludo-gold
-              text-ludo-gold-light"
+            className="flex size-[120px] items-center justify-center rounded-full border-2 border-ludo-accent
+              text-ludo-accent-light"
           >
             <Icon name="closedDoor" size={52} strokeWidth={1.6} />
           </div>
           <div className="flex max-w-[300px] flex-col gap-2.5" role="status">
             <h1 className="m-0 font-ludo-display text-[32px] font-normal">{resultMessages.cancelled}</h1>
-            <p className="m-0 text-[15px] leading-normal text-ludo-tan">{resultMessages.cancelledBy(hostName)}</p>
+            <p className="m-0 text-[15px] leading-normal text-ludo-on-page-muted">{resultMessages.cancelledBy(hostName)}</p>
           </div>
         </div>
-        <button type="button" className="ludo-button-gold" onClick={onBackToStart}>{resultMessages.backToStart}</button>
+        <button type="button" className="ludo-button-accent" onClick={onBackToStart}>
+          <Frost />
+          {resultMessages.backToStart}
+        </button>
       </div>
     </div>
   );

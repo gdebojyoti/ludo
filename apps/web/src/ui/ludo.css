@@ -1,26 +1,53 @@
 /* Must come before everything else in the file. Loaded from CSS, not index.html, so the host app gets it too. */
-@import url("https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600;700&family=Bricolage+Grotesque:wght@800&family=Nunito+Sans:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 /*
- * The Heritage design's colours and fonts (docs/design/ludo-design). The Seats' colours are in seatView.ts.
- * Every name here, and every keyframe, starts with ludo-, as the host app's page gets them too (ADR-0005).
+ * The colours and fonts, named by what they're for, so each theme can give them its own values. These are the Heritage
+ * theme's (docs/design/ludo-design), the default; the Christmas theme's are below, under [data-ludo-theme]. The
+ * Seats' colours are below too, and seatView.ts reads them. Every name here, and every keyframe, starts with ludo-, as
+ * the host app's page gets them too (ADR-0005).
  */
 @theme {
-  --color-ludo-maroon: #3b1218;
-  --color-ludo-maroon-deep: #2a0c11;
-  --color-ludo-ivory: #f7f0df;
-  --color-ludo-cream: #fff8e8;
-  --color-ludo-parchment: #eadbb9;
-  --color-ludo-gold: #e8b54a;
-  --color-ludo-gold-light: #f3cf7e;
-  --color-ludo-gold-shade: #c9952e;
-  --color-ludo-gold-edge: #b8892b;
-  --color-ludo-tan: #d9c3a5;
-  --color-ludo-brown: #6e5340;
-  --color-ludo-tan-border: #a8916a;
-  --color-ludo-soft-brown: #9c7b68;
+  /* The page, and what's drawn straight on it. */
+  --color-ludo-page: #3b1218;
+  /* Round the game on screens wider than a phone, and behind the connection status. */
+  --color-ludo-page-deep: #2a0c11;
+  --color-ludo-on-page: #f7f0df;
+  --color-ludo-on-page-muted: #d9c3a5;
+  /* The edge of an icon button on the page. */
+  --color-ludo-page-line: #9c7b68;
+  /* The line between the wordmark and the subtitle in the header. */
+  --color-ludo-divider: rgb(247 240 223 / 0.3);
+  /* A Player's row in a list on the page, and their card beside the Board; the card whose Turn it is. */
+  --color-ludo-row: rgb(247 240 223 / 0.07);
+  --color-ludo-row-line: rgb(247 240 223 / 0.16);
+  --color-ludo-turn-card: rgb(232 181 74 / 0.14);
+
+  /* A card, sheet or dialog on the page, and what's drawn on it. */
+  --color-ludo-card: #f7f0df;
+  --color-ludo-card-raised: #fff8e8;
+  --color-ludo-card-sunk: #eadbb9;
+  --color-ludo-ink: #3b1218;
+  --color-ludo-ink-muted: #6e5340;
+  /* The edge of a button or input on a card. */
+  --color-ludo-line: #a8916a;
+  /* The solid button on a card, and its text. */
+  --color-ludo-solid: #3b1218;
+  --color-ludo-on-solid: #f3cf7e;
+
+  /* The Board. */
+  --color-ludo-cell: #f7f0df;
+  --color-ludo-cell-star: #eadbb9;
   --color-ludo-board-line: #cdbb94;
+  --color-ludo-board-ring: rgb(232 181 74 / 0.45);
+  --color-ludo-star-line: #9a8456;
+  --color-ludo-yard-empty-line: #b09a6c;
+
+  --color-ludo-accent: #e8b54a;
+  --color-ludo-accent-light: #f3cf7e;
+  --color-ludo-accent-shade: #c9952e;
+  --color-ludo-accent-edge: #b8892b;
   --color-ludo-danger-line: #b23a2a;
   --color-ludo-danger: #a3301f;
   --color-ludo-notice: #efe3c8;
@@ -73,6 +100,28 @@
     100% { transform: scale(1); }
   }
 
+  /* The Christmas theme's snow, falling by one of its 150px tiles and starting again, and swaying from side to side;
+     and the sparkle on a snowflake on its buttons. */
+  --animate-ludo-snow-far: ludo-snow-fall 30s linear infinite;
+  --animate-ludo-snow-near: ludo-snow-fall 16s linear infinite;
+  --animate-ludo-snow-sway: ludo-snow-sway 9s ease-in-out infinite;
+  --animate-ludo-twinkle: ludo-twinkle 4.5s ease-in-out infinite;
+
+  @keyframes ludo-snow-fall {
+    to { transform: translateY(150px); }
+  }
+
+  @keyframes ludo-snow-sway {
+    0%, 100% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+  }
+
+  @keyframes ludo-twinkle {
+    0%, 68%, 100% { transform: scale(0); }
+    78% { transform: scale(1.5); }
+    88% { transform: scale(0.7); }
+  }
+
   @keyframes ludo-die-shake {
     0%, 100% { transform: translateX(0); }
     20% { transform: translateX(-7px) rotate(-4deg); }
@@ -82,27 +131,216 @@
   }
 }
 
+/* `christmas:` styles something only in the Christmas theme, where a colour alone doesn't say it. */
+@custom-variant christmas (&:where([data-ludo-theme="christmas"] *));
+
+/*
+ * What a theme sets besides its colours and fonts. The Seats' colours, as the viewer sees them from their own,
+ * clockwise (seatView.ts), with the colour of text on each, and the colour of an empty Seat.
+ */
+@layer base {
+  :root {
+    --ludo-seat-0: #d2462e;
+    --ludo-seat-1: #1f7a4d;
+    --ludo-seat-2: #e3a21a;
+    --ludo-seat-3: #2f4a9e;
+    --ludo-seat-text-0: #fff8e8;
+    --ludo-seat-text-1: #fff8e8;
+    --ludo-seat-text-2: #3b1218;
+    --ludo-seat-text-3: #fff8e8;
+    --ludo-seat-empty: #eadbb9;
+    /* The inner ring on a Token, over its Seat's colour. */
+    --ludo-token-ring: rgb(255 248 232 / 0.75);
+    --ludo-die-shadow: 0 6px 14px rgb(0 0 0 / 0.4);
+    --ludo-backdrop: rgb(24 6 10 / 0.74);
+  }
+
+  /* The Christmas theme (docs/design/theme-christmas): the same screens, in snow. */
+  [data-ludo-theme="christmas"] {
+    --color-ludo-page: #0e1c36;
+    --color-ludo-page-deep: #081326;
+    --color-ludo-on-page: #eef4ff;
+    --color-ludo-on-page-muted: #a3b6d4;
+    --color-ludo-page-line: #4a6390;
+    --color-ludo-divider: #34507e;
+    --color-ludo-row: #172a4b;
+    --color-ludo-row-line: #2a4470;
+    --color-ludo-turn-card: #363f4c;
+    --color-ludo-card: #f3f7fd;
+    --color-ludo-card-raised: #ffffff;
+    --color-ludo-card-sunk: #dce6f3;
+    --color-ludo-ink: #0e1c36;
+    --color-ludo-ink-muted: #52617c;
+    --color-ludo-line: #8c9dbb;
+    --color-ludo-solid: #c8263a;
+    --color-ludo-on-solid: #ffffff;
+    --color-ludo-cell: #fbfdff;
+    --color-ludo-cell-star: #fbfdff;
+    --color-ludo-board-line: #c5d3e8;
+    --color-ludo-board-ring: #4a6390;
+    --color-ludo-star-line: #7d93b8;
+    --color-ludo-yard-empty-line: #8c9dbb;
+    --color-ludo-accent: #f4c152;
+    --color-ludo-accent-light: #f4c152;
+    --color-ludo-accent-shade: #c9952a;
+    --color-ludo-accent-edge: #c9952a;
+    --color-ludo-danger-line: #c8263a;
+    --color-ludo-danger: #b01e30;
+    --color-ludo-notice: #e6eef8;
+    --color-ludo-notice-line: #bfcde2;
+    --color-ludo-die-shade: #c9d6ea;
+    --color-ludo-placeholder: #52617c;
+    --font-ludo-display: "Bricolage Grotesque", sans-serif;
+    --font-ludo-ui: "Nunito Sans", sans-serif;
+
+    --ludo-seat-0: #d3283e;
+    --ludo-seat-1: #1e8b5c;
+    --ludo-seat-2: #f1b53a;
+    --ludo-seat-3: #3e8edb;
+    --ludo-seat-text-0: #ffffff;
+    --ludo-seat-text-1: #ffffff;
+    --ludo-seat-text-2: #0e1c36;
+    --ludo-seat-text-3: #ffffff;
+    --ludo-seat-empty: #dce6f3;
+    --ludo-token-ring: rgb(255 255 255 / 0.62);
+    --ludo-die-shadow: 0 5px 0 #06101f;
+    --ludo-backdrop: rgb(4 10 22 / 0.74);
+    /* Every button is a pill. An outline button is filled white, and an icon button on the page like a Player's row. */
+    --ludo-button-radius: 999px;
+    --ludo-button-outline-fill: #ffffff;
+    --ludo-button-icon-fill: #172a4b;
+  }
+}
+
+/* The Christmas theme's styles beyond its colours. Outside any layer, so they win over the utilities. */
+[data-ludo-theme="christmas"] {
+  /* Bricolage Grotesque is drawn at its heaviest, as in the design, whatever weight the text asks for, and so are the
+     buttons' labels. */
+  & .font-ludo-display,
+  & :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline, .ludo-button-danger) {
+    font-weight: 800;
+  }
+
+  /* Buttons give a little when pressed. */
+  & :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline) {
+    transition: transform 0.12s ease, background-color 0.12s ease;
+  }
+
+  & .ludo-button-solid:active:not(:disabled) {
+    background: #a81e30;
+    transform: translateY(1px) scale(0.985);
+  }
+
+  & .ludo-button-accent:active:not(:disabled) {
+    background: #e9b443;
+    box-shadow: inset 0 -2px 0 var(--color-ludo-accent-shade);
+    transform: translateY(2px);
+  }
+
+  & .ludo-button-outline:active:not(:disabled) {
+    background: #e8eff8;
+    transform: scale(0.97);
+  }
+
+  /* The frost on the buttons (Frost.tsx), in shades of each button's colour, darker as it's pressed. */
+  & .ludo-frost-arm,
+  & .ludo-frost-branch {
+    fill: none;
+    stroke-linecap: round;
+    transition: stroke 0.2s ease;
+  }
+
+  & .ludo-frost-arm {
+    stroke-width: 1.4;
+  }
+
+  & .ludo-frost-branch {
+    stroke-width: 1;
+  }
+
+  & .ludo-frost-sparkle {
+    fill: #ffffff;
+    transform: scale(0);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  & .ludo-button-solid {
+    --ludo-frost-arm: #ee9aa4;
+    --ludo-frost-branch: #de6976;
+
+    &:active:not(:disabled) {
+      --ludo-frost-arm: #cf5866;
+      --ludo-frost-branch: #bc3546;
+    }
+  }
+
+  & .ludo-button-accent {
+    --ludo-frost-arm: #cf9d38;
+    --ludo-frost-branch: #e2b44c;
+
+    &:active:not(:disabled) {
+      --ludo-frost-arm: #d4a43f;
+      --ludo-frost-branch: #dfae45;
+    }
+  }
+
+  & .ludo-button-outline {
+    --ludo-frost-arm: #c3d2e8;
+    --ludo-frost-branch: #d9e3f1;
+  }
+
+  & .ludo-frost-arm {
+    stroke: var(--ludo-frost-arm);
+  }
+
+  & .ludo-frost-branch {
+    stroke: var(--ludo-frost-branch);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    & .ludo-frost-sparkle {
+      animation: var(--animate-ludo-twinkle);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    & :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline) {
+      transition: none;
+    }
+
+    & :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline):active {
+      transform: none;
+    }
+  }
+}
+
 /* The die, and the Roll buttons in its place, ringed in --ludo-die-ring if it's set. */
 @utility ludo-die {
   flex: none;
   width: 80px;
   height: 80px;
   border-radius: 18px;
-  background: var(--color-ludo-cream);
+  background: var(--color-ludo-card-raised);
   box-shadow: inset 0 -5px 0 var(--color-ludo-die-shade), 0 0 0 3px var(--ludo-die-ring, transparent),
-    0 6px 14px rgb(0 0 0 / 0.4);
+    var(--ludo-die-shadow);
 }
 
-/* The buttons B1 to B6 from the design's style guide. */
-@utility ludo-button-gold {
+/*
+ * The buttons B1 to B6 from the design's style guide. Each is rounded as the theme says, and is its own stacking
+ * context, so the Christmas theme's frost (Frost.tsx) can sit between its background and its text.
+ */
+@utility ludo-button-accent {
+  position: relative;
+  isolation: isolate;
   height: 54px;
   width: 100%;
-  border-radius: 14px;
-  background: var(--color-ludo-gold);
-  color: var(--color-ludo-maroon);
+  border-radius: var(--ludo-button-radius, 14px);
+  background: var(--color-ludo-accent);
+  color: var(--color-ludo-ink);
   font-size: 16px;
   font-weight: 600;
-  box-shadow: inset 0 -4px 0 var(--color-ludo-gold-shade);
+  box-shadow: inset 0 -4px 0 var(--color-ludo-accent-shade);
   cursor: pointer;
 
   &:disabled {
@@ -111,12 +349,14 @@
   }
 }
 
-@utility ludo-button-maroon {
+@utility ludo-button-solid {
+  position: relative;
+  isolation: isolate;
   height: 54px;
   width: 100%;
-  border-radius: 14px;
-  background: var(--color-ludo-maroon);
-  color: var(--color-ludo-gold-light);
+  border-radius: var(--ludo-button-radius, 14px);
+  background: var(--color-ludo-solid);
+  color: var(--color-ludo-on-solid);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -128,15 +368,18 @@
 }
 
 @utility ludo-button-outline {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
   flex: none;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 0 20px;
-  border: 1.5px solid var(--color-ludo-tan-border);
-  border-radius: 12px;
-  color: var(--color-ludo-maroon);
+  border: 1.5px solid var(--color-ludo-line);
+  border-radius: var(--ludo-button-radius, 12px);
+  background: var(--ludo-button-outline-fill, transparent);
+  color: var(--color-ludo-ink);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -151,7 +394,7 @@
   height: 54px;
   width: 100%;
   border: 1.5px solid var(--color-ludo-danger-line);
-  border-radius: 12px;
+  border-radius: var(--ludo-button-radius, 12px);
   color: var(--color-ludo-danger);
   font-size: 16px;
   font-weight: 600;
@@ -163,6 +406,7 @@
   }
 }
 
+/* On the page, unless it's given other colours. */
 @utility ludo-button-icon {
   display: flex;
   flex: none;
@@ -170,8 +414,9 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  border: 1.5px solid var(--color-ludo-soft-brown);
-  border-radius: 12px;
+  border: 1.5px solid var(--color-ludo-page-line);
+  border-radius: var(--ludo-button-radius, 12px);
+  background: var(--ludo-button-icon-fill, transparent);
   cursor: pointer;
 
   &:disabled {
@@ -182,7 +427,7 @@
 
 @layer components {
   .ludo-dialog::backdrop {
-    background: rgb(24 6 10 / 0.74);
+    background: var(--ludo-backdrop);
   }
 
   /*
@@ -201,7 +446,7 @@
     overflow: hidden;
     border-radius: 8px;
     background: var(--color-ludo-board-line);
-    box-shadow: 0 0 0 4px var(--color-ludo-maroon), 0 0 0 5px rgb(232 181 74 / 0.45);
+    box-shadow: 0 0 0 4px var(--color-ludo-page), 0 0 0 5px var(--color-ludo-board-ring);
   }
 
   .ludo-board * {
@@ -215,12 +460,12 @@
     justify-content: center;
     padding: 0;
     border: none;
-    background: var(--color-ludo-ivory);
+    background: var(--color-ludo-cell);
   }
 
   /* A Star cell, a Safe cell set apart from the rest of the Track. */
   .ludo-cell-star {
-    background: var(--color-ludo-parchment);
+    background: var(--color-ludo-cell-star);
   }
 
   /* A Cell the viewer can Move one of their Tokens from. */
@@ -236,13 +481,13 @@
     width: calc(15 * var(--u));
     height: calc(15 * var(--u));
     fill: none;
-    stroke: #9a8456;
+    stroke: var(--color-ludo-star-line);
     stroke-width: 1.7;
     stroke-linejoin: round;
   }
 
   .ludo-star-on-colour {
-    stroke: var(--color-ludo-ivory);
+    stroke: var(--color-ludo-cell);
   }
 
   /* A Home column Cell no Token can enter, in a Game mode without Home columns: crossed corner to corner over its plain
@@ -263,7 +508,7 @@
     width: calc(15 * var(--u));
     height: calc(15 * var(--u));
     fill: none;
-    stroke: #9a8456;
+    stroke: var(--color-ludo-star-line);
     stroke-width: 1.7;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -290,11 +535,11 @@
     width: calc(104 * var(--u));
     height: calc(104 * var(--u));
     border-radius: 50%;
-    background: var(--color-ludo-ivory);
+    background: var(--color-ludo-cell);
   }
 
   .ludo-yard-empty .ludo-yard-inner {
-    border: 2px dashed #b09a6c;
+    border: 2px dashed var(--color-ludo-yard-empty-line);
     background: transparent;
   }
 
@@ -303,11 +548,11 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: var(--color-ludo-parchment);
+    background: var(--color-ludo-card-sunk);
   }
 
   .ludo-yard-empty .ludo-slot {
-    border: 1.5px dashed #b09a6c;
+    border: 1.5px dashed var(--color-ludo-yard-empty-line);
     background: transparent;
   }
 
@@ -317,7 +562,7 @@
     flex: none;
     width: calc(17 * var(--u));
     height: calc(17 * var(--u));
-    border: 2px solid var(--color-ludo-cream);
+    border: 2px solid var(--color-ludo-card-raised);
     border-radius: 50%;
     box-shadow: 0 1px 2px rgb(40 10 10 / 0.5);
   }
@@ -326,7 +571,7 @@
     content: "";
     position: absolute;
     inset: 2px;
-    border: 1.5px solid rgb(255 248 232 / 0.75);
+    border: 1.5px solid var(--ludo-token-ring);
     border-radius: 50%;
   }
 
@@ -363,12 +608,12 @@
 
   /* The viewer's Tokens that can Move: ringed and lifted. */
   .ludo-token-movable {
-    box-shadow: 0 0 0 2px var(--color-ludo-maroon), 0 3px 4px rgb(40 10 10 / 0.55);
+    box-shadow: 0 0 0 2px var(--color-ludo-ink), 0 3px 4px rgb(40 10 10 / 0.55);
     transform: translateY(-1.5px);
   }
 
   .ludo-stack .ludo-token-movable {
-    box-shadow: 0 0 0 1.5px var(--color-ludo-maroon), 0 2px 3px rgb(40 10 10 / 0.55);
+    box-shadow: 0 0 0 1.5px var(--color-ludo-ink), 0 2px 3px rgb(40 10 10 / 0.55);
     transform: translateY(-1px);
   }
 
@@ -390,7 +635,7 @@
   }
 
   .ludo-token-moving {
-    box-shadow: 0 0 0 2px var(--color-ludo-maroon), 0 3px 4px rgb(40 10 10 / 0.55);
+    box-shadow: 0 0 0 2px var(--color-ludo-ink), 0 3px 4px rgb(40 10 10 / 0.55);
     animation-duration: 190ms;
     animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
   }
@@ -424,8 +669,8 @@
     width: calc(100% - 6 * var(--u));
     height: calc(100% - 6 * var(--u));
     border-radius: 50%;
-    background: var(--color-ludo-maroon);
-    color: var(--color-ludo-ivory);
+    background: var(--color-ludo-ink);
+    color: var(--color-ludo-on-page);
     font: 700 calc(9 * var(--u)) / 1 var(--font-ludo-ui);
     letter-spacing: -0.02em;
   }
@@ -439,7 +684,7 @@
     position: relative;
     grid-row: 7 / 10;
     grid-column: 7 / 10;
-    background: var(--color-ludo-ivory);
+    background: var(--color-ludo-cell);
   }
 
   .ludo-home .ludo-token {
@@ -454,6 +699,16 @@
   .ludo-home .ludo-token::after {
     inset: 1px;
     border-width: 1px;
+  }
+
+  /* In the Christmas theme, a Seat's Yard, and the logo's, is dotted with a lighter shade of its colour, sized in
+     design pixels: --u on the Board, and 1px elsewhere. */
+  [data-ludo-theme="christmas"] .ludo-dots {
+    --dot: rgb(255 255 255 / 0.28);
+    background-image: radial-gradient(circle, var(--dot) 0 calc(1.7 * var(--u, 1px)), transparent calc(2.3 * var(--u, 1px))),
+      radial-gradient(circle, var(--dot) 0 calc(1.1 * var(--u, 1px)), transparent calc(1.7 * var(--u, 1px)));
+    background-size: calc(19 * var(--u, 1px)) calc(19 * var(--u, 1px)), calc(13 * var(--u, 1px)) calc(13 * var(--u, 1px));
+    background-position: 0 0, calc(6 * var(--u, 1px)) calc(9 * var(--u, 1px));
   }
 }
 

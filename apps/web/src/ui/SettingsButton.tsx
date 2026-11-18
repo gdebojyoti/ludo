@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import DialogCard from "./DialogCard";
+import Frost from "./Frost";
 import Icon from "./Icon";
 import { settingsMessages } from "./messages";
 import { changeSettings, nextTheme, useSettings } from "./settings";
@@ -11,19 +12,14 @@ interface Props {
 
 // Beside Leave, on its right, and drawn the same way: only an icon on phones, and an icon and its text on desktop. It
 // opens the settings in a card like Leave's question.
-export default function SettingsButton({ colours = "text-ludo-ivory" }: Props) {
+export default function SettingsButton({ colours = "text-ludo-on-page" }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const settings = useSettings();
   const { diceOnLeft } = settings;
 
   const toggleDiceOnLeft = () => changeSettings({ diceOnLeft: !diceOnLeft });
 
-  // Nothing draws the theme yet, so changing it is only logged.
-  const changeTheme = () => {
-    const theme = nextTheme(settings.theme);
-    changeSettings({ theme });
-    console.log("Theme:", theme);
-  };
+  const changeTheme = () => changeSettings({ theme: nextTheme(settings.theme) });
 
   return (
     <>
@@ -43,7 +39,7 @@ export default function SettingsButton({ colours = "text-ludo-ivory" }: Props) {
           <div className="flex items-center gap-4 xl:hidden">
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span id="settings-dice-label" className="text-base font-semibold">{settingsMessages.diceOnLeft}</span>
-              <span id="settings-dice-detail" className="text-[13px] leading-snug text-ludo-brown">
+              <span id="settings-dice-detail" className="text-[13px] leading-snug text-ludo-ink-muted">
                 {settingsMessages.diceOnLeftDetail}
               </span>
             </div>
@@ -54,12 +50,12 @@ export default function SettingsButton({ colours = "text-ludo-ivory" }: Props) {
               aria-labelledby="settings-dice-label"
               aria-describedby="settings-dice-detail"
               className={`relative h-7 w-12 flex-none cursor-pointer rounded-full transition-colors ${
-                diceOnLeft ? "bg-ludo-maroon" : "bg-ludo-board-line"
+                diceOnLeft ? "bg-ludo-ink" : "bg-ludo-board-line"
               }`}
               onClick={toggleDiceOnLeft}
             >
               <span
-                className={`absolute top-1 left-1 size-5 rounded-full bg-ludo-cream shadow transition-transform ${
+                className={`absolute top-1 left-1 size-5 rounded-full bg-ludo-card-raised shadow transition-transform ${
                   diceOnLeft ? "translate-x-5" : ""
                 }`}
               />
@@ -68,7 +64,7 @@ export default function SettingsButton({ colours = "text-ludo-ivory" }: Props) {
           <div className="flex items-center gap-4">
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span id="settings-theme-label" className="text-base font-semibold">{settingsMessages.theme}</span>
-              <span id="settings-theme-detail" className="text-[13px] leading-snug text-ludo-brown">
+              <span id="settings-theme-detail" className="text-[13px] leading-snug text-ludo-ink-muted">
                 {settingsMessages.themeDetail}
               </span>
             </div>
@@ -78,10 +74,12 @@ export default function SettingsButton({ colours = "text-ludo-ivory" }: Props) {
               aria-describedby="settings-theme-label settings-theme-detail"
               onClick={changeTheme}
             >
+              <Frost light />
               {settingsMessages.changeTheme}
             </button>
           </div>
-          <button type="button" className="ludo-button-maroon mt-2" onClick={() => dialogRef.current?.close()}>
+          <button type="button" className="ludo-button-solid mt-2" onClick={() => dialogRef.current?.close()}>
+            <Frost />
             {settingsMessages.done}
           </button>
         </div>

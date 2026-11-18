@@ -5,6 +5,8 @@ import CancelledScreen from "./CancelledScreen";
 import LobbyScreen from "./LobbyScreen";
 import ResultScreen from "./ResultScreen";
 import ServerStatus from "./ServerStatus";
+import { useSettings } from "./settings";
+import Snowfall from "./Snowfall";
 import StartScreen from "./StartScreen";
 import { noticeMessages } from "./messages";
 import { loadPlayerName, newPlayerName } from "./playerName";
@@ -32,6 +34,7 @@ export default function Ludo() {
   const noticeMessage = notice && noticeMessages[notice];
   // The won Game's Board, once its last Move has played out, so its result can be shown.
   const [playedOutBoard, setPlayedOutBoard] = useState<SnapshotBoard>();
+  const { theme } = useSettings();
 
   const screen = () => {
     if (game?.state === "lobby") {
@@ -87,14 +90,16 @@ export default function Ludo() {
     );
   };
 
-  // The colours sit on this element, not the page, so the host app's page keeps its own. On screens wider than a phone
-  // but narrower than desktop, the game keeps its phone layout, in a channel down the middle. From desktop width
-  // (Tailwind's xl, 1280px) on, each screen has its own desktop layout, across the whole window.
+  // The colours and the theme sit on this element, not the page, so the host app's page keeps its own. On screens wider
+  // than a phone but narrower than desktop, the game keeps its phone layout, in a channel down the middle. From desktop
+  // width (Tailwind's xl, 1280px) on, each screen has its own desktop layout, across the whole window. The Christmas
+  // theme's snow falls behind the screen, which is positioned to stay in front of it.
   return (
-    <div className="min-h-dvh bg-ludo-maroon-deep font-ludo-ui text-ludo-ivory">
-      <main className="mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-ludo-maroon xl:max-w-none">
+    <div className="min-h-dvh bg-ludo-page-deep font-ludo-ui text-ludo-on-page" data-ludo-theme={theme}>
+      <main className="relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-ludo-page xl:max-w-none">
+        <Snowfall />
         <ServerStatus status={status} />
-        <div className="flex flex-1 flex-col">{screen()}</div>
+        <div className="relative flex flex-1 flex-col">{screen()}</div>
       </main>
     </div>
   );
