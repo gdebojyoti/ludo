@@ -1,5 +1,5 @@
 import type { GameSnapshot } from "@ludo/shared";
-import Frost from "./Frost";
+import Button from "./Button";
 import Header from "./Header";
 import Icon from "./Icon";
 import { resultMessages } from "./messages";
@@ -35,10 +35,9 @@ export default function CancelledScreen({ game, onBackToStart }: Props) {
             <p className="m-0 text-[15px] leading-normal text-ludo-on-page-muted">{resultMessages.cancelledBy(hostName)}</p>
           </div>
         </div>
-        <button type="button" className="ludo-button-accent" onClick={onBackToStart}>
-          <Frost />
+        <Button variant="accent" onClick={onBackToStart}>
           {resultMessages.backToStart}
-        </button>
+        </Button>
       </div>
     </div>
   );

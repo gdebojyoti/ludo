@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { classicRules, type GameSnapshot } from "@ludo/shared";
 import Avatar from "./Avatar";
+import Button from "./Button";
 import ErrorMessage from "./ErrorMessage";
-import Frost from "./Frost";
 import Header from "./Header";
 import Icon from "./Icon";
 import { joinLinkFor } from "./joinLink";
@@ -100,10 +100,9 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
     }
     return (
       <div className="flex flex-col items-center gap-2.5">
-        <button type="button" className="ludo-button-accent" disabled={disabled} onClick={onStartGame}>
-          <Frost />
+        <Button variant="accent" disabled={disabled} onClick={onStartGame}>
           {lobbyMessages.start(players.length)}
-        </button>
+        </Button>
         <span className="text-center text-[13px] text-ludo-on-page-muted">{lobbyMessages.startsByItself}</span>
       </div>
     );
@@ -131,11 +130,10 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
         {spacedGameCode(gameCode)}
       </p>
       <div className="flex flex-wrap items-center justify-center gap-3">
-        <button type="button" className="ludo-button-outline h-12" onClick={shareJoinLink}>
-          <Frost light />
+        <Button variant="outline" className="h-12" onClick={shareJoinLink}>
           <Icon name="share" size={18} />
           <span aria-live="polite">{copied === "joinLink" ? lobbyMessages.copied : lobbyMessages.shareJoinLink}</span>
-        </button>
+        </Button>
         <button
           type="button"
           className="inline-flex h-12 flex-none cursor-pointer items-center gap-1.5 px-1.5 text-[13px] font-medium

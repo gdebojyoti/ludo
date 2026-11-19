@@ -10,7 +10,7 @@ import {
 } from "@ludo/shared";
 import Avatar from "./Avatar";
 import { homeCountAt, playerNameAt, seatViewOf } from "./boardView";
-import Frost from "./Frost";
+import Button from "./Button";
 import Header from "./Header";
 import { boardMessages, commonMessages, resultMessages } from "./messages";
 
@@ -111,10 +111,9 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
           </section>
         )}
         <div className="flex-1 xl:hidden" />
-        <button type="button" className="ludo-button-accent" onClick={onBackToStart}>
-          <Frost />
+        <Button variant="accent" onClick={onBackToStart}>
           {resultMessages.backToStart}
-        </button>
+        </Button>
       </div>
     </div>
   );

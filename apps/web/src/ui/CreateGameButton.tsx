@@ -1,6 +1,6 @@
 import { useRef, type FormEvent } from "react";
 import { isGameMode, type GameMode } from "@ludo/shared";
-import Frost from "./Frost";
+import Button from "./Button";
 import Icon from "./Icon";
 import { modeMessages, startMessages } from "./messages";
 
@@ -50,15 +50,9 @@ export default function CreateGameButton({ disabled, onCreateGame }: Props) {
 
   return (
     <>
-      <button
-        type="button"
-        className="ludo-button-solid"
-        disabled={disabled}
-        onClick={() => dialogRef.current?.showModal()}
-      >
-        <Frost />
+      <Button variant="solid" disabled={disabled} onClick={() => dialogRef.current?.showModal()}>
         {startMessages.createGame}
-      </button>
+      </Button>
       <dialog
         ref={dialogRef}
         className="ludo-dialog mx-auto mt-auto mb-0 w-full max-w-[430px] bg-transparent p-0 font-ludo-ui
@@ -126,10 +120,9 @@ export default function CreateGameButton({ disabled, onCreateGame }: Props) {
               );
             })}
           </fieldset>
-          <button type="submit" className="ludo-button-solid" disabled={disabled}>
-            <Frost />
+          <Button variant="solid" type="submit" disabled={disabled}>
             {modeMessages.createGame}
-          </button>
+          </Button>
         </form>
       </dialog>
     </>

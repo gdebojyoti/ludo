@@ -1,6 +1,6 @@
 import { useRef } from "react";
+import Button from "./Button";
 import DialogCard from "./DialogCard";
-import Frost from "./Frost";
 import Icon from "./Icon";
 import { settingsMessages } from "./messages";
 import { changeSettings, nextTheme, useSettings } from "./settings";
@@ -23,16 +23,16 @@ export default function SettingsButton({ colours = "text-ludo-on-page" }: Props)
 
   return (
     <>
-      <button
-        type="button"
-        className={`ludo-button-icon xl:h-12 xl:w-auto xl:gap-2 xl:px-5 xl:text-base xl:font-semibold ${colours}`}
+      <Button
+        variant="icon"
+        className={`xl:h-12 xl:w-auto xl:gap-2 xl:px-5 xl:text-base xl:font-semibold ${colours}`}
         title={settingsMessages.label}
         onClick={() => dialogRef.current?.showModal()}
       >
         <Icon name="settings" className="xl:size-4.5" />
         <span className="sr-only xl:hidden">{settingsMessages.label}</span>
         <span className="hidden xl:inline">{settingsMessages.button}</span>
-      </button>
+      </Button>
       <DialogCard ref={dialogRef} icon="settings" title={settingsMessages.title}>
         <div className="mt-1.5 flex flex-col gap-5">
           {/* Only on phones: on desktop, the die is always below the Turn status, so this would change nothing. */}
@@ -68,20 +68,18 @@ export default function SettingsButton({ colours = "text-ludo-on-page" }: Props)
                 {settingsMessages.themeDetail}
               </span>
             </div>
-            <button
-              type="button"
-              className="ludo-button-outline h-10"
+            <Button
+              variant="outline"
+              className="h-10"
               aria-describedby="settings-theme-label settings-theme-detail"
               onClick={changeTheme}
             >
-              <Frost light />
               {settingsMessages.changeTheme}
-            </button>
+            </Button>
           </div>
-          <button type="button" className="ludo-button-solid mt-2" onClick={() => dialogRef.current?.close()}>
-            <Frost />
+          <Button variant="solid" className="mt-2" onClick={() => dialogRef.current?.close()}>
             {settingsMessages.done}
-          </button>
+          </Button>
         </div>
       </DialogCard>
     </>
