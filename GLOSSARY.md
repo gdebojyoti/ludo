@@ -74,13 +74,13 @@ A **Game mode** won by the first **Capture**, with no **Home columns** or **Home
 _Avoid_: one capture mode
 
 **House Rules**:
-A **Game mode** in which the **Host**, when creating the **Game**, chooses which **House rules** it's played with. See [docs/game-modes/house-rules.md](docs/game-modes/house-rules.md).
-Written with capitals as the mode's name, as **One Kill Win** is, and "House rules" for more than one **House rule**.
+A **Game mode** in which the **Host**, when creating the **Game**, chooses which **Modifiers** it's played with. See [docs/game-modes/house-rules.md](docs/game-modes/house-rules.md).
+Written with capitals, as the mode's name, as **One Kill Win** is.
 _Avoid_: custom mode, custom game
 
-**House rule**:
-One change to the rules of **Classic**, which the **Host** of a **House Rules** **Game** turns on or leaves off, and sets a value for where it needs one, when creating the **Game**.
-_Avoid_: option, setting, custom rule, modifier
+**Modifier**:
+One of the rules a **House Rules** **Game** can be played with, which its **Host** turns on or leaves off, and sets a value for where it needs one, when creating the **Game**.
+_Avoid_: house rule, option, setting, custom rule, tweak
 
 ### Board
 
