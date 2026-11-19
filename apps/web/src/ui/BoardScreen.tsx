@@ -241,8 +241,9 @@ export default function BoardScreen({
       return (
         <button
           type="button"
-          className="ludo-die flex cursor-pointer items-center justify-center font-ludo-display text-[40px] leading-none
-            text-ludo-danger [--ludo-die-ring:var(--color-ludo-danger-line)] motion-safe:animate-ludo-die-shake"
+          className="ludo-die flex cursor-pointer touch-manipulation items-center justify-center font-ludo-display
+            text-[40px] leading-none text-ludo-danger select-none [-webkit-touch-callout:none]
+            [--ludo-die-ring:var(--color-ludo-danger-line)] motion-safe:animate-ludo-die-shake"
           aria-label={boardMessages.retryRoll}
           disabled={disabled}
           onClick={() => rollDie()}
@@ -255,8 +256,9 @@ export default function BoardScreen({
       return (
         <button
           type="button"
-          className="ludo-die cursor-pointer font-ludo-display text-2xl tracking-[0.06em] text-ludo-ink uppercase
-            [--ludo-die-ring:var(--color-ludo-accent)] motion-safe:animate-ludo-die-wiggle"
+          className="ludo-die cursor-pointer touch-manipulation font-ludo-display text-2xl tracking-[0.06em]
+            text-ludo-ink uppercase select-none [-webkit-touch-callout:none] [--ludo-die-ring:var(--color-ludo-accent)]
+            motion-safe:animate-ludo-die-wiggle"
           disabled={disabled}
           onClick={() => rollDie()}
         >
