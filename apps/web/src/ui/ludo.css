@@ -122,6 +122,21 @@
     88% { transform: scale(0.7); }
   }
 
+  /* A halo round each of the viewer's Tokens that can Move, spreading out in the dark of its ring and fading. */
+  --animate-ludo-halo: ludo-halo 1.3s ease-out infinite;
+
+  @keyframes ludo-halo {
+    from { box-shadow: var(--ludo-token-lift), 0 0 0 0 color-mix(in srgb, var(--color-ludo-ink) 70%, transparent); }
+    to { box-shadow: var(--ludo-token-lift), 0 0 0 var(--ludo-halo-spread) transparent; }
+  }
+
+  /* The dashed ring round each of those Tokens, turning slowly clockwise. */
+  --animate-ludo-ring-turn: ludo-ring-turn 6s linear infinite;
+
+  @keyframes ludo-ring-turn {
+    to { transform: rotate(1turn); }
+  }
+
   @keyframes ludo-die-shake {
     0%, 100% { transform: translateX(0); }
     20% { transform: translateX(-7px) rotate(-4deg); }
@@ -606,15 +621,49 @@
   .ludo-stack-4 .ludo-token:nth-child(3) { left: 0; bottom: 0; }
   .ludo-stack-4 .ludo-token:nth-child(4) { right: 0; bottom: 0; }
 
-  /* The viewer's Tokens that can Move: ringed and lifted. */
+  /*
+   * The viewer's Tokens that can Move: lifted, in a dashed ring that turns clockwise, with a halo in the dark of the
+   * ring. The halo spreads past the Cell into its neighbours, above them, but it's a shadow, which never takes a tap, and
+   * the ring takes none either: a tap on a neighbour still goes to the neighbour.
+   */
   .ludo-token-movable {
-    box-shadow: 0 0 0 2px var(--color-ludo-ink), 0 3px 4px rgb(40 10 10 / 0.55);
+    --ludo-token-lift: 0 3px 4px rgb(40 10 10 / 0.55);
+    --ludo-halo-spread: calc(8 * var(--u));
+    --ludo-ring-width: 2px;
+    --ludo-token-border: 2px;
+    z-index: 1;
+    box-shadow: var(--ludo-token-lift), 0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--color-ludo-ink) 40%, transparent);
     transform: translateY(-1.5px);
   }
 
+  /* Just outside the Token's border. It stays on the Token as it Moves, below, turning on as it slides. */
+  :is(.ludo-token-movable, .ludo-token-moving)::before {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * (var(--ludo-token-border) + var(--ludo-ring-width)));
+    border: var(--ludo-ring-width) dashed var(--color-ludo-ink);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
   .ludo-stack .ludo-token-movable {
-    box-shadow: 0 0 0 1.5px var(--color-ludo-ink), 0 2px 3px rgb(40 10 10 / 0.55);
+    --ludo-token-lift: 0 2px 3px rgb(40 10 10 / 0.55);
+    --ludo-halo-spread: calc(5 * var(--u));
+    --ludo-ring-width: 1.5px;
+    --ludo-token-border: 1.5px;
+    box-shadow: var(--ludo-token-lift), 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--color-ludo-ink) 40%, transparent);
     transform: translateY(-1px);
+  }
+
+  /* With reduced motion, the halo stays still, as the ring the rule above draws, and so does the dashed ring. */
+  @media (prefers-reduced-motion: no-preference) {
+    .ludo-token-movable {
+      animation: var(--animate-ludo-halo);
+    }
+
+    :is(.ludo-token-movable, .ludo-token-moving)::before {
+      animation: var(--animate-ludo-ring-turn);
+    }
   }
 
   /*
@@ -634,8 +683,11 @@
     animation-fill-mode: both;
   }
 
+  /* Its dashed ring is drawn with the movable Tokens'. */
   .ludo-token-moving {
-    box-shadow: 0 0 0 2px var(--color-ludo-ink), 0 3px 4px rgb(40 10 10 / 0.55);
+    --ludo-ring-width: 2px;
+    --ludo-token-border: 2px;
+    box-shadow: 0 3px 4px rgb(40 10 10 / 0.55);
     animation-duration: 190ms;
     animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
   }
