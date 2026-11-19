@@ -256,7 +256,7 @@ export default function BoardScreen({
         <button
           type="button"
           className="ludo-die cursor-pointer font-ludo-display text-2xl tracking-[0.06em] text-ludo-ink uppercase
-            [--ludo-die-ring:var(--color-ludo-accent)]"
+            [--ludo-die-ring:var(--color-ludo-accent)] motion-safe:animate-ludo-die-wiggle"
           disabled={disabled}
           onClick={() => rollDie()}
         >
