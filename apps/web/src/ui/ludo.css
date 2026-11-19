@@ -239,6 +239,30 @@
   }
 }
 
+/*
+ * Every button gives a little when pressed, the same in every theme: it sinks 1px and shrinks a touch, and darkens,
+ * unless its theme says what colour it turns. With reduced motion, it only darkens. Outside any layer, so it wins over
+ * the utilities.
+ */
+:is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline, .ludo-button-danger, .ludo-button-icon) {
+  transition: transform 0.12s ease, background-color 0.12s ease, filter 0.12s ease;
+}
+
+:is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline, .ludo-button-danger, .ludo-button-icon):active:not(:disabled) {
+  filter: brightness(0.93);
+  transform: translateY(1px) scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline, .ludo-button-danger, .ludo-button-icon) {
+    transition: none;
+  }
+
+  :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline, .ludo-button-danger, .ludo-button-icon):active {
+    transform: none;
+  }
+}
+
 /* The Christmas theme's styles beyond its colours. Outside any layer, so they win over the utilities. */
 [data-ludo-theme="christmas"] {
   /* Bricolage Grotesque is drawn at its heaviest, as in the design, whatever weight the text asks for, and so are the
@@ -248,25 +272,21 @@
     font-weight: 800;
   }
 
-  /* Buttons give a little when pressed. */
-  & :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline) {
-    transition: transform 0.12s ease, background-color 0.12s ease;
+  /* The colours the design gives its buttons when pressed, in place of darkening them. */
+  & :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline):active:not(:disabled) {
+    filter: none;
   }
 
   & .ludo-button-solid:active:not(:disabled) {
     background: #a81e30;
-    transform: translateY(1px) scale(0.985);
   }
 
   & .ludo-button-accent:active:not(:disabled) {
     background: #e9b443;
-    box-shadow: inset 0 -2px 0 var(--color-ludo-accent-shade);
-    transform: translateY(2px);
   }
 
   & .ludo-button-outline:active:not(:disabled) {
     background: #e8eff8;
-    transform: scale(0.97);
   }
 
   /* The frost on the buttons (Frost.tsx), in shades of each button's colour, darker as it's pressed. */
@@ -328,16 +348,6 @@
   @media (prefers-reduced-motion: no-preference) {
     & .ludo-frost-sparkle {
       animation: var(--animate-ludo-twinkle);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    & :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline) {
-      transition: none;
-    }
-
-    & :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline):active {
-      transform: none;
     }
   }
 }
