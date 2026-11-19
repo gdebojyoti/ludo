@@ -70,11 +70,23 @@
   }
 
   /* The die, from the design's roll animation: it tumbles when tapped, spins on while the server is slow to reply,
-     bounces as it lands, and shakes if the Roll didn't go through. */
+     bounces as it lands, and shakes if the Roll didn't go through. The Roll button wiggles every 3s while it waits to
+     be tapped, starting as soon as it's shown. */
   --animate-ludo-die-tumble: ludo-die-tumble 900ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
   --animate-ludo-die-spin: ludo-die-spin 700ms linear infinite;
   --animate-ludo-die-land: ludo-die-land 320ms ease-out both;
   --animate-ludo-die-shake: ludo-die-shake 420ms ease-out both;
+  --animate-ludo-die-wiggle: ludo-die-wiggle 3s ease-in-out infinite;
+
+  /* The wiggle takes the first 750ms of each 3s, hopping up as it starts; the die is still for the rest. */
+  @keyframes ludo-die-wiggle {
+    0%, 25%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+    4% { transform: translateY(-4px) rotate(-11deg) scale(1.06); }
+    8% { transform: translateY(-3px) rotate(9deg) scale(1.06); }
+    12% { transform: translateY(-1.5px) rotate(-7deg) scale(1.035); }
+    16% { transform: translateY(-0.5px) rotate(4.5deg) scale(1.015); }
+    20% { transform: translateY(0) rotate(-2deg) scale(1); }
+  }
 
   @keyframes ludo-die-tumble {
     0% { transform: translateY(0) rotate(0deg) scale(1); }
@@ -120,6 +132,21 @@
     0%, 68%, 100% { transform: scale(0); }
     78% { transform: scale(1.5); }
     88% { transform: scale(0.7); }
+  }
+
+  /* A halo round each of the viewer's Tokens that can Move, spreading out in the dark of its ring and fading. */
+  --animate-ludo-halo: ludo-halo 1.3s ease-out infinite;
+
+  @keyframes ludo-halo {
+    from { box-shadow: var(--ludo-token-lift), 0 0 0 0 color-mix(in srgb, var(--color-ludo-ink) 70%, transparent); }
+    to { box-shadow: var(--ludo-token-lift), 0 0 0 var(--ludo-halo-spread) transparent; }
+  }
+
+  /* The dashed ring round each of those Tokens, turning slowly clockwise. */
+  --animate-ludo-ring-turn: ludo-ring-turn 6s linear infinite;
+
+  @keyframes ludo-ring-turn {
+    to { transform: rotate(1turn); }
   }
 
   @keyframes ludo-die-shake {
@@ -212,6 +239,25 @@
   }
 }
 
+/*
+ * Every button (Button.tsx, which gives each this class) gives a little when pressed, the same in every theme: it
+ * sinks 1px and shrinks a touch, and darkens, unless its theme says what colour it turns. With reduced motion, it only
+ * darkens, at once. Outside any layer, so it wins over the utilities.
+ */
+.ludo-button:active:not(:disabled) {
+  filter: brightness(0.93);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ludo-button {
+    transition: transform 0.12s ease, background-color 0.12s ease, filter 0.12s ease;
+  }
+
+  .ludo-button:active:not(:disabled) {
+    transform: translateY(1px) scale(0.97);
+  }
+}
+
 /* The Christmas theme's styles beyond its colours. Outside any layer, so they win over the utilities. */
 [data-ludo-theme="christmas"] {
   /* Bricolage Grotesque is drawn at its heaviest, as in the design, whatever weight the text asks for, and so are the
@@ -221,25 +267,21 @@
     font-weight: 800;
   }
 
-  /* Buttons give a little when pressed. */
-  & :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline) {
-    transition: transform 0.12s ease, background-color 0.12s ease;
+  /* The colours the design gives its buttons when pressed, in place of darkening them. */
+  & :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline):active:not(:disabled) {
+    filter: none;
   }
 
   & .ludo-button-solid:active:not(:disabled) {
     background: #a81e30;
-    transform: translateY(1px) scale(0.985);
   }
 
   & .ludo-button-accent:active:not(:disabled) {
     background: #e9b443;
-    box-shadow: inset 0 -2px 0 var(--color-ludo-accent-shade);
-    transform: translateY(2px);
   }
 
   & .ludo-button-outline:active:not(:disabled) {
     background: #e8eff8;
-    transform: scale(0.97);
   }
 
   /* The frost on the buttons (Frost.tsx), in shades of each button's colour, darker as it's pressed. */
@@ -301,16 +343,6 @@
   @media (prefers-reduced-motion: no-preference) {
     & .ludo-frost-sparkle {
       animation: var(--animate-ludo-twinkle);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    & :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline) {
-      transition: none;
-    }
-
-    & :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline):active {
-      transform: none;
     }
   }
 }
@@ -606,15 +638,49 @@
   .ludo-stack-4 .ludo-token:nth-child(3) { left: 0; bottom: 0; }
   .ludo-stack-4 .ludo-token:nth-child(4) { right: 0; bottom: 0; }
 
-  /* The viewer's Tokens that can Move: ringed and lifted. */
+  /*
+   * The viewer's Tokens that can Move: lifted, in a dashed ring that turns clockwise, with a halo in the dark of the
+   * ring. The halo spreads past the Cell into its neighbours, above them, but it's a shadow, which never takes a tap, and
+   * the ring takes none either: a tap on a neighbour still goes to the neighbour.
+   */
   .ludo-token-movable {
-    box-shadow: 0 0 0 2px var(--color-ludo-ink), 0 3px 4px rgb(40 10 10 / 0.55);
+    --ludo-token-lift: 0 3px 4px rgb(40 10 10 / 0.55);
+    --ludo-halo-spread: calc(8 * var(--u));
+    --ludo-ring-width: 2px;
+    --ludo-token-border: 2px;
+    z-index: 1;
+    box-shadow: var(--ludo-token-lift), 0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--color-ludo-ink) 40%, transparent);
     transform: translateY(-1.5px);
   }
 
+  /* Just outside the Token's border. It stays on the Token as it Moves, below, turning on as it slides. */
+  :is(.ludo-token-movable, .ludo-token-moving)::before {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * (var(--ludo-token-border) + var(--ludo-ring-width)));
+    border: var(--ludo-ring-width) dashed var(--color-ludo-ink);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
   .ludo-stack .ludo-token-movable {
-    box-shadow: 0 0 0 1.5px var(--color-ludo-ink), 0 2px 3px rgb(40 10 10 / 0.55);
+    --ludo-token-lift: 0 2px 3px rgb(40 10 10 / 0.55);
+    --ludo-halo-spread: calc(5 * var(--u));
+    --ludo-ring-width: 1.5px;
+    --ludo-token-border: 1.5px;
+    box-shadow: var(--ludo-token-lift), 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--color-ludo-ink) 40%, transparent);
     transform: translateY(-1px);
+  }
+
+  /* With reduced motion, the halo stays still, as the ring the rule above draws, and so does the dashed ring. */
+  @media (prefers-reduced-motion: no-preference) {
+    .ludo-token-movable {
+      animation: var(--animate-ludo-halo);
+    }
+
+    :is(.ludo-token-movable, .ludo-token-moving)::before {
+      animation: var(--animate-ludo-ring-turn);
+    }
   }
 
   /*
@@ -634,8 +700,11 @@
     animation-fill-mode: both;
   }
 
+  /* Its dashed ring is drawn with the movable Tokens'. */
   .ludo-token-moving {
-    box-shadow: 0 0 0 2px var(--color-ludo-ink), 0 3px 4px rgb(40 10 10 / 0.55);
+    --ludo-ring-width: 2px;
+    --ludo-token-border: 2px;
+    box-shadow: 0 3px 4px rgb(40 10 10 / 0.55);
     animation-duration: 190ms;
     animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
   }

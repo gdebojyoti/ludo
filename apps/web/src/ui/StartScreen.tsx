@@ -1,8 +1,8 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { gameCodeLength, type GameMode } from "@ludo/shared";
 import Avatar from "./Avatar";
+import Button from "./Button";
 import CreateGameButton from "./CreateGameButton";
-import Frost from "./Frost";
 import Icon from "./Icon";
 import { commonMessages, startMessages } from "./messages";
 import { seatView } from "./seatView";
@@ -124,16 +124,16 @@ export default function StartScreen({
             <span className="text-xs text-ludo-ink-muted">{startMessages.playingAs}</span>
             <span className="text-[17px] font-bold wrap-anywhere" aria-live="polite">{playerName}</span>
           </span>
-          <button
-            type="button"
-            className="ludo-button-icon border-ludo-line text-ludo-ink christmas:[--ludo-button-icon-fill:transparent]"
+          <Button
+            variant="icon"
+            className="border-ludo-line text-ludo-ink christmas:[--ludo-button-icon-fill:transparent]"
             aria-label={startMessages.newName}
             title={startMessages.newName}
             disabled={disabled}
             onClick={onNewPlayerName}
           >
             <Icon name="newName" />
-          </button>
+          </Button>
         </div>
         <CreateGameButton disabled={disabled} onCreateGame={onCreateGame} />
         <form className="flex flex-col gap-2" onSubmit={joinGame}>
@@ -158,14 +158,14 @@ export default function StartScreen({
               // Kept as text, digits only, so leading zeros stay.
               onChange={(event) => setGameCode(event.target.value.replace(/\D/g, ""))}
             />
-            <button
+            <Button
+              variant="outline"
               type="submit"
-              className="ludo-button-outline h-[54px]"
+              className="h-[54px]"
               disabled={disabled || gameCode.length !== gameCodeLength}
             >
-              <Frost light />
               {startMessages.joinGame}
-            </button>
+            </Button>
           </div>
           {error && (
             <p

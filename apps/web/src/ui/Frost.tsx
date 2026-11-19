@@ -37,7 +37,7 @@ const flakes = {
 const sparkles = [[13, 14, "0s"], [38, 7, "1.6s"], [35, 37.5, "3s"]] as const;
 
 // In the Christmas theme, snowflakes frosting the ends of a button, behind its text, coloured for the button in
-// ludo.css. Inside a button with a ludo-button- class, which keeps them behind the text.
+// ludo.css. Drawn by Button, whose ludo-button- class keeps them behind the text.
 export default function Frost({ light = false }: Props) {
   const { theme } = useSettings();
   if (theme !== "christmas") return null;
