@@ -81,10 +81,10 @@
   /* The wiggle takes the first 750ms of each 3s, hopping up as it starts; the die is still for the rest. */
   @keyframes ludo-die-wiggle {
     0%, 25%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
-    4% { transform: translateY(-5px) rotate(-12deg) scale(1.07); }
-    8% { transform: translateY(-4px) rotate(10deg) scale(1.07); }
-    12% { transform: translateY(-2px) rotate(-8deg) scale(1.04); }
-    16% { transform: translateY(-1px) rotate(5deg) scale(1.02); }
+    4% { transform: translateY(-4px) rotate(-11deg) scale(1.06); }
+    8% { transform: translateY(-3px) rotate(9deg) scale(1.06); }
+    12% { transform: translateY(-1.5px) rotate(-7deg) scale(1.035); }
+    16% { transform: translateY(-0.5px) rotate(4.5deg) scale(1.015); }
     20% { transform: translateY(0) rotate(-2deg) scale(1); }
   }
 
