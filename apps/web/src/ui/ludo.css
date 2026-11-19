@@ -240,26 +240,21 @@
 }
 
 /*
- * Every button gives a little when pressed, the same in every theme: it sinks 1px and shrinks a touch, and darkens,
- * unless its theme says what colour it turns. With reduced motion, it only darkens. Outside any layer, so it wins over
- * the utilities.
+ * Every button (Button.tsx, which gives each this class) gives a little when pressed, the same in every theme: it
+ * sinks 1px and shrinks a touch, and darkens, unless its theme says what colour it turns. With reduced motion, it only
+ * darkens, at once. Outside any layer, so it wins over the utilities.
  */
-:is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline, .ludo-button-danger, .ludo-button-icon) {
-  transition: transform 0.12s ease, background-color 0.12s ease, filter 0.12s ease;
-}
-
-:is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline, .ludo-button-danger, .ludo-button-icon):active:not(:disabled) {
+.ludo-button:active:not(:disabled) {
   filter: brightness(0.93);
-  transform: translateY(1px) scale(0.97);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline, .ludo-button-danger, .ludo-button-icon) {
-    transition: none;
+@media (prefers-reduced-motion: no-preference) {
+  .ludo-button {
+    transition: transform 0.12s ease, background-color 0.12s ease, filter 0.12s ease;
   }
 
-  :is(.ludo-button-accent, .ludo-button-solid, .ludo-button-outline, .ludo-button-danger, .ludo-button-icon):active {
-    transform: none;
+  .ludo-button:active:not(:disabled) {
+    transform: translateY(1px) scale(0.97);
   }
 }
 

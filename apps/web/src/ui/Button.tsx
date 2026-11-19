@@ -18,15 +18,17 @@ const variants: Record<Variant, { className: string; frost: "full" | "light" | n
   icon: { className: "ludo-button-icon", frost: null },
 };
 
-// Every call to action, drawn as its variant, with the frost that goes with it. It's a plain button otherwise, and
-// unless told, not one that submits a form. Its className adds to the variant's, for its size or colours where it is.
-// Quick taps on it don't select its text or zoom the page, and a long press on a phone doesn't offer to copy it.
+// Every call to action, drawn as its variant, with the frost that goes with it, and marked ludo-button, which every
+// variant shares in ludo.css, such as how it gives when pressed. It's a plain button otherwise, and unless told, not
+// one that submits a form. Its className adds to the variant's, for its size or colours where it is. Quick taps on it
+// don't select its text or zoom the page, and a long press on a phone doesn't offer to copy it.
 export default function Button({ variant, type = "button", className = "", children, ...props }: Props) {
   const { className: variantClassName, frost } = variants[variant];
   return (
     <button
       type={type}
-      className={`${variantClassName} touch-manipulation select-none [-webkit-touch-callout:none] ${className}`}
+      className={`ludo-button ${variantClassName} touch-manipulation select-none [-webkit-touch-callout:none]
+        ${className}`}
       {...props}
     >
       {frost && <Frost light={frost === "light"} />}
