@@ -73,9 +73,14 @@ A **Game mode** won by the first **Capture**, with no **Home columns** or **Home
 "Kill" is fine in this name only: elsewhere, it is still a **Capture**.
 _Avoid_: one capture mode
 
-**House rules**:
-Changes to the rules that the **Players** choose for one **Game**, in a **Game mode** that allows them.
-_Avoid_: custom rules, options
+**House Rules**:
+A **Game mode** in which the **Host**, when creating the **Game**, chooses which **House rules** it's played with. See [docs/game-modes/house-rules.md](docs/game-modes/house-rules.md).
+Written with capitals as the mode's name, as **One Kill Win** is, and "House rules" for more than one **House rule**.
+_Avoid_: custom mode, custom game
+
+**House rule**:
+One change to the rules of **Classic**, which the **Host** of a **House Rules** **Game** turns on or leaves off, and sets a value for where it needs one, when creating the **Game**.
+_Avoid_: option, setting, custom rule, modifier
 
 ### Board
 
