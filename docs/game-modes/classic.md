@@ -1,6 +1,6 @@
 # Classic
 
-The one **Game mode** in v1. Later **Game modes**, and any **House rules**, are described as changes to these rules. The rules that later **Game modes** are likely to change are marked _(may vary)_.
+The one **Game mode** in v1. Later **Game modes** are described as changes to these rules. The rules that later **Game modes** are likely to change are marked _(may vary)_.
 
 Terms in bold are defined in [GLOSSARY.md](../../GLOSSARY.md). The rules never depend on colours ([ADR-0006](../adr/0006-seats-not-colours.md)).
 
