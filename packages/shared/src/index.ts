@@ -15,6 +15,7 @@ export { indexAfter } from "./events.js";
 export { captureReturnFor, movePlaysOutFor, restFor, rollPlaysOutFor, stepEvery, tumbleFor } from "./playout.js";
 export { randomPlayerName } from "./player-names.js";
 export {
+  allMovesAlike,
   applyMove,
   classicRules,
   dieFaces,

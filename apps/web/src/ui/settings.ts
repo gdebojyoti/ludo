@@ -12,9 +12,11 @@ export interface Settings {
   /** Whether the die is on the left of the Turn status on phones, rather than the right. */
   diceOnLeft: boolean;
   theme: Theme;
+  /** Whether the viewer's Token Moves by itself when there's no choice to make, as every legal Move is alike. */
+  autoplay: boolean;
 }
 
-const defaultSettings: Settings = { diceOnLeft: false, theme: themes[0] };
+const defaultSettings: Settings = { diceOnLeft: false, theme: themes[0], autoplay: false };
 
 /**
  * The settings this browser keeps, all in one entry. Any that weren't kept, or that the browser won't give, or that
@@ -24,10 +26,11 @@ const loadSettings = (): Settings => {
   try {
     const kept: unknown = JSON.parse(localStorage.getItem(storageKey) ?? "{}");
     if (typeof kept !== "object" || kept === null) return defaultSettings;
-    const { diceOnLeft, theme } = kept as Record<string, unknown>;
+    const { diceOnLeft, theme, autoplay } = kept as Record<string, unknown>;
     return {
       diceOnLeft: typeof diceOnLeft === "boolean" ? diceOnLeft : defaultSettings.diceOnLeft,
       theme: themes.find((known) => known === theme) ?? defaultSettings.theme,
+      autoplay: typeof autoplay === "boolean" ? autoplay : defaultSettings.autoplay,
     };
   } catch {
     // Storage is blocked, or what's kept isn't JSON, so there's nothing kept to read.

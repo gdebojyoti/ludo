@@ -145,6 +145,22 @@ export const legalMoves = (mode: GameMode, seat: Seat, tokens: TokenPosition[], 
   return tokens.flatMap((position, token) => (positionAfter(mode, seat, position, roll) ? [token] : []));
 };
 
+/** Whether two Tokens of one Seat are in the same place: its Yard, the same Cell, or Home. */
+const isSamePlace = (a: TokenPosition, b: TokenPosition): boolean => {
+  if (a.area !== b.area) return false;
+  return !("cell" in a) || !("cell" in b) || a.cell === b.cell;
+};
+
+/**
+ * Whether a Seat's legal Moves, each given by its Token's place in the Seat's list of Tokens, are all alike: every Token
+ * that can Move is in the same place, so there's no choice to make, as it makes no difference which of them Moves.
+ * False if none can.
+ */
+export const allMovesAlike = (tokens: TokenPosition[], moves: number[]): boolean => {
+  const [first, ...rest] = moves.map((token) => tokens[token]);
+  return first !== undefined && rest.every((position) => position !== undefined && isSamePlace(first, position));
+};
+
 /** The Seat's Tokens after this one Moves by the Roll, which must be one of its legal Moves. */
 export const moveToken = (
   mode: GameMode,

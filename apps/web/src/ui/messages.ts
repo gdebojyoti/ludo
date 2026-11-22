@@ -122,6 +122,8 @@ export const settingsMessages = {
   title: "Settings",
   diceOnLeft: "Dice on the left",
   diceOnLeftDetail: "Handy if you play with your left thumb.",
+  autoplay: "Automatic move",
+  autoplayDetail: "Moves a token for you when there's only one real option.",
   theme: "Theme",
   themeDetail: "Try a different look.",
   changeTheme: "Change",

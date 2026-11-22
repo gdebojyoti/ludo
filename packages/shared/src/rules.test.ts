@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  allMovesAlike,
   applyMove,
   earnsExtraRoll,
   giveOutSeats,
@@ -159,6 +160,40 @@ describe("the legal Moves for a Roll", () => {
 
   it("are none when every Token is in the Yard and the Roll isn't a 6", () => {
     expect(legalMoves("classic", 2, Array.from({ length: 4 }, () => ({ area: "yard" }) as const), 5)).toEqual([]);
+  });
+});
+
+describe("whether every legal Move is alike", () => {
+  const yard = { area: "yard" } as const;
+
+  it("is so when every Token that can Move is in the Yard", () => {
+    expect(allMovesAlike([yard, yard, yard, yard], [0, 1, 2, 3])).toBe(true);
+  });
+
+  it("is so when every Token that can Move is on the same Cell", () => {
+    const tokens = [{ area: "track", cell: 9 }, { area: "home" }, { area: "track", cell: 9 }, yard] as const;
+
+    expect(allMovesAlike([...tokens], [0, 2])).toBe(true);
+  });
+
+  it("is so when only one Token can Move", () => {
+    expect(allMovesAlike([yard, { area: "homeColumn", cell: 3 }, yard, yard], [1])).toBe(true);
+  });
+
+  it("isn't so when no Token can Move", () => {
+    expect(allMovesAlike([yard, yard, yard, yard], [])).toBe(false);
+  });
+
+  it.each([
+    ["the Yard and the Track", [yard, { area: "track", cell: 0 }]],
+    ["two Cells of the Track", [{ area: "track", cell: 3 }, { area: "track", cell: 7 }]],
+    ["two Cells of the Home column", [{ area: "homeColumn", cell: 0 }, { area: "homeColumn", cell: 2 }]],
+    ["the Track and the Home column, on Cells with the same number", [
+      { area: "track", cell: 2 },
+      { area: "homeColumn", cell: 2 },
+    ]],
+  ] as const)("isn't so when the Tokens that can Move are in %s", (_, tokens) => {
+    expect(allMovesAlike([...tokens], [0, 1])).toBe(false);
   });
 });
 
