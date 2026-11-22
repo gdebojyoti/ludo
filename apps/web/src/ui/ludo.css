@@ -4,7 +4,7 @@
 
 /*
  * The colours and fonts, named by what they're for, so each theme can give them its own values. These are the Heritage
- * theme's (docs/design/ludo-design), the default; the Christmas theme's are below, under [data-ludo-theme]. The
+ * theme's (docs/design/ludo-design); the Christmas theme's, the default, are below, under [data-ludo-theme]. The
  * Seats' colours are below too, and seatView.ts reads them. Every name here, and every keyframe, starts with ludo-, as
  * the host app's page gets them too (ADR-0005).
  */
