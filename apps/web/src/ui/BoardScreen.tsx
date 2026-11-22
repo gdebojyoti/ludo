@@ -1,5 +1,5 @@
-import { useEffect, useEffectEvent, useLayoutEffect, useState } from "react";
-import { tumbleFor, type GameMode, type Seat, type SnapshotBoard } from "@ludo/shared";
+import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react";
+import { allMovesAlike, tumbleFor, type GameMode, type Seat, type SnapshotBoard } from "@ludo/shared";
 import Board from "./Board";
 import Die from "./Die";
 import ErrorMessage from "./ErrorMessage";
@@ -41,6 +41,9 @@ type RollState = "idle" | "tumbling" | "spinning" | "failed";
 
 // After this long without a reply, the Player is told the die is still waiting for it.
 const slowAfter = 1500;
+
+// With autoplay on, how long after the Board is ready for a Move one is made by itself, so the Player sees their Roll.
+const autoplayAfter = 200;
 
 const wait = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -135,12 +138,32 @@ export default function BoardScreen({
     setHeldBoard(undefined);
   };
 
+  // The index of the last Roll the viewer Moved a Token by, whether they picked it or autoplay did.
+  const movedByRoll = useRef<number>(undefined);
+
   // The Move is sent at once, and the Token starts sliding at once, a Cell at a time, unless motion is reduced.
   const moveToken = async (token: number) => {
+    movedByRoll.current = lastRoll?.index;
     playback.startOwnMove(token);
     const reply = await onMove(token).catch(() => undefined);
     playback.ownMoveAnswered(Boolean(reply?.ok));
   };
+
+  // With autoplay on, when every Token the viewer can Move is in the same place, so there's no choice to make, one of
+  // them, picked at random, Moves by itself soon after the Board is ready for it. The Player can still pick one first.
+  // It's never made for a Roll the viewer has already Moved by, so a Move the server refused, whoever picked it, is left
+  // to the Player.
+  const { diceOnLeft, autoplay } = useSettings();
+  const ownTokens = board.seats[viewer]?.tokens ?? [];
+  const rollToAutoplay = autoplay && playing && !disabled && isOwnTurn && rolled && allMovesAlike(ownTokens, moves)
+    ? lastRoll?.index
+    : undefined;
+  const autoplayMove = useEffectEvent(() => moveToken(moves[Math.floor(Math.random() * moves.length)] as number));
+  useEffect(() => {
+    if (rollToAutoplay === undefined || movedByRoll.current === rollToAutoplay) return;
+    const timeout = setTimeout(autoplayMove, autoplayAfter);
+    return () => clearTimeout(timeout);
+  }, [rollToAutoplay]);
 
   // What the viewer should do now, if anything.
   const viewerNow = () => {
@@ -280,8 +303,6 @@ export default function BoardScreen({
       />
     );
   };
-
-  const { diceOnLeft } = useSettings();
 
   // On phones, the Player cards are in a row above the Board and a row below it, by where their Seats are on it. On
   // desktop, they're in a list on the left, the viewer's first and then clockwise, and the Seats nobody has are left

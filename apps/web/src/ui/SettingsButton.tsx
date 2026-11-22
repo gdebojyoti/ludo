@@ -3,6 +3,7 @@ import Button from "./Button";
 import DialogCard from "./DialogCard";
 import Icon from "./Icon";
 import { settingsMessages } from "./messages";
+import SettingSwitch from "./SettingSwitch";
 import { changeSettings, nextTheme, useSettings } from "./settings";
 
 interface Props {
@@ -15,9 +16,11 @@ interface Props {
 export default function SettingsButton({ colours = "text-ludo-on-page" }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const settings = useSettings();
-  const { diceOnLeft } = settings;
+  const { diceOnLeft, autoplay } = settings;
 
   const toggleDiceOnLeft = () => changeSettings({ diceOnLeft: !diceOnLeft });
+
+  const toggleAutoplay = () => changeSettings({ autoplay: !autoplay });
 
   const changeTheme = () => changeSettings({ theme: nextTheme(settings.theme) });
 
@@ -36,31 +39,21 @@ export default function SettingsButton({ colours = "text-ludo-on-page" }: Props)
       <DialogCard ref={dialogRef} icon="settings" title={settingsMessages.title}>
         <div className="mt-1.5 flex flex-col gap-5">
           {/* Only on phones: on desktop, the die is always below the Turn status, so this would change nothing. */}
-          <div className="flex items-center gap-4 xl:hidden">
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span id="settings-dice-label" className="text-base font-semibold">{settingsMessages.diceOnLeft}</span>
-              <span id="settings-dice-detail" className="text-[13px] leading-snug text-ludo-ink-muted">
-                {settingsMessages.diceOnLeftDetail}
-              </span>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={diceOnLeft}
-              aria-labelledby="settings-dice-label"
-              aria-describedby="settings-dice-detail"
-              className={`relative h-7 w-12 flex-none cursor-pointer rounded-full transition-colors ${
-                diceOnLeft ? "bg-ludo-ink" : "bg-ludo-board-line"
-              }`}
-              onClick={toggleDiceOnLeft}
-            >
-              <span
-                className={`absolute top-1 left-1 size-5 rounded-full bg-ludo-card-raised shadow transition-transform ${
-                  diceOnLeft ? "translate-x-5" : ""
-                }`}
-              />
-            </button>
-          </div>
+          <SettingSwitch
+            id="settings-dice"
+            className="xl:hidden"
+            label={settingsMessages.diceOnLeft}
+            detail={settingsMessages.diceOnLeftDetail}
+            on={diceOnLeft}
+            onToggle={toggleDiceOnLeft}
+          />
+          <SettingSwitch
+            id="settings-autoplay"
+            label={settingsMessages.autoplay}
+            detail={settingsMessages.autoplayDetail}
+            on={autoplay}
+            onToggle={toggleAutoplay}
+          />
           <div className="flex items-center gap-4">
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span id="settings-theme-label" className="text-base font-semibold">{settingsMessages.theme}</span>
