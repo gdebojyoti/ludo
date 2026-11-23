@@ -1,4 +1,14 @@
-import { classicRules, seatsClockwise, tokensHome, type Seat, type SnapshotBoard } from "@ludo/shared";
+import {
+  classicRules,
+  isWonByCapture,
+  seatsClockwise,
+  tokensHome,
+  wonByMove,
+  type GameMode,
+  type Seat,
+  type SeatToken,
+  type SnapshotBoard,
+} from "@ludo/shared";
 import { seatView } from "./seatView";
 
 // How the viewer sees the Seats of a Board, from their own Seat clockwise.
@@ -18,3 +28,24 @@ export const seatViewOf = (board: SnapshotBoard, seat: Seat) => seatView(seatsCl
 
 /** How many of a Seat's Tokens are Home. */
 export const homeCountAt = (board: SnapshotBoard, seat: Seat) => tokensHome(board.seats[seat]?.tokens ?? []);
+
+/** How many Players the Game started with, counting any who have since Left. */
+export const playerCountAt = (board: SnapshotBoard) => board.seats.filter((seat) => seat.playerName !== null).length;
+
+/** The Seat whose Player won the Game, for the Board of a won Game. */
+export const winnerAt = (board: SnapshotBoard): Seat => board.winner ?? board.turn;
+
+/**
+ * How a won Game was won: by the winner's last Move, as the Game mode's rules say, or, if not, by everyone else
+ * Leaving. With the Tokens that Move Captured, if any.
+ */
+export const howWonAt = (
+  mode: GameMode,
+  board: SnapshotBoard,
+): { how: "allHome" | "capture" | "othersLeft"; captured: SeatToken[] } => {
+  const winner = winnerAt(board);
+  const { lastMove } = board;
+  const captured = lastMove?.seat === winner ? lastMove.captured : [];
+  if (!wonByMove(mode, { tokens: board.seats[winner]?.tokens ?? [], captured })) return { how: "othersLeft", captured };
+  return { how: isWonByCapture(mode) ? "capture" : "allHome", captured };
+};

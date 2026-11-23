@@ -7,7 +7,8 @@ import Header from "./Header";
 import LeaveButton from "./LeaveButton";
 import Notice from "./Notice";
 import PlayerCard from "./PlayerCard";
-import { homeCountAt, playerNameAt, seatAt } from "./boardView";
+import { track } from "./analytics";
+import { homeCountAt, playerCountAt, playerNameAt, seatAt } from "./boardView";
 import { boardMessages, commonMessages, leaveMessages } from "./messages";
 import { faceEvery, prefersReducedMotion, tumbleFaces, tumbleForReducedMotion } from "./motion";
 import { useSettings } from "./settings";
@@ -109,12 +110,14 @@ export default function BoardScreen({
 
   // A Roll that didn't go through, while the viewer can still Roll again.
   const failed = rollState === "failed" && isOwnTurn && !rolled;
-  const playerCount = board.seats.filter((seat) => seat.playerName !== null).length;
+  const playerCount = playerCountAt(board);
   const otherNames = board.seats.flatMap((seat, index) =>
     index !== viewer && seat.playerName !== null && !seat.left ? [seat.playerName] : [],
   );
 
   const rollDie = async () => {
+    // Sent for every Roll, so without the layout, which would cost another event each time.
+    track("roll", { mode }, { layout: false });
     let replied = false;
     const before = latestBoard;
     setTumbleFace(tumbleFaces[0] as number);

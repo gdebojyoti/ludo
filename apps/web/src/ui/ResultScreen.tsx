@@ -1,15 +1,6 @@
-import {
-  classicRules,
-  isWonByCapture,
-  seatsClockwise,
-  tokensReachHome,
-  wonByMove,
-  type GameMode,
-  type Seat,
-  type SnapshotBoard,
-} from "@ludo/shared";
+import { classicRules, seatsClockwise, tokensReachHome, type GameMode, type Seat, type SnapshotBoard } from "@ludo/shared";
 import Avatar from "./Avatar";
-import { homeCountAt, playerNameAt, seatViewOf } from "./boardView";
+import { homeCountAt, howWonAt, playerNameAt, seatViewOf, winnerAt } from "./boardView";
 import Button from "./Button";
 import Header from "./Header";
 import { boardMessages, commonMessages, resultMessages } from "./messages";
@@ -24,10 +15,9 @@ interface Props {
 const tokenSpots = Array.from({ length: classicRules.tokensPerSeat }, (_, spot) => spot);
 
 export default function ResultScreen({ mode, board, onBackToStart }: Props) {
-  const winner = board.winner ?? board.turn;
+  const winner = winnerAt(board);
   const viewer = board.seat;
   const colours = (seat: Seat) => seatViewOf(board, seat);
-  const winnerSeat = board.seats[winner];
   const winnerName = playerNameAt(board, winner);
   const homeCount = (seat: Seat) => homeCountAt(board, seat);
   // Everyone else, in Seat order from the viewer's.
@@ -38,12 +28,10 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
 
   const named = (seat: Seat) => ({ playerName: playerNameAt(board, seat), isOwn: seat === viewer });
 
-  // How the winner won: by their last Move, as the Game mode's rules say, or, if not, by everyone else Leaving.
   const howWon = () => {
-    const { lastMove } = board;
-    const captured = lastMove?.seat === winner ? lastMove.captured : [];
-    if (!wonByMove(mode, { tokens: winnerSeat?.tokens ?? [], captured })) return resultMessages.othersLeft;
-    if (!isWonByCapture(mode)) return resultMessages.allHome;
+    const { how, captured } = howWonAt(mode, board);
+    if (how === "othersLeft") return resultMessages.othersLeft;
+    if (how === "allHome") return resultMessages.allHome;
     return resultMessages.capture(named(winner), captured.map(({ seat }) => named(seat)));
   };
 

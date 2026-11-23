@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { classicRules, type GameSnapshot } from "@ludo/shared";
+import { track } from "./analytics";
 import Avatar from "./Avatar";
 import Button from "./Button";
 import ErrorMessage from "./ErrorMessage";
@@ -25,6 +26,10 @@ interface Props {
 
 /** What a Player can copy to share the Game. */
 type Copyable = "joinLink" | "gameCode";
+
+// What the link_copied and link_shared events call each: the names WZQ's link_copied uses, so the totals add up across
+// games.
+const copyableNames: Record<Copyable, string> = { joinLink: "join_link", gameCode: "code" };
 
 // How long a share or copy button shows that it worked.
 const copiedFor = 2000;
@@ -57,17 +62,20 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
     try {
       await navigator.clipboard.writeText(text);
       setCopied(what);
+      track("link_copied", { what: copyableNames[what] });
     } catch {
       // The browser refused. The code is on screen to copy by hand, and either button can be tried again.
     }
   };
 
-  // The phone's own share sheet, where there is one; otherwise the link is copied.
+  // The phone's own share sheet, where there is one; otherwise the link is copied. Sharing it is sent as link_shared,
+  // not link_copied, as nothing is copied, unless the Player picks Copy in the sheet, which it doesn't say.
   const shareJoinLink = async () => {
     const url = joinLinkFor(gameCode);
     if (!navigator.share) return copy("joinLink", url);
     try {
       await navigator.share({ title: lobbyMessages.shareTitle, url });
+      track("link_shared", { what: copyableNames.joinLink });
     } catch {
       // Closed without sharing, which needs nothing.
     }
