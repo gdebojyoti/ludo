@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { track } from "./analytics";
 import Button from "./Button";
 import DialogCard from "./DialogCard";
 import Icon from "./Icon";
@@ -18,11 +19,21 @@ export default function SettingsButton({ colours = "text-ludo-on-page" }: Props)
   const settings = useSettings();
   const { diceOnLeft, autoplay } = settings;
 
-  const toggleDiceOnLeft = () => changeSettings({ diceOnLeft: !diceOnLeft });
+  const toggleDiceOnLeft = () => {
+    changeSettings({ diceOnLeft: !diceOnLeft });
+    track("dice_side_change", { on_left: !diceOnLeft });
+  };
 
-  const toggleAutoplay = () => changeSettings({ autoplay: !autoplay });
+  const toggleAutoplay = () => {
+    changeSettings({ autoplay: !autoplay });
+    track("automatic_move_change", { on: !autoplay });
+  };
 
-  const changeTheme = () => changeSettings({ theme: nextTheme(settings.theme) });
+  const changeTheme = () => {
+    const theme = nextTheme(settings.theme);
+    changeSettings({ theme });
+    track("theme_change", { theme });
+  };
 
   return (
     <>

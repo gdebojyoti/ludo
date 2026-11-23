@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { gameCodeLength, type Acknowledgement, type GameMode, type GameSnapshot } from "@ludo/shared";
+import { track } from "./analytics";
 import { gameCodeInAddress, isGameCode, removeJoinLinkFromAddress } from "./joinLink";
 import { rejectionMessages, startMessages } from "./messages";
 import { connectToServer, type GameSocket } from "./socket";
@@ -64,7 +65,10 @@ export const useGameServer = (playerName: string) => {
         // No reply if the connection drops first. If the server joined the Game anyway, it sends it when the
         // connection comes back.
         const reply = await socket.emitWithAck("joinGame", gameCode, playerNameRef.current).catch(() => undefined);
-        if (reply?.ok) return setGame(reply.game);
+        if (reply?.ok) {
+          track("game_join", { via: "link" });
+          return setGame(reply.game);
+        }
         // A Game of the Player's own arrived meanwhile, such as one they created in another tab.
         if (gamesReceived !== gamesBefore) return;
         setError(reply ? rejectionMessages[reply.reason] : startMessages.joinLinkNoReply);
@@ -110,17 +114,28 @@ export const useGameServer = (playerName: string) => {
     }
   };
 
-  // Sends a command that puts the Player in a Game, and shows the Game from its reply.
-  const enterGame = async (command: (socket: GameSocket) => Promise<Acknowledgement<{ game: GameSnapshot }>>) => {
+  // Sends a command that puts the Player in a Game, and shows the Game from its reply. Then sends the event that says
+  // so.
+  const enterGame = async (
+    command: (socket: GameSocket) => Promise<Acknowledgement<{ game: GameSnapshot }>>,
+    entered: () => void,
+  ) => {
     const reply = await send(command);
-    if (reply?.ok) setGame(reply.game);
+    if (!reply?.ok) return;
+    setGame(reply.game);
+    entered();
   };
 
-  const createGame = (mode: GameMode) =>
-    enterGame((socket) => socket.emitWithAck("createGame", playerNameRef.current, mode));
+  const createGame = (mode: GameMode) => enterGame(
+    (socket) => socket.emitWithAck("createGame", playerNameRef.current, mode),
+    () => track("game_create", { mode }),
+  );
 
-  const joinGame = (gameCode: string) =>
-    enterGame((socket) => socket.emitWithAck("joinGame", gameCode, playerNameRef.current));
+  // By a Game code typed in. A Join link joins by itself as soon as it's opened, above.
+  const joinGame = (gameCode: string) => enterGame(
+    (socket) => socket.emitWithAck("joinGame", gameCode, playerNameRef.current),
+    () => track("game_join", { via: "code" }),
+  );
 
   // On success the server sends every Player the started Game.
   const startGame = () => send((socket) => socket.emitWithAck("startGame"));

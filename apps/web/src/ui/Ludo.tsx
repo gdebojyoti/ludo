@@ -10,6 +10,7 @@ import Snowfall from "./Snowfall";
 import StartScreen from "./StartScreen";
 import { noticeMessages } from "./messages";
 import { loadPlayerName, newPlayerName } from "./playerName";
+import { useGameAnalytics } from "./useGameAnalytics";
 import { useGameServer } from "./useGameServer";
 import "./ludo.css";
 
@@ -31,7 +32,14 @@ export default function Ludo() {
     move,
     backToStart,
   } = useGameServer(playerName);
+  const { leaving } = useGameAnalytics(game);
   const noticeMessage = notice && noticeMessages[notice];
+
+  const leave = async () => {
+    const left = leaving();
+    const reply = await leaveGame();
+    if (reply?.ok) left();
+  };
   // The won Game's Board, once its last Move has played out, so its result can be shown.
   const [playedOutBoard, setPlayedOutBoard] = useState<SnapshotBoard>();
   const { theme } = useSettings();
@@ -46,7 +54,7 @@ export default function Ludo() {
           notice={noticeMessage}
           error={error}
           onStartGame={startGame}
-          onLeaveGame={leaveGame}
+          onLeaveGame={leave}
         />
       );
     }
@@ -64,7 +72,7 @@ export default function Ludo() {
           error={error}
           onRoll={roll}
           onMove={move}
-          onLeaveGame={leaveGame}
+          onLeaveGame={leave}
           onPlayedOut={() => setPlayedOutBoard(game.board ?? undefined)}
         />
       );
