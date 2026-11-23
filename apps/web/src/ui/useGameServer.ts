@@ -172,6 +172,7 @@ export const useGameServer = (playerName: string) => {
 
   // The server freed the Player when their Game ended, so going back to the start screen needs no command.
   const backToStart = () => {
+    if (game) track("back_to_start", { from: game.state === "won" ? "result" : "cancelled" });
     setError(undefined);
     setNotice(undefined);
     sawGame(null);
