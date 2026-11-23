@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { startServer, type TestServer } from "./testing.js";
+import { gameCodeIn, playerKeyIn, startServer, type TestServer } from "./testing.js";
 
 let server: TestServer;
 
@@ -54,7 +54,7 @@ describe("the debug list of Games", () => {
       gameCode: `${gameCode.slice(0, 2)}****`,
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-01T00:00:00.000Z",
-      players: [{ label, playerName: "Luna Lovegood", isHost: true, away: false }],
+      players: [{ label, joinedVia: "webApp", playerName: "Luna Lovegood", isHost: true, away: false }],
       board: null,
     }]);
     // The Board is the longest part, so it comes after everything else.
@@ -147,6 +147,63 @@ describe("the debug list of Games", () => {
       players: [{ playerName: "Ginny Weasley", isHost: false }],
       board: { winner: 2, seats: [{ label: null, playerName: "Luna Lovegood", left: true, tokens: [] }, {}, {}, {}] },
     });
+  });
+
+  it("shows that each Player in a Game of web app Players joined through the web app", async () => {
+    await gameInPlay();
+
+    const game = await newestGame();
+
+    expect(game.players.map((player) => player.joinedVia)).toEqual(["webApp", "webApp"]);
+    expect(game.board?.seats.map((seat) => seat.joinedVia)).toEqual(["webApp", null, "webApp", null]);
+  });
+
+  it("shows that each AI Player in a Game of AI Players joined over MCP, and never their Player keys", async () => {
+    const host = await server.connectAi();
+    const joiner = await server.connectAi();
+    const created = await host.createGame({ playerName: "Claude One" });
+    const joined = await joiner.joinGame(gameCodeIn(created), { playerName: "Claude Two" });
+    await host.startGame();
+
+    const { body, games: [game] } = await server.debugGames();
+
+    expect(game?.players.map((player) => player.joinedVia)).toEqual(["mcp", "mcp"]);
+    expect(game?.board?.seats.map((seat) => seat.joinedVia)).toEqual(["mcp", null, "mcp", null]);
+    expect(playerKeyIn(created)).not.toBe("");
+    expect(body).not.toContain(playerKeyIn(created));
+    expect(body).not.toContain(playerKeyIn(joined));
+  });
+
+  it("keeps how each Player joined a Game of both kinds while they're Away, Rejoin and Leave", async () => {
+    const ai = await server.connectAi();
+    const gameCode = gameCodeIn(await ai.createGame({ playerName: "Claude" }));
+    const lunaPlayer = server.createPlayer();
+    const luna = await server.playerInLobby(gameCode, { playerName: "Luna Lovegood", player: lunaPlayer });
+    await server.playerInLobby(gameCode, { playerName: "Ginny Weasley" });
+    await ai.startGame();
+    const joinedVia = async () => {
+      const { players, board } = await newestGame();
+      return {
+        players: players.map((player) => [player.playerName, player.joinedVia]),
+        seats: board?.seats.map((seat) => [seat.playerName, seat.joinedVia]),
+      };
+    };
+    const atStart = await joinedVia();
+
+    await luna.close();
+    expect((await newestGame()).players.map((player) => player.away)).toEqual([false, true, false]);
+    expect(await joinedVia()).toEqual(atStart);
+    await lunaPlayer.connect();
+    expect((await newestGame()).players.map((player) => player.away)).toEqual([false, false, false]);
+    expect(await joinedVia()).toEqual(atStart);
+    await ai.leaveGame();
+
+    expect(atStart.players).toEqual([["Claude", "mcp"], ["Luna Lovegood", "webApp"], ["Ginny Weasley", "webApp"]]);
+    const { players, board } = await newestGame();
+    expect(players.map((player) => [player.playerName, player.joinedVia]))
+      .toEqual([["Luna Lovegood", "webApp"], ["Ginny Weasley", "webApp"]]);
+    expect(board?.seats.find((seat) => seat.left)).toMatchObject({ playerName: "Claude", joinedVia: "mcp" });
+    expect((await joinedVia()).seats).toEqual(atStart.seats);
   });
 
   it("shows a Game cancelled in the Lobby with no Game code", async () => {

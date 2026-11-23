@@ -251,7 +251,7 @@ const createGameTools = (
     },
     async (args) => enterGame(
       args.playerKey,
-      (playerId) => gameService.createGame(playerId, nameFor(args.playerName), args.mode ?? "classic"),
+      (playerId) => gameService.createGame(playerId, nameFor(args.playerName), args.mode ?? "classic", "mcp"),
       (game) => {
         return `You created a ${modeNames[game.mode]} Game. Send the Players you're playing its Join link, ` +
           `${joinLinkFor(webAppUrl, game.gameCode)}, which joins them as soon as they open it. Or they can open ` +
@@ -276,7 +276,7 @@ const createGameTools = (
     },
     async (args) => enterGame(
       args.playerKey,
-      (playerId) => gameService.joinGame(playerId, args.gameCode.trim(), nameFor(args.playerName)),
+      (playerId) => gameService.joinGame(playerId, args.gameCode.trim(), nameFor(args.playerName), "mcp"),
       (game) => {
         const name = game.players.at(-1)?.playerName;
         return game.state === "lobby"
