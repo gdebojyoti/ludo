@@ -29,6 +29,11 @@ export default function SettingsButton({ colours = "text-ludo-on-page" }: Props)
     track("automatic_move_change", { on: !autoplay });
   };
 
+  const open = () => {
+    dialogRef.current?.showModal();
+    track("settings_open");
+  };
+
   const changeTheme = () => {
     const theme = nextTheme(settings.theme);
     changeSettings({ theme });
@@ -41,7 +46,7 @@ export default function SettingsButton({ colours = "text-ludo-on-page" }: Props)
         variant="icon"
         className={`xl:h-12 xl:w-auto xl:gap-2 xl:px-5 xl:text-base xl:font-semibold ${colours}`}
         title={settingsMessages.label}
-        onClick={() => dialogRef.current?.showModal()}
+        onClick={open}
       >
         <Icon name="settings" className="xl:size-4.5" />
         <span className="sr-only xl:hidden">{settingsMessages.label}</span>
