@@ -95,6 +95,11 @@ export interface SnapshotSeat {
   away: boolean;
   /** Where each of the Seat's Tokens is. An empty Seat has none. */
   tokens: TokenPosition[];
+  /**
+   * The Seat's Standing, counting from 1, once the Game is won: Seats that tie share one. Null for a Seat nobody sat
+   * in, and before the Game is won.
+   */
+  standing: number | null;
 }
 
 /**

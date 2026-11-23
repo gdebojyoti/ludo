@@ -346,6 +346,14 @@ describe("winning", () => {
     expect(await endOfGame(joiner)).toMatchObject({ event: "game", game: ended });
   });
 
+  it("shows everyone each taken Seat's Standing, the winner first", async () => {
+    const { host, joiner } = await gameWonByHost();
+
+    const seats = [{ standing: 1 }, { standing: null }, { standing: 2 }, { standing: null }];
+    expect(await endOfGame(host)).toMatchObject({ game: { board: { seats } } });
+    expect(await endOfGame(joiner)).toMatchObject({ game: { board: { seats } } });
+  });
+
   it("leaves its Players with no active Game, so a Roll or a Move is refused, and they can start another", async () => {
     const { host, joiner } = await gameWonByHost();
 
@@ -396,10 +404,10 @@ describe("Leaving during play", () => {
       ],
       board: {
         seats: [
-          { playerName: "Luna Lovegood", left: false, away: false, tokens: [yard, yard, yard, yard] },
-          { playerName: "Neville Longbottom", left: true, away: false, tokens: [] },
-          { playerName: "Ginny Weasley", left: false, away: false, tokens: [yard, yard, yard, yard] },
-          { playerName: null, left: false, away: false, tokens: [] },
+          { playerName: "Luna Lovegood", left: false, away: false, tokens: [yard, yard, yard, yard], standing: null },
+          { playerName: "Neville Longbottom", left: true, away: false, tokens: [], standing: null },
+          { playerName: "Ginny Weasley", left: false, away: false, tokens: [yard, yard, yard, yard], standing: null },
+          { playerName: null, left: false, away: false, tokens: [], standing: null },
         ],
         turn: 0,
         winner: null,
@@ -487,5 +495,16 @@ describe("Leaving during play", () => {
     expect(await host.nextMessage()).toMatchObject({ game: { state: "playing", board: { winner: null } } });
     expect(await second.leaveGame()).toEqual({ ok: true });
     expect(await host.nextMessage()).toMatchObject({ game: { state: "won", board: { winner: 0 } } });
+  });
+
+  it("puts the Players who Left last, tied, when the last Player remaining wins", async () => {
+    const { host, second, third } = await gameOfThreeInPlay();
+    await third.leaveGame();
+    await host.nextMessage();
+
+    await second.leaveGame();
+
+    const seats = [{ standing: 1 }, { standing: 2 }, { standing: 2 }, { standing: null }];
+    expect(await host.nextMessage()).toMatchObject({ game: { state: "won", board: { seats } } });
   });
 });

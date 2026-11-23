@@ -19,6 +19,9 @@ const nameList = (playerNames: string[]) => list(playerNames.map(firstName));
 
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
+/** A place, up to 10th, as text: "1st", "2nd", "3rd", "4th". */
+const ordinal = (place: number) => `${place}${({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[place] ?? "th"}`;
+
 /** A Player as text names them, and whether they're the one reading it. */
 interface NamedPlayer {
   playerName: string;
@@ -210,6 +213,8 @@ export const resultMessages = {
     `${winner.isOwn ? "You" : firstName(winner.playerName)} captured ${list(captured.map(tokenOf))}.`,
   tokensHomeHeading: "Tokens home at the end",
   tokensHome: (count: number) => `${count} of ${classicRules.tokensPerSeat} tokens home`,
+  // A Player's Standing, and whether another Player who tied with them shares it.
+  standing: (standing: number, isShared: boolean) => `${isShared ? "Joint " : ""}${ordinal(standing)}`,
   backToStart: "Back to start",
   cancelledSubtitle: "Lobby",
   cancelled: "Game cancelled",

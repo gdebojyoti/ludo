@@ -1,6 +1,7 @@
 // How a Game looks to one of its Players.
 import {
   legalMoves,
+  standings,
   type GameSnapshot,
   type SnapshotBoard,
   type SnapshotPlayer,
@@ -32,15 +33,32 @@ export const toSnapshotPlayer = (game: Game, player: GamePlayer, isAway: IsAway)
   return { playerName: player.playerName, isHost: player.playerId === game.hostId, away: isAway(player.playerId) };
 };
 
-/** One of the Seats at the Game's Board, as every Player sees it. */
-export const toSnapshotSeat = (game: Game, seat: GameSeat, isAway: IsAway): SnapshotSeat => {
+/** One of the Seats at the Game's Board, with its Standing, as every Player sees it. */
+const toSnapshotSeat = (game: Game, seat: GameSeat, standing: number | null, isAway: IsAway): SnapshotSeat => {
   const playerName = (id: string) => game.players.find((player) => player.playerId === id)?.playerName ?? null;
   return {
     playerName: seat.playerId === null ? seat.leaverName : playerName(seat.playerId),
     left: seat.leaverName !== null,
     away: seat.playerId !== null && isAway(seat.playerId),
     tokens: seat.tokens,
+    standing,
   };
+};
+
+/** Every Seat at the Game's Board, by number, as every Player sees it. */
+export const toSnapshotSeats = (game: Game, board: GameBoard, isAway: IsAway): SnapshotSeat[] => {
+  const seatStandings = standingsAt(board);
+  return board.seats.map((seat, index) => toSnapshotSeat(game, seat, seatStandings[index] ?? null, isAway));
+};
+
+/** Each Seat's Standing at the Game's Board, by Seat, once the Game is won; until then, all null. */
+const standingsAt = (board: GameBoard): (number | null)[] => {
+  if (board.winner === null) return board.seats.map(() => null);
+  const finalSeats = board.seats.map((seat) => {
+    const taken = seat.playerId !== null || seat.leaverName !== null;
+    return taken ? { left: seat.leaverName !== null, tokens: seat.tokens } : null;
+  });
+  return standings(finalSeats, board.winner);
 };
 
 const toSnapshotBoard = (game: Game, board: GameBoard, playerId: string, isAway: IsAway): SnapshotBoard => {
@@ -50,7 +68,7 @@ const toSnapshotBoard = (game: Game, board: GameBoard, playerId: string, isAway:
   const rollToMove = board.rolled && board.turn === seat ? board.lastRoll : null;
   return {
     seat,
-    seats: board.seats.map((seat) => toSnapshotSeat(game, seat, isAway)),
+    seats: toSnapshotSeats(game, board, isAway),
     turn: board.turn,
     rolled: board.rolled,
     lastRoll: board.lastRoll,

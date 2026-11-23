@@ -35,6 +35,7 @@ export {
   nextTakenSeat,
   playerNameMaxLength,
   seatsClockwise,
+  standings,
   startCell,
   stepsToHome,
   startingTokens,

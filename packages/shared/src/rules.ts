@@ -256,6 +256,26 @@ export const hasWon = (tokens: TokenPosition[]): boolean => {
   return tokens.length > 0 && tokensHome(tokens) === tokens.length;
 };
 
+/** A Seat at the end of a Game, as far as Standing goes: null if nobody sat in it. */
+export type FinalSeat = { left: boolean; tokens: TokenPosition[] } | null;
+
+/**
+ * Each Seat's Standing at the end of a won Game, by Seat, counting from 1: the winner first, then the others by how
+ * many Tokens they brought Home, most first, and those who Left last. Seats that tie share the higher Standing, and
+ * the Standings they'd otherwise have taken are skipped, so 2 Seats tied behind the winner are both 2nd, and the next
+ * is 4th. Null for a Seat nobody sat in.
+ */
+export const standings = (seats: FinalSeat[], winner: Seat): (number | null)[] => {
+  // Higher is better. A Seat that Left has no Tokens to count.
+  const score = (seat: Exclude<FinalSeat, null>, index: Seat) => {
+    if (index === winner) return Infinity;
+    return seat.left ? -1 : tokensHome(seat.tokens);
+  };
+  const scores = seats.map((seat, index) => (seat ? score(seat, index) : null));
+  const aheadOf = (own: number) => scores.filter((other) => other !== null && other > own).length;
+  return scores.map((own) => (own === null ? null : 1 + aheadOf(own)));
+};
+
 /**
  * The Seats given out when a Game starts, to its Players in the order they joined: the 1st gets Seat 0, the 2nd the
  * Seat opposite, so 2 Players always sit opposite each other, and the rest the Seats left, clockwise from Seat 0.

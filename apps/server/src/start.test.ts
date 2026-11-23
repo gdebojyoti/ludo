@@ -15,7 +15,7 @@ afterEach(async () => {
 /** A Seat's 4 Tokens, all in its Yard. */
 const inYard = Array.from({ length: 4 }, () => ({ area: "yard" }));
 
-const emptySeat = { playerName: null, left: false, away: false, tokens: [] };
+const emptySeat = { playerName: null, left: false, away: false, tokens: [], standing: null };
 
 describe("the Host starting the Game", () => {
   it("with 2 Players seats them opposite each other, and sends each of them the Board from their own Seat", async () => {
@@ -33,9 +33,9 @@ describe("the Host starting the Game", () => {
       { playerName: "Ginny Weasley", isHost: false, away: false },
     ];
     const seats = [
-      { playerName: "Luna Lovegood", left: false, away: false, tokens: inYard },
+      { playerName: "Luna Lovegood", left: false, away: false, tokens: inYard, standing: null },
       emptySeat,
-      { playerName: "Ginny Weasley", left: false, away: false, tokens: inYard },
+      { playerName: "Ginny Weasley", left: false, away: false, tokens: inYard, standing: null },
       emptySeat,
     ];
     // Nobody has Rolled yet, or won.

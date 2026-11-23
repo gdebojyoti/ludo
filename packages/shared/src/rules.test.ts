@@ -12,6 +12,7 @@ import {
   positionAfter,
   positionsAlong,
   seatsClockwise,
+  standings,
   startingTokens,
   tokensHome,
   wonByMove,
@@ -437,5 +438,62 @@ describe("Classic, beside One Kill Win", () => {
     const tokens = [home, { area: "track", cell: 9 } as const, home, home];
 
     expect(wonByMove("classic", { tokens, captured: [{ seat: 2, token: 0 }] })).toBe(false);
+  });
+});
+
+describe("Standing", () => {
+  const yard = { area: "yard" } as const;
+  const home = { area: "home" } as const;
+  const track = (cell: number) => ({ area: "track", cell }) as const;
+  // A Seat whose Player Left, which took their Tokens off the Board.
+  const leaver = { left: true, tokens: [] };
+  // A Seat in One Kill Win, where no Token reaches Home.
+  const onTrack = { left: false, tokens: [track(3), track(3), yard, yard] };
+  /** A taken Seat at the end of a Game, with this many Tokens Home and the rest on the Track. */
+  const seatWith = (homeCount: number) => ({
+    left: false,
+    tokens: [0, 1, 2, 3].map((token) => (token < homeCount ? home : track(5))),
+  });
+
+  it("puts the winner first, and the other Player second, with 2 Players", () => {
+    expect(standings([seatWith(4), null, seatWith(1), null], 0)).toEqual([1, null, 2, null]);
+  });
+
+  it("puts the others behind the winner by how many Tokens they brought Home, most first, with 3 Players", () => {
+    expect(standings([seatWith(0), seatWith(2), seatWith(4), null], 2)).toEqual([3, 2, 1, null]);
+  });
+
+  it("puts the others behind the winner by how many Tokens they brought Home, most first, with 4 Players", () => {
+    expect(standings([seatWith(1), seatWith(4), seatWith(3), seatWith(0)], 1)).toEqual([3, 1, 2, 4]);
+  });
+
+  it("gives Seats with as many Tokens Home the higher Standing they share, and skips the one after", () => {
+    expect(standings([seatWith(2), seatWith(4), seatWith(2), seatWith(1)], 1)).toEqual([2, 1, 2, 4]);
+  });
+
+  it("ties the others when none brought a Token Home", () => {
+    expect(standings([seatWith(0), seatWith(0), seatWith(4), seatWith(0)], 2)).toEqual([2, 2, 1, 2]);
+  });
+
+  it("puts a Player who Left last, behind one with no Token Home", () => {
+    expect(standings([seatWith(4), leaver, seatWith(0), null], 0)).toEqual([1, 3, 2, null]);
+  });
+
+  it("ties the Players who Left, last", () => {
+    expect(standings([leaver, seatWith(3), seatWith(4), leaver], 2)).toEqual([3, 2, 1, 3]);
+  });
+
+  it("puts the last Player remaining first when everyone else Left, though they brought no Token Home", () => {
+    expect(standings([leaver, null, seatWith(0), null], 2)).toEqual([2, null, 1, null]);
+  });
+
+  it("ties everyone but the winner in One Kill Win, where no Token reaches Home", () => {
+    const captured = { left: false, tokens: [track(20), yard, yard, yard] };
+
+    expect(standings([onTrack, captured, onTrack, onTrack], 0)).toEqual([1, 2, 2, 2]);
+  });
+
+  it("puts a Player who Left last in One Kill Win too", () => {
+    expect(standings([onTrack, leaver, onTrack, null], 2)).toEqual([2, 3, 1, null]);
   });
 });
