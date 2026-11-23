@@ -7,11 +7,11 @@ Ludo is an online multiplayer board game, played between friends.
 ### Players
 
 **Player**:
-One of the people in a **Game**. A Player is recognised across visits, for now without needing an account.
+One of the people in a **Game**. A Player is recognised across visits, as a **Guest** or by their **Account**.
 _Avoid_: user, opponent (except relative to another player)
 
 **Player name**:
-The name a **Player** is shown by to the other **Players**, picked at random for them on their first visit.
+The name a **Player** is shown by to the other **Players**. A **Guest**'s is picked at random for them on their first visit, and an **Account**'s is its Google name, for now.
 _Avoid_: username, nickname, display name
 
 **Host**:
@@ -33,6 +33,82 @@ _Avoid_: offline, disconnected (in user-facing text)
 **Seat**:
 A **Player**'s place at the **Board**, one of the places around it, with its own **Yard**, **Start cell**, **Home column** and **Tokens**. A Seat isn't a colour.
 _Avoid_: colour (except for how a Seat is shown), corner, position
+
+### Accounts and progression
+
+**Account**:
+What a **Player** signs in with, using Google, so that their **Player name**, **Coins**, **XP** and **Cosmetics** follow them to any device.
+_Avoid_: user, user account, login
+
+**Guest**:
+A **Player** without an **Account**, recognised only by the browser they play in. A Guest earns no **Coins** or **XP**.
+_Avoid_: anonymous player, unregistered user
+
+**Profile**:
+What other **Players** can see of an **Account**: its **Player name**, **Level**, equipped **Cosmetics** and stats.
+_Avoid_: account page, user page
+
+**Standing**:
+A **Player**'s place at the end of a **Game**: the winner first, then the others by how many **Tokens** they brought **Home**, with ties sharing a Standing, and those who **Left** last.
+_Avoid_: rank, position, placement
+
+**XP**:
+What an **Account** earns by finishing a **Game**, more for a higher **Standing**, and which raises its **Level**. It can't be bought.
+_Avoid_: experience, points
+
+**Level**:
+How far an **Account** has come, raised by **XP**. Reaching a Level can give a reward, or unlock a **Host perk**.
+_Avoid_: rank, tier
+
+**Leaderboard**:
+The **Accounts** ranked by the **XP** they've earned this week in **Games** with at least one other human **Player**.
+_Avoid_: ranking, high scores
+
+**Rival**:
+Another **Account** that an **Account** has played a **Game** with, whose record against it they can both see.
+_Avoid_: friend (until there are friends), opponent
+
+### Store
+
+**Coin**:
+Ludo's one currency, bought with money or earned by finishing a **Game**, and spent in the **Store**. Coins are Ludo's own, not shared with the other games on the site.
+_Avoid_: gold, gems, credits
+
+**Coin cap**:
+The most **Coins** an **Account** can earn from **Games** in one day. **Coins** bought that day don't count towards it.
+_Avoid_: daily limit, earning limit
+
+**Store**:
+Where **Coins** and the **Supporter pack** are bought with money, and **Cosmetics** and **Host perks** with **Coins**. Nothing in it is left to chance.
+_Avoid_: shop, market
+
+**Cosmetic**:
+Something an **Account** owns that changes how Ludo looks, never how it's played.
+_Avoid_: item, skin, collectible
+
+**Slot**:
+One kind of **Cosmetic**, of which an **Account** equips one at a time, such as its **Token finish**.
+_Avoid_: category, cosmetic type
+
+**Token finish**:
+A **Cosmetic** laid over a **Seat**'s colour on its **Tokens**, such as a pattern or glitter, which every **Player** sees. It never changes the colour itself, which stays relative to each viewer.
+_Avoid_: token skin, token colour
+
+**Locker**:
+Where an **Account** sees the **Cosmetics** it owns, and equips them.
+_Avoid_: inventory, collection, wardrobe
+
+**Host perk**:
+A **Modifier** that only a **Host** who has unlocked it can create a **Game** with. The other **Players** need nothing to play it.
+_Avoid_: premium feature, paid option
+
+**Supporter pack**:
+A one-off purchase, for a fixed price, that supports Ludo and makes the **Account** a **Supporter**.
+_Avoid_: donation, tip, subscription
+
+**Supporter**:
+An **Account** that bought the **Supporter pack**, marked as one on its **Profile**.
+_Avoid_: premium, VIP, donor, subscriber
 
 ### Game lifecycle
 
