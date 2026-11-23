@@ -4,7 +4,7 @@ import type { Express } from "express";
 import type { GameMode, GameState, Move, Roll, Seat, SnapshotPlayer, SnapshotSeat } from "@ludo/shared";
 
 import type { GameService } from "./game-service.js";
-import type { Game, GameBoard } from "./game-store.js";
+import type { Game, GameBoard, JoinedVia } from "./game-store.js";
 import { toSnapshotPlayer, toSnapshotSeat, type IsAway } from "./snapshot.js";
 
 /** How many Games the list shows at most. */
@@ -25,11 +25,14 @@ export interface DebugGames {
   games: DebugGame[];
 }
 
-/** A Player as every Player sees them, with a label to tell them apart. */
-type DebugPlayer = { label: string } & SnapshotPlayer;
+/** A Player as every Player sees them, with a label to tell them apart, and how they joined the Game. */
+type DebugPlayer = { label: string; joinedVia: JoinedVia } & SnapshotPlayer;
 
-/** A Seat as every Player sees it, with the label of the Player in it; null if it's empty. */
-type DebugSeat = { label: string | null } & SnapshotSeat;
+/**
+ * A Seat as every Player sees it, with the label of the Player in it, null if it's empty, and how the Player given it
+ * joined the Game, null if no Player was.
+ */
+type DebugSeat = { label: string | null; joinedVia: JoinedVia | null } & SnapshotSeat;
 
 interface DebugBoard {
   turn: Seat;
@@ -64,6 +67,7 @@ const toDebugGame = (game: Game, isAway: IsAway): DebugGame => {
     updatedAt: game.updatedAt,
     players: game.players.map((player) => ({
       label: labelOf(player.playerId),
+      joinedVia: player.joinedVia,
       ...toSnapshotPlayer(game, player, isAway),
     })),
     // Last, as it's the longest, and the rest is easier to read above it.
@@ -80,6 +84,7 @@ const toDebugBoard = (game: Game, board: GameBoard, isAway: IsAway): DebugBoard 
     winner: board.winner,
     seats: board.seats.map((seat) => ({
       label: seat.playerId === null ? null : labelOf(seat.playerId),
+      joinedVia: seat.joinedVia,
       ...toSnapshotSeat(game, seat, isAway),
     })),
   };

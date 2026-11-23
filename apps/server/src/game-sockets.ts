@@ -86,16 +86,18 @@ export const handleGameSockets = (
       // The Player name first, as the game service checks it first. It checks the Game mode too.
       if (typeof playerName !== "string") return reply({ ok: false, reason: "invalidPlayerName" });
       // A tab still running the web app from before Game modes sends none. It only ever created Classic Games.
-      if (mode === undefined) return enterGame(await gameService.createGame(playerId, playerName, "classic"), reply);
+      if (mode === undefined) {
+        return enterGame(await gameService.createGame(playerId, playerName, "classic", "webApp"), reply);
+      }
       if (typeof mode !== "string") return reply({ ok: false, reason: "invalidGameMode" });
-      enterGame(await gameService.createGame(playerId, playerName, mode as GameMode), reply);
+      enterGame(await gameService.createGame(playerId, playerName, mode as GameMode, "webApp"), reply);
     });
 
     onCommand("joinGame", async ([gameCode, playerName], reply) => {
       // The Player name first, as the game service checks it first.
       if (typeof playerName !== "string") return reply({ ok: false, reason: "invalidPlayerName" });
       if (typeof gameCode !== "string") return reply({ ok: false, reason: "gameCodeNotFound" });
-      enterGame(await gameService.joinGame(playerId, gameCode, playerName), reply);
+      enterGame(await gameService.joinGame(playerId, gameCode, playerName, "webApp"), reply);
     });
 
     onCommand("startGame", async (_args, reply) => {

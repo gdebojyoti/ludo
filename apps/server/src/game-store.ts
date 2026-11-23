@@ -40,10 +40,15 @@ export interface GameBoard {
   winner: Seat | null;
 }
 
+/** How a Player joined a Game: through the web app, or over MCP as an AI Player (ADR-0008). */
+export type JoinedVia = "webApp" | "mcp";
+
 export interface GamePlayer {
   playerId: string;
   /** The Player name they gave when they entered the Game, kept for the whole Game. */
   playerName: string;
+  /** How they created or joined the Game, kept for the whole Game. */
+  joinedVia: JoinedVia;
 }
 
 export interface GameSeat {
@@ -51,6 +56,8 @@ export interface GameSeat {
   playerId: string | null;
   /** The Player name of the Player who Left this Seat during play, emptying it for the rest of the Game; else null. */
   leaverName: string | null;
+  /** How the Player given this Seat joined the Game, kept if they Leave it; null if no Player was given it. */
+  joinedVia: JoinedVia | null;
   /** Where each of the Seat's Tokens is. An empty Seat has none. */
   tokens: TokenPosition[];
 }

@@ -25,7 +25,7 @@ import {
 } from "@ludo/shared";
 
 import type { GameNotifier } from "./game-notifier.js";
-import type { Game, GameBoard, GameSeat, GameStore } from "./game-store.js";
+import type { Game, GameBoard, GameSeat, GameStore, JoinedVia } from "./game-store.js";
 
 export type CommandResult = { ok: true; game: Game } | { ok: false; reason: RejectionReason };
 
@@ -79,8 +79,9 @@ export const createGameService = (
     const seatsInJoinOrder = giveOutSeats(game.players.length);
     const seats = Array.from({ length: classicRules.seats }, (_, seat): GameSeat => {
       const player = game.players[seatsInJoinOrder.indexOf(seat)];
-      if (!player) return { playerId: null, leaverName: null, tokens: [] };
-      return { playerId: player.playerId, leaverName: null, tokens: startingTokens(game.mode, seat) };
+      if (!player) return { playerId: null, leaverName: null, joinedVia: null, tokens: [] };
+      const { playerId, joinedVia } = player;
+      return { playerId, leaverName: null, joinedVia, tokens: startingTokens(game.mode, seat) };
     });
     // `randomInt` is always below the number of Players, so this is one of their Seats.
     const turn = seatsInJoinOrder[randomInt(seatsInJoinOrder.length)] as Seat;
@@ -103,11 +104,12 @@ export const createGameService = (
     return { ok: true as const, game, board, seat: board.turn };
   };
 
-  /** Creates a Game in the Lobby, following this Game mode, with the Player as its Host. */
+  /** Creates a Game in the Lobby, following this Game mode, with the Player as its Host, who created it `joinedVia`. */
   const createGame = oneAtATime(async (
     playerId: string,
     playerName: string,
     mode: GameMode,
+    joinedVia: JoinedVia,
   ): Promise<CommandResult> => {
     if (!isValidPlayerName(playerName)) return { ok: false, reason: "invalidPlayerName" };
     if (!isGameMode(mode)) return { ok: false, reason: "invalidGameMode" };
@@ -119,7 +121,7 @@ export const createGameService = (
       state: "lobby",
       gameCode: await newGameCode(),
       hostId: playerId,
-      players: [{ playerId, playerName: playerName.trim() }],
+      players: [{ playerId, playerName: playerName.trim(), joinedVia }],
       board: null,
       createdAt,
       updatedAt: createdAt,
@@ -128,21 +130,22 @@ export const createGameService = (
   });
 
   /**
-   * Adds the Player to the Game in the Lobby with this Game code, after the Players already in it. The join that fills the
-   * Lobby starts the Game, after which its Game code no longer finds it. Joins run one at a time, so two Players can't
-   * both take the last place.
+   * Adds the Player, who joined `joinedVia`, to the Game in the Lobby with this Game code, after the Players already in
+   * it. The join that fills the Lobby starts the Game, after which its Game code no longer finds it. Joins run one at
+   * a time, so two Players can't both take the last place.
    */
   const joinGame = oneAtATime(async (
     playerId: string,
     gameCode: string,
     playerName: string,
+    joinedVia: JoinedVia,
   ): Promise<CommandResult> => {
     if (!isValidPlayerName(playerName)) return { ok: false, reason: "invalidPlayerName" };
     // This also stops a Player joining a Game they're already in.
     if (await store.findActiveGameByPlayer(playerId)) return { ok: false, reason: "alreadyInActiveGame" };
     const game = await store.findLobbyGameByCode(gameCode);
     if (!game) return { ok: false, reason: "gameCodeNotFound" };
-    const players = [...game.players, { playerId, playerName: playerName.trim() }];
+    const players = [...game.players, { playerId, playerName: playerName.trim(), joinedVia }];
     const joined = { ...game, players };
     return { ok: true, game: await save(players.length === classicRules.maxPlayers ? started(joined) : joined) };
   });
@@ -195,8 +198,9 @@ export const createGameService = (
     const leaver = board.seats.findIndex((seat) => seat.playerId === playerId);
     const leaverName = game.players.find((player) => player.playerId === playerId)?.playerName ?? null;
     const players = game.players.filter((player) => player.playerId !== playerId);
-    const emptied = { playerId: null, leaverName, tokens: [] };
-    const seats = board.seats.map((seat, index) => (index === leaver ? emptied : seat));
+    // The Seat keeps how its Player joined, as it keeps their Player name.
+    const emptySeat = (seat: GameSeat) => ({ ...seat, playerId: null, leaverName, tokens: [] });
+    const seats = board.seats.map((seat, index) => (index === leaver ? emptySeat(seat) : seat));
     const withoutLeaver = { ...board, seats };
     const [winner, ...others] = takenSeats(withoutLeaver);
     if (winner !== undefined && others.length === 0) {
