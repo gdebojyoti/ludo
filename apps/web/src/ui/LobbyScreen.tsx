@@ -27,7 +27,8 @@ interface Props {
 /** What a Player can copy to share the Game. */
 type Copyable = "joinLink" | "gameCode";
 
-// What the link_copied and link_shared events call each: the names WZQ uses, so the totals add up across games.
+// What the link_copied and link_shared events call each: the names WZQ's link_copied uses, so the totals add up across
+// games.
 const copyableNames: Record<Copyable, string> = { joinLink: "join_link", gameCode: "code" };
 
 // How long a share or copy button shows that it worked.

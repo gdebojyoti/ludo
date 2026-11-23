@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { gameCodeLength, type Acknowledgement, type GameMode, type GameSnapshot } from "@ludo/shared";
 import { track } from "./analytics";
+import { enteringGame, leavingGame, sawGame } from "./gameAnalytics";
 import { gameCodeInAddress, isGameCode, removeJoinLinkFromAddress } from "./joinLink";
 import { rejectionMessages, startMessages } from "./messages";
 import { connectToServer, type GameSocket } from "./socket";
@@ -51,6 +52,7 @@ export const useGameServer = (playerName: string) => {
         setNotice("alreadyInGame");
         removeJoinLinkFromAddress();
       }
+      sawGame(game);
       setGame(game);
     });
     socket.on("noActiveGame", async () => {
@@ -58,22 +60,30 @@ export const useGameServer = (playerName: string) => {
       const gameCode = gameCodeInAddress();
       // A Game that's over frees its Players, so the server sends this when a tab reconnects while showing one.
       // Its result stays up until the Player goes back to the start.
-      if (gameCode === null) return setGame((shown) => (shown && isOver(shown) ? shown : null));
+      if (gameCode === null) {
+        sawGame(null);
+        return setGame((shown) => (shown && isOver(shown) ? shown : null));
+      }
       removeJoinLinkFromAddress();
       if (isGameCode(gameCode)) {
         const gamesBefore = gamesReceived;
+        const entered = enteringGame();
         // No reply if the connection drops first. If the server joined the Game anyway, it sends it when the
         // connection comes back.
         const reply = await socket.emitWithAck("joinGame", gameCode, playerNameRef.current).catch(() => undefined);
         if (reply?.ok) {
-          track("game_join", { via: "link" });
+          sawGame(reply.game);
+          entered();
+          track("game_joined", { via: "link" });
           return setGame(reply.game);
         }
+        entered();
         // A Game of the Player's own arrived meanwhile, such as one they created in another tab.
         if (gamesReceived !== gamesBefore) return;
         setError(reply ? rejectionMessages[reply.reason] : startMessages.joinLinkNoReply);
       } else setError(startMessages.invalidJoinLink);
       setGameCodeFromLink(gameCode.replace(/\D/g, "").slice(0, gameCodeLength));
+      sawGame(null);
       setGame(null);
     });
 
@@ -118,23 +128,29 @@ export const useGameServer = (playerName: string) => {
   // so.
   const enterGame = async (
     command: (socket: GameSocket) => Promise<Acknowledgement<{ game: GameSnapshot }>>,
-    entered: () => void,
+    onEntered: () => void,
   ) => {
-    const reply = await send(command);
-    if (!reply?.ok) return;
-    setGame(reply.game);
-    entered();
+    const entered = enteringGame();
+    try {
+      const reply = await send(command);
+      if (!reply?.ok) return;
+      sawGame(reply.game);
+      setGame(reply.game);
+      onEntered();
+    } finally {
+      entered();
+    }
   };
 
   const createGame = (mode: GameMode) => enterGame(
     (socket) => socket.emitWithAck("createGame", playerNameRef.current, mode),
-    () => track("game_create", { mode }),
+    () => track("game_created", { mode }),
   );
 
   // By a Game code typed in. A Join link joins by itself as soon as it's opened, above.
   const joinGame = (gameCode: string) => enterGame(
     (socket) => socket.emitWithAck("joinGame", gameCode, playerNameRef.current),
-    () => track("game_join", { via: "code" }),
+    () => track("game_joined", { via: "code" }),
   );
 
   // On success the server sends every Player the started Game.
@@ -142,7 +158,11 @@ export const useGameServer = (playerName: string) => {
 
   // On success the server sends a Host who Leaves the Lobby the cancelled Game. Any other Leaver, in the Lobby or in
   // play, is sent that they have no active Game. Either goes back to the start screen.
-  const leaveGame = () => send((socket) => socket.emitWithAck("leaveGame"));
+  const leaveGame = async () => {
+    const left = leavingGame(game);
+    const reply = await send((socket) => socket.emitWithAck("leaveGame"));
+    if (reply?.ok) left();
+  };
 
   // On success the server sends every Player the Game with the Roll, and the Turn passed if no Token can Move by it.
   const roll = () => send((socket) => socket.emitWithAck("roll"));
@@ -154,6 +174,7 @@ export const useGameServer = (playerName: string) => {
   const backToStart = () => {
     setError(undefined);
     setNotice(undefined);
+    sawGame(null);
     setGame(null);
   };
 
