@@ -213,8 +213,8 @@ export const resultMessages = {
     `${winner.isOwn ? "You" : firstName(winner.playerName)} captured ${list(captured.map(tokenOf))}.`,
   tokensHomeHeading: "Tokens home at the end",
   tokensHome: (count: number) => `${count} of ${classicRules.tokensPerSeat} tokens home`,
-  // A Player's Standing, and whether another Player who tied with them shares it.
-  standing: (standing: number, isShared: boolean) => `${isShared ? "Joint " : ""}${ordinal(standing)}`,
+  // A Player's Standing. Players who tied show the same one.
+  standing: (standing: number) => ordinal(standing),
   backToStart: "Back to start",
   cancelledSubtitle: "Lobby",
   cancelled: "Game cancelled",

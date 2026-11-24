@@ -28,11 +28,10 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
       const byStanding = (a.standing ?? 0) - (b.standing ?? 0);
       return byStanding || seatsClockwise(viewer, a.index) - seatsClockwise(viewer, b.index);
     });
-  const isShared = (standing: number | null) => others.filter((other) => other.standing === standing).length > 1;
-  // Where a Player finished, or that they Left, which puts them last, and whether it's the viewer.
+  // Whether it's the viewer, then where a Player finished, or that they Left, which puts them last.
   const notes = (seat: Seat, left: boolean, standing: number | null) => {
-    const standingNote = standing === null ? "" : resultMessages.standing(standing, isShared(standing));
-    return [left ? boardMessages.left : standingNote, seat === viewer ? commonMessages.you : ""]
+    const standingNote = standing === null ? "" : resultMessages.standing(standing);
+    return [seat === viewer ? commonMessages.you : "", left ? boardMessages.left : standingNote]
       .filter(Boolean)
       .join(" · ");
   };
