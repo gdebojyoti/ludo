@@ -1,13 +1,15 @@
 # One coin, earned against humans, with a daily cap
 
-Ludo has no ads, so it's paid for by cosmetics, host perks and the supporter pack, all bought with one currency: coins. Coins are bought with money or earned by playing, so everything in the store can be earned, and buying only gets it sooner. Nothing in the store is left to chance. Coins are Ludo's own, not shared with the other games on the site, even though accounts may later be.
+Ludo has no ads, so it's paid for by cosmetics, host perks and the supporter pack, all bought with one currency: coins. Coins are bought with money or earned by playing, so everything in the store can be earned, and buying only gets it sooner. Nothing in the store is left to chance. Coins and XP are Ludo's own, not shared with the other games on the site, even though the account is (ADR-0014).
 
 Only an account earns, never a guest. A finished game pays each account in it by its standing: the winner the most and the last the least, if anything, with players who tie each paid for the higher place they share. In One Kill Win only the winner is paid. A player who leaves earns nothing, and a game that ends by forfeit before a minimum number of turns pays no one. A guest can claim the game they just finished by creating an account from its result screen, but not by signing in to an account they already have, and not once they leave that screen.
+
+An account gets a sign-up bonus of coins, once, the first time it comes to Ludo, whether it was created here or in another game. Each game on the site pays its own.
 
 What keeps this from being farmed:
 
 - **Coins only from games against humans.** A game pays coins only if at least one other player joined through the web app, guest or account. With only AI players as opponents, it pays no coins and half the XP. The server can tell how a player joined, but not whether a human is behind it, so a script driving the web app's events counts as human; the cap is what limits that.
-- **A daily cap on earned coins**, reset at 00:00 IST. Coins bought that day don't count towards it, and don't change it.
+- **A daily cap on earned coins**, reset at 00:00 IST. Coins bought that day don't count towards it, and don't change it, and nor does the sign-up bonus.
 - **No coins from levels.** XP has no cap and can be earned against AI players, so levels give cosmetics and unlocks, never coins. Achievements are earned once each, so any coins they give are outside the cap.
 - **The leaderboard counts XP from games against humans only**, reset weekly at Wednesday 00:00 IST. XP from games against AI players still counts towards levels, and so towards what levels unlock.
 
@@ -17,7 +19,7 @@ Every amount, price, threshold and cap is in one config in `@ludo/shared`, so th
 
 - **Two currencies, one bought and one earned:** lets some items be bought only with money, but is harder for players to follow, and we want everything earnable.
 - **Coins against AI players, limited by the cap:** simpler, but would make the cheapest way to earn a game with no other person in it.
-- **Coins shared across the site's games:** would have to be decided before any money is in it, and nothing else yet needs it.
+- **Coins and XP shared across the site's games, as the account is:** decided against before any money was in it. Each game keeps its own coins, XP and sign-up bonus, and only the account is shared.
 
 ## Consequences
 

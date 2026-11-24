@@ -2,7 +2,7 @@
 
 Ludo is one of several games on one site, each at its own path (`<domain>/ludo`, `<domain>/wzq`, and so on), and a host app will load them into one page with Webpack 5 Module Federation. The other games are plain React and Webpack 5, so `apps/web` is too, set up like them: it exposes the game as a React component, shares React as a singleton, and also runs on its own at `/ludo` until the host app exists.
 
-Hosting must be free, so the web app is on Vercel's free tier, at `<domain>/ludo`, and the server is on Render's free tier, on a subdomain of the same domain (for example `api.<domain>`) rather than its default `onrender.com` address. That makes the player cookie (ADR-0003) same-site, so browsers don't block it as a third-party cookie.
+Hosting was meant to be free, so the web app is on Vercel's free tier, at `<domain>/ludo`, and the server is on Render's free tier, on a subdomain of the same domain (for example `api.<domain>`) rather than its default `onrender.com` address. That makes the player cookie (ADR-0003) same-site, so browsers don't block it as a third-party cookie. Accounts later added a paid service, on Railway's Hobby plan (ADR-0014).
 
 ## Considered Options
 
@@ -12,4 +12,4 @@ Hosting must be free, so the web app is on Vercel's free tier, at `<domain>/ludo
 
 ## Consequences
 
-Every game runs on the same origin, and once federated, in the same page. Anything the web app keeps in the browser (`localStorage` keys, cookies it sets itself) is named `ludo-<name>`, using only hyphens as separators (for example `ludo-theme`), and the server's cookie, `ludo-player-id`, stays host-only rather than being set on the parent domain.
+Every game runs on the same origin, and once federated, in the same page. Anything the web app keeps in the browser (`localStorage` keys, cookies it sets itself) is named `ludo-<name>`, using only hyphens as separators (for example `ludo-theme`), and the server's cookie, `ludo-player-id`, stays host-only rather than being set on the parent domain. The one cookie set on the parent domain is the Account's session cookie, which every game shares (ADR-0014).

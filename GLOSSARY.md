@@ -37,7 +37,7 @@ _Avoid_: colour (except for how a Seat is shown), corner, position
 ### Accounts and progression
 
 **Account**:
-What a **Player** signs in with, using Google, so that their **Player name**, **Coins**, **XP** and **Cosmetics** follow them to any device.
+What a **Player** signs in with, using Google, once for every game on the site, so that their **Player name**, **Coins**, **XP** and **Cosmetics** follow them to any device.
 _Avoid_: user, user account, login
 
 **Guest**:
@@ -77,6 +77,10 @@ _Avoid_: gold, gems, credits
 **Coin cap**:
 The most **Coins** an **Account** can earn from **Games** in one day. **Coins** bought that day don't count towards it.
 _Avoid_: daily limit, earning limit
+
+**Sign-up bonus**:
+The **Coins** Ludo gives an **Account** once, the first time it comes to Ludo. They don't count towards the **Coin cap**.
+_Avoid_: welcome bonus, starter coins
 
 **Store**:
 Where **Coins** and the **Supporter pack** are bought with money, and **Cosmetics** and **Host perks** with **Coins**. Nothing in it is left to chance.
