@@ -5,7 +5,7 @@ import type { GameMode, GameState, Move, Roll, Seat, SnapshotPlayer, SnapshotSea
 
 import type { GameService } from "./game-service.js";
 import type { Game, GameBoard, JoinedVia } from "./game-store.js";
-import { toSnapshotPlayer, toSnapshotSeat, type IsAway } from "./snapshot.js";
+import { toSnapshotPlayer, toSnapshotSeats, type IsAway } from "./snapshot.js";
 
 /** How many Games the list shows at most. */
 const maxGamesListed = 100;
@@ -82,11 +82,10 @@ const toDebugBoard = (game: Game, board: GameBoard, isAway: IsAway): DebugBoard 
     lastRoll: board.lastRoll,
     lastMove: board.lastMove,
     winner: board.winner,
-    seats: board.seats.map((seat) => ({
-      label: seat.playerId === null ? null : labelOf(seat.playerId),
-      joinedVia: seat.joinedVia,
-      ...toSnapshotSeat(game, seat, isAway),
-    })),
+    seats: toSnapshotSeats(game, board, isAway).map((snapshotSeat, index) => {
+      const { playerId = null, joinedVia = null } = board.seats[index] ?? {};
+      return { label: playerId === null ? null : labelOf(playerId), joinedVia, ...snapshotSeat };
+    }),
   };
 };
 

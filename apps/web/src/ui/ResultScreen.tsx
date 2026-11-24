@@ -20,11 +20,21 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
   const colours = (seat: Seat) => seatViewOf(board, seat);
   const winnerName = playerNameAt(board, winner);
   const homeCount = (seat: Seat) => homeCountAt(board, seat);
-  // Everyone else, in Seat order from the viewer's.
+  // Everyone else, by Standing, so those who Left come last, and those who share one in Seat order from the viewer's.
   const others = board.seats
     .map((seat, index) => ({ ...seat, index }))
     .filter(({ playerName, index }) => playerName !== null && index !== winner)
-    .sort((a, b) => seatsClockwise(viewer, a.index) - seatsClockwise(viewer, b.index));
+    .sort((a, b) => {
+      const byStanding = (a.standing ?? 0) - (b.standing ?? 0);
+      return byStanding || seatsClockwise(viewer, a.index) - seatsClockwise(viewer, b.index);
+    });
+  // Whether it's the viewer, then where a Player finished, or that they Left, which puts them last.
+  const notes = (seat: Seat, left: boolean, standing: number | null) => {
+    const standingNote = standing === null ? "" : resultMessages.standing(standing);
+    return [seat === viewer ? commonMessages.you : "", left ? boardMessages.left : standingNote]
+      .filter(Boolean)
+      .join(" · ");
+  };
 
   const named = (seat: Seat) => ({ playerName: playerNameAt(board, seat), isOwn: seat === viewer });
 
@@ -67,7 +77,7 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
             <h2 className="m-0 text-xs font-semibold tracking-widest text-ludo-on-page-muted uppercase">
               {resultMessages.tokensHomeHeading}
             </h2>
-            {others.map(({ playerName, left, index }) => (
+            {others.map(({ playerName, left, standing, index }) => (
               <div
                 key={index}
                 className="flex items-center gap-3 rounded-[14px] border border-ludo-row-line bg-ludo-row px-3.5 py-3"
@@ -75,9 +85,7 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
                 <Avatar playerName={playerName ?? ""} colours={colours(index)} />
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{playerName}</span>
-                  {(index === viewer || left) && (
-                    <span className="text-xs text-ludo-on-page-muted">{left ? boardMessages.left : commonMessages.you}</span>
-                  )}
+                  <span className="text-xs text-ludo-on-page-muted">{notes(index, left, standing)}</span>
                 </span>
                 <span
                   className="flex flex-none gap-1"
