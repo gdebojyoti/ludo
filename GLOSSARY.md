@@ -79,7 +79,7 @@ The most **Coins** an **Account** can earn from **Games** in one day. **Coins** 
 _Avoid_: daily limit, earning limit
 
 **Sign-up bonus**:
-The **Coins** Ludo gives an **Account** once, the first time it comes to Ludo. They don't count towards the **Coin cap**.
+The **Coins** and **XP** Ludo gives an **Account** once, the first time it comes to Ludo, and more when it was created to claim the **Game** just finished. The **Coins** don't count towards the **Coin cap**.
 _Avoid_: welcome bonus, starter coins
 
 **Store**:
