@@ -4,7 +4,7 @@ Ludo has no ads, so it's paid for by cosmetics, host perks and the supporter pac
 
 Only an account earns, never a guest. A finished game pays each account in it by its standing: the winner the most and the last the least, if anything, with players who tie each paid for the higher place they share. In One Kill Win only the winner is paid. A player who leaves earns nothing, and a game that ends by forfeit before a minimum number of turns pays no one. A guest can claim the game they just finished by creating an account from its result screen, but not by signing in to an account they already have, and not once they leave that screen.
 
-An account gets a sign-up bonus of coins, once, the first time it comes to Ludo, whether it was created here or in another game. Each game on the site pays its own.
+An account gets a sign-up bonus of coins and XP, once, the first time it comes to Ludo, whether it was created here or in another game. Each game on the site pays its own. A claim doesn't pay the game's own coins and XP: it makes the sign-up bonus bigger, by an extra set above what any one game pays, so a claim always gives more than the game would have, and nothing about the game is kept or worked out again once the guest signs up. The web app says the account was created from the result screen of a game the player didn't leave, and the server takes its word: the most a lie gains is the extra, once per account, and coins can't move between accounts. The claimed game doesn't count towards the account's stats, rivals or leaderboard.
 
 What keeps this from being farmed:
 
@@ -19,6 +19,7 @@ Every amount, price, threshold and cap is in one config in `@ludo/shared`, so th
 
 - **Two currencies, one bought and one earned:** lets some items be bought only with money, but is harder for players to follow, and we want everything earnable.
 - **Coins against AI players, limited by the cap:** simpler, but would make the cheapest way to earn a game with no other person in it.
+- **A claim paying the claimed game's own coins and XP:** exact, but the server has to work the guest's earnings out again when they sign up, and apply the cap to them, for a few coins. A bigger sign-up bonus always gives more, with less to get right.
 - **Coins and XP shared across the site's games, as the account is:** decided against before any money was in it. Each game keeps its own coins, XP and sign-up bonus, and only the account is shared.
 
 ## Consequences
