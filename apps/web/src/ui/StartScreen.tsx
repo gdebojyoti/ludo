@@ -143,7 +143,7 @@ export default function StartScreen({
         >
           {/* On phones, snow on the card in the Christmas theme. */}
           <div className="contents xl:hidden">
-            <SnowCap />
+            <SnowCap largeCorners />
           </div>
           <div className="flex items-center gap-3">
             {/* Ringed in the viewer's own colour, as their Seat is on every Board they see. */}

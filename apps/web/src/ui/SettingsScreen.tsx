@@ -15,7 +15,7 @@ export default function SettingsScreen({ signedIn, onBack }: Props) {
   return (
     <TabScreen title={tabMessages.tabs.settings} onBack={onBack}>
       <div className="flex flex-col gap-4">
-        <section className="relative rounded-[20px] bg-ludo-card p-5 text-ludo-ink">
+        <section className="relative rounded-[22px] bg-ludo-card p-5 text-ludo-ink">
           <SnowCap />
           <SettingsList idPrefix="settings-tab" />
         </section>

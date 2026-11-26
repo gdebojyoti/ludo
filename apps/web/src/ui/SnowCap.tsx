@@ -3,6 +3,8 @@ import { useSettings } from "./settings";
 interface Props {
   /** On the logo, scaled with it; otherwise on a card, stretched across it. */
   logo?: boolean;
+  /** On a card, whether its corners are 28px, as the Start screen's are, rather than 20px to 22px. */
+  largeCorners?: boolean;
 }
 
 // Snow lying along the top edge of the logo or a card, and over its corners, with drips hanging below it.
@@ -14,9 +16,15 @@ const cardSnow = "M-1.2 29.2 C-1.2 16 4.8 4 22 4 Q39 1 56 4 Q73 3 90 4.8 Q107 1 
   "Q209 3 226 5.6 Q243 1 260 4 Q277 3 294 4.8 Q311 1 328 5.6 C345.2 4 351.2 16 351.2 29.2 L347 29.2 C347 19 343 15 " +
   "328 15 L289 15 C289 18.5 286.5 20 284 20 C281.5 20 279 18.5 279 15 L243 15 C243 21.3 240.5 24 238 24 C235.5 24 " +
   "233 21.3 233 15 L69 15 C69 19.2 66.5 21 64 21 C61.5 21 59 19.2 59 15 L22 15 C7 15 3 19 3 29.2 Z";
+// The same, with its corners drawn round a 28px corner, 6px further in and down, so they lie on it.
+const largeCornerSnow = "M-1.2 34.2 C-1.2 18.4 6.4 4 28 4 Q42 1 56 4 Q73 3 90 4.8 Q107 1 124 5.6 Q141 3 158 4 " +
+  "Q175 1 192 4.8 Q209 3 226 5.6 Q243 1 260 4 Q277 3 294 4.8 Q308 1 322 5.6 C343.6 4 351.2 18.4 351.2 34.2 " +
+  "L347 34.2 C347 20.3 341.7 15 322 15 L289 15 C289 18.5 286.5 20 284 20 C281.5 20 279 18.5 279 15 L243 15 " +
+  "C243 21.3 240.5 24 238 24 C235.5 24 233 21.3 233 15 L69 15 C69 19.2 66.5 21 64 21 C61.5 21 59 19.2 59 15 " +
+  "L28 15 C8.3 15 3 20.3 3 34.2 Z";
 
 // In the Christmas theme, snow on top of the logo or a card. Inside it, which must be positioned.
-export default function SnowCap({ logo = false }: Props) {
+export default function SnowCap({ logo = false, largeCorners = false }: Props) {
   const { theme } = useSettings();
   if (theme !== "christmas") return null;
   if (logo) {
@@ -30,6 +38,7 @@ export default function SnowCap({ logo = false }: Props) {
       </svg>
     );
   }
+  const snow = largeCorners ? largeCornerSnow : cardSnow;
   // A shadow below it, so it stands out from the card.
   return (
     <svg
@@ -38,8 +47,8 @@ export default function SnowCap({ logo = false }: Props) {
       preserveAspectRatio="none"
       aria-hidden
     >
-      <path d={cardSnow} fill="#c9d6ea" transform="translate(0 2)" />
-      <path d={cardSnow} fill="#ffffff" />
+      <path d={snow} fill="#c9d6ea" transform="translate(0 2)" />
+      <path d={snow} fill="#ffffff" />
     </svg>
   );
 }
