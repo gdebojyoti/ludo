@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { CircleAlert } from "lucide-react";
 import { signIn } from "./accounts";
-import { track } from "./analytics";
 import { startMessages } from "./messages";
+import { useAccountsCall } from "./useAccountsCall";
 
 // Google's "G", in its own colours, as its sign-in branding asks.
 const googleLogo = [
@@ -12,8 +11,8 @@ const googleLogo = [
     "7.09-10.36 7.09-17.65z"],
   ["#fbbc05", "M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 " +
     "7.54 2.56 10.78l7.97-6.19z"],
-  ["#34a853", "M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 " +
-    "6.19C6.51 42.62 14.62 48 24 48z"],
+  ["#34a853", "M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47 " +
+    "-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"],
 ] as const;
 
 interface Props {
@@ -27,21 +26,8 @@ interface Props {
 // For a Guest: Google's sign-in button, in Google's own light colours in every theme, and below it, why to sign in, or
 // that it didn't work: on the Start screen, and on a Guest's Profile tab.
 export default function SignIn({ pitch = startMessages.signInPitch, onCard = false, className = "" }: Props) {
-  const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  const start = async () => {
-    setBusy(true);
-    setFailed(false);
-    track("sign_in_start");
-    try {
-      // The page goes to Google, so it stays busy.
-      await signIn();
-    } catch {
-      setBusy(false);
-      setFailed(true);
-    }
-  };
+  // If it works, the page goes to Google.
+  const { busy, failed, start } = useAccountsCall(signIn, "sign_in_start");
 
   // The text below the button, and the error in its place, in the colours for what they're on.
   const textColour = onCard ? "text-ludo-ink-muted" : "text-ludo-on-page-muted xl:text-ludo-ink-muted";
@@ -51,9 +37,9 @@ export default function SignIn({ pitch = startMessages.signInPitch, onCard = fal
     <div className={`flex flex-col gap-2 ${className}`}>
       <button
         type="button"
-        className="flex h-12 cursor-pointer self-center touch-manipulation items-center justify-center gap-3 rounded-xl border
-          border-[#747775] bg-white px-[18px] text-[15px] font-medium text-[#1f1f1f] select-none christmas:rounded-full
-          disabled:cursor-default disabled:opacity-60"
+        className="flex h-12 cursor-pointer self-center touch-manipulation items-center justify-center gap-3 rounded-xl
+          border border-[#747775] bg-white px-[18px] text-[15px] font-medium text-[#1f1f1f] select-none
+          christmas:rounded-full disabled:cursor-default disabled:opacity-60"
         disabled={busy}
         onClick={start}
       >

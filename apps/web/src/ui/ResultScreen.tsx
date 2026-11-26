@@ -1,9 +1,10 @@
 import { classicRules, seatsClockwise, tokensReachHome, type GameMode, type Seat, type SnapshotBoard } from "@ludo/shared";
-import PlayerAvatar from "./PlayerAvatar";
 import { homeCountAt, howWonAt, playerNameAt, seatViewOf, winnerAt } from "./boardView";
+import BottomBar from "./BottomBar";
 import Button from "./Button";
 import Header from "./Header";
 import { boardMessages, commonMessages, resultMessages } from "./messages";
+import PlayerAvatar from "./PlayerAvatar";
 
 interface Props {
   mode: GameMode;
@@ -117,16 +118,11 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
           </section>
         )}
         <div className="flex-1 xl:hidden" />
-        {/* On phones, as the Lobby's Start button is: kept in view at the bottom of the screen in a bar across it that
-            blurs what scrolls under it, with the same space all round the button, reaching the bottom edge. */}
-        <div
-          className="sticky bottom-0 -mx-4 -mb-9 bg-ludo-page/60 p-4 backdrop-blur-md xl:static xl:m-0 xl:bg-transparent
-            xl:p-0 xl:backdrop-blur-none"
-        >
+        <BottomBar className="-mb-9">
           <Button variant="accent" onClick={onBackToStart}>
             {resultMessages.backToStart}
           </Button>
-        </div>
+        </BottomBar>
       </div>
     </div>
   );

@@ -1,27 +1,13 @@
-import { useState } from "react";
 import { CircleAlert, LogOut } from "lucide-react";
 import { signOut } from "./accounts";
-import { track } from "./analytics";
 import Button from "./Button";
 import { profileMessages } from "./messages";
+import { useAccountsCall } from "./useAccountsCall";
 
-// At the bottom of a signed-in Player's Profile: Sign out, and below it, if it didn't work, that it didn't.
+// At the bottom of a signed-in Player's Profile: Sign out, and below it, if it didn't work, that it didn't. If it works,
+// the page reloads.
 export default function SignOut() {
-  const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
-
-  const start = async () => {
-    setBusy(true);
-    setFailed(false);
-    track("sign_out");
-    try {
-      // The page reloads, so it stays busy.
-      await signOut();
-    } catch {
-      setBusy(false);
-      setFailed(true);
-    }
-  };
+  const { busy, failed, start } = useAccountsCall(signOut, "sign_out");
 
   return (
     <div className="flex flex-col items-center gap-2 text-center">

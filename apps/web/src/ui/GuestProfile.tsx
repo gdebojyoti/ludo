@@ -1,5 +1,6 @@
-import { Podium, Shirt, Smartphone, Users, type LucideIcon } from "lucide-react";
-import { initial } from "./Avatar";
+import type { ComponentType } from "react";
+import { Podium, Shirt, Smartphone, Users } from "lucide-react";
+import Avatar from "./Avatar";
 import Coin from "./Coin";
 import { profileMessages, tabMessages } from "./messages";
 import { seatView } from "./seatView";
@@ -12,12 +13,9 @@ interface Props {
   onBack: () => void;
 }
 
-// The viewer's own colour, as their Seat is on every Board they see.
-const ownColours = seatView(0);
-
-// What a Guest gets by signing in, each with its icon.
-const perks: { text: string; icon: LucideIcon | "coin" }[] = [
-  { text: profileMessages.perks.coins, icon: "coin" },
+// What a Guest gets by signing in, each with its icon: Lucide's, or the Coin.
+const perks: { text: string; icon: ComponentType<{ "aria-hidden"?: boolean }> }[] = [
+  { text: profileMessages.perks.coins, icon: Coin },
   { text: profileMessages.perks.devices, icon: Smartphone },
   { text: profileMessages.perks.leaderboard, icon: Podium },
   { text: profileMessages.perks.rivals, icon: Users },
@@ -30,14 +28,12 @@ export default function GuestProfile({ playerName, onBack }: Props) {
     <TabScreen title={tabMessages.tabs.profile} onBack={onBack}>
       <div className="flex flex-col gap-[22px]">
         <div className="flex items-center gap-3.5">
-          <span
-            className="flex size-14 flex-none items-center justify-center rounded-full border-[3px] border-ludo-card-raised
-            font-ludo-display text-2xl"
-            style={{ background: ownColours.colour, color: ownColours.textColour }}
-            aria-hidden
-          >
-            {initial(playerName)}
-          </span>
+          {/* In the viewer's own colour, as their Seat is on every Board they see. */}
+          <Avatar
+            playerName={playerName}
+            colours={seatView(0)}
+            className="size-14 border-[3px]! border-ludo-card-raised! text-2xl font-normal!"
+          />
           <div className="flex min-w-0 flex-col gap-[3px]">
             <span className="font-ludo-display text-2xl wrap-anywhere">{playerName}</span>
             <span className="text-[13px] text-ludo-on-page-muted">{profileMessages.guest}</span>
@@ -50,7 +46,7 @@ export default function GuestProfile({ playerName, onBack }: Props) {
             {perks.map(({ text, icon: PerkIcon }) => (
               <li key={text} className="flex items-start gap-3 text-[15px] leading-[1.4]">
                 <span className="flex size-8 flex-none items-center justify-center rounded-[10px] bg-ludo-card-sunk">
-                  {PerkIcon === "coin" ? <Coin size={18} /> : <PerkIcon aria-hidden />}
+                  <PerkIcon aria-hidden />
                 </span>
                 <span className="pt-[5px]">{text}</span>
               </li>

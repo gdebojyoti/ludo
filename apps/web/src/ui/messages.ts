@@ -18,7 +18,10 @@ const list = (items: string[]) => {
 /** Player names as a list in a sentence, by their first names. */
 const nameList = (playerNames: string[]) => list(playerNames.map(firstName));
 
-const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
+/** "1 token" or "1,240 coins", and the like. */
+const plural = (count: number, one: string, many: string) => {
+  return `${count.toLocaleString("en")} ${count === 1 ? one : many}`;
+};
 
 /** A place, up to 10th, as text: "1st", "2nd", "3rd", "4th". */
 const ordinal = (place: number) => `${place}${({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[place] ?? "th"}`;
@@ -84,11 +87,8 @@ export const tabMessages = {
   back: "Back",
 };
 
-/** "1 win" or "2 wins", and the like. */
-const count = (n: number, one: string, many: string) => `${n.toLocaleString("en")} ${n === 1 ? one : many}`;
-
 export const profileMessages = {
-  coins: (coins: number) => count(coins, "coin", "coins"),
+  coins: (coins: number) => plural(coins, "coin", "coins"),
   supporter: "Supporter",
   guest: "Guest",
   signInTitle: "Sign in to get a profile",
@@ -116,16 +116,24 @@ export const profileMessages = {
   achievementsHeading: (earned: number, total: number) => `Achievements · ${earned} of ${total}`,
   notEarned: "Not earned yet",
   rivalsHeading: "Rivals",
-  record: (wins: number, losses: number) => `${count(wins, "win", "wins")} · ${count(losses, "loss", "losses")}`,
+  record: (wins: number, losses: number) => `${plural(wins, "win", "wins")} · ${plural(losses, "loss", "losses")}`,
   locker: "Locker",
-  lockerDetail: (cosmetics: number) => `${count(cosmetics, "cosmetic", "cosmetics")} · choose what you wear`,
+  lockerDetail: (cosmetics: number) => `${plural(cosmetics, "cosmetic", "cosmetics")} · choose what you wear`,
+  // PLACEHOLDER: the made-up title and Achievement names the placeholder Profile shows (profilePlaceholder.ts),
+  // until the server sends real ones and #65 settles the list.
+  placeholderTitle: "Weekly champion",
+  placeholderAchievements: {
+    firstWin: "First win",
+    allFourHome: "All four home",
+    tenCaptures: "10 captures",
+    threeInARow: "Win 3 in a row",
+  },
   signOut: "Sign out",
   signOutFailed: "Signing out isn't working right now. Try again in a moment.",
 };
 
 export const playerSheetMessages = {
   open: (playerName: string, isOwn: boolean) => isOwn ? "Your profile" : `${playerName}'s profile`,
-  guest: "Guest",
   guestNoProfile: "Guests don't have a profile, so there are no stats or achievements to show.",
   // In two parts, the first in bold.
   askToSignIn: "Ask them to sign in",
@@ -141,7 +149,6 @@ export const startMessages = {
   signIn: "Sign in with Google",
   signInPitch: "Sign in to use your own name, keep your progress and earn coins.",
   signInFailed: "Sign-in isn't working right now. Try again in a moment.",
-  profile: "Profile",
   playingAs: "You'll play as",
   newName: "Pick a different random name",
   createGame: "Create a game",

@@ -247,12 +247,15 @@ describe("whether a Player is signed in", () => {
     const guest = await server.playerWithNoGame(server.createPlayer());
     const reply = await guest.joinGame(gameCode, "Neville Longbottom");
 
-    const players = [{ playerName: "Luna Lovegood", signedIn: true }, { playerName: "Neville Longbottom", signedIn: false }];
+    const players = [
+      { playerName: "Luna Lovegood", signedIn: true },
+      { playerName: "Neville Longbottom", signedIn: false },
+    ];
     expect(reply).toMatchObject({ ok: true, game: { players } });
     expect(await host.nextMessage()).toMatchObject({ event: "game", game: { players } });
   });
 
-  it("is shown to everyone in play, for each Player and each Seat, a Leaver's included, and none for an empty Seat", async () => {
+  it("is shown to everyone in play, for each Player and Seat, a Leaver's included, but not an empty Seat", async () => {
     const { host, guest } = await gameWithTwoAccountsAndAGuest();
 
     await guest.leaveGame();

@@ -1,7 +1,8 @@
 import { useRef, type FormEvent } from "react";
+import { Crosshair, Dice4, Zap } from "lucide-react";
 import { isGameMode, type GameMode } from "@ludo/shared";
 import Button from "./Button";
-import { Crosshair, Dice4, Zap } from "lucide-react";
+import { closeOnScrimTap } from "./dialog";
 import { modeMessages, startMessages } from "./messages";
 
 interface Props {
@@ -59,7 +60,7 @@ export default function CreateGameButton({ disabled, onCreateGame }: Props) {
           motion-safe:animate-ludo-sheet-in xl:m-auto xl:w-[calc(100%-48px)] xl:max-w-[420px] xl:rounded-[22px]
           xl:shadow-[0_20px_50px_rgba(0,0,0,0.5)] xl:motion-safe:animate-none"
         aria-labelledby="mode-title"
-        onClick={(event) => event.target === dialogRef.current && dialogRef.current.close()}
+        onClick={closeOnScrimTap}
       >
         {/* The design's text is spaced at the font's normal line height, not the page's. */}
         <form

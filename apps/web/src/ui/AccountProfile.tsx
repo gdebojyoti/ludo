@@ -1,17 +1,15 @@
-import { Heart, Lock, Shirt } from "lucide-react";
-import { initial } from "./Avatar";
+import { Lock, Shirt } from "lucide-react";
+import Avatar from "./Avatar";
 import { profileMessages, tabMessages } from "./messages";
-import { achievementIcons, placeholderProfile, showPlaceholderProfile } from "./profilePlaceholder";
+import { placeholderProfile, showPlaceholderProfile } from "./profilePlaceholder";
 import { seatView } from "./seatView";
 import SignOut from "./SignOut";
 import StatsByMode from "./StatsByMode";
+import SupporterBadge from "./SupporterBadge";
 
 interface Props {
   playerName: string;
 }
-
-// The viewer's own colour, as their Seat is on every Board they see.
-const ownColours = seatView(0);
 
 // What's on a signed-in Player's Profile, below its title: on the Profile tab on phones, and in the Profile dialog on
 // desktop. Made up, but for their Player name, when the placeholder is switched on (profilePlaceholder.ts); otherwise
@@ -37,36 +35,28 @@ export default function AccountProfile({ playerName }: Props) {
             <circle cx="24" cy="24" r="22.6" fill="none" stroke="#8e97a3" strokeWidth="1.4" />
             <circle cx="24" cy="24" r="20" fill="none" stroke="#8e97a3" strokeWidth="1.4" />
           </svg>
-          <span
-            className="flex size-[72px] items-center justify-center rounded-full border-[3px] border-ludo-card
-                font-ludo-display text-[30px]"
-            style={{ background: ownColours.colour, color: ownColours.textColour }}
-            aria-hidden
-          >
-            {initial(playerName)}
-          </span>
+          {/* In the viewer's own colour, as their Seat is on every Board they see. */}
+          <Avatar
+            playerName={playerName}
+            colours={seatView(0)}
+            className="relative size-[72px] border-[3px]! border-ludo-card! text-[30px] font-normal!"
+          />
         </span>
         <div className="flex flex-col items-center gap-1">
           <h2 className="m-0 inline-flex items-center gap-2 font-ludo-display text-[26px] font-normal wrap-anywhere">
             {playerName}
-            {profile.supporter && (
-              <span
-                className="flex size-5 flex-none items-center justify-center rounded-full bg-[#b0417a] text-[#fff8e8]"
-                role="img"
-                aria-label={profileMessages.supporter}
-                title={profileMessages.supporter}
-              >
-                <Heart size={11} fill="currentColor" strokeWidth={0} aria-hidden />
-              </span>
-            )}
+            {profile.supporter && <SupporterBadge />}
           </h2>
-          <span className="text-xs font-bold tracking-[0.12em] text-ludo-accent-light uppercase">{profile.title}</span>
+          <span className="text-xs font-bold tracking-[0.12em] text-ludo-accent-light uppercase">
+            {profileMessages.placeholderTitle}
+          </span>
         </div>
         <div className="mt-1.5 flex w-full flex-col gap-[7px]">
           <div className="flex items-center justify-between gap-3">
             <span
               className="inline-flex h-[22px] items-center rounded-full bg-ludo-accent-light/14 px-[9px] text-xs font-bold
-                  text-ludo-accent-light shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-ludo-accent-light)_55%,transparent)]"
+                text-ludo-accent-light
+                shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-ludo-accent-light)_55%,transparent)]"
             >
               {profileMessages.level(profile.level)}
             </span>
@@ -99,14 +89,17 @@ export default function AccountProfile({ playerName }: Props) {
           {profileMessages.achievementsHeading(profile.achievementsEarned, profile.achievementsTotal)}
         </h2>
         <ul className="m-0 grid list-none grid-cols-4 gap-2 p-0">
-          {profile.achievements.map(({ id, name, earned }) => {
-            const AchievementIcon = achievementIcons[id];
+          {profile.achievements.map((achievement) => {
+            const { id, earned } = achievement;
             return (
               <li key={id} className="flex min-w-0 flex-col items-center gap-2 text-center">
-                {earned && AchievementIcon
+                {achievement.earned
                   ? (
-                      <span className="flex size-14 items-center justify-center rounded-full bg-ludo-accent-light text-ludo-ink">
-                        <AchievementIcon aria-hidden />
+                      <span
+                        className="flex size-14 items-center justify-center rounded-full bg-ludo-accent-light
+                          text-ludo-ink"
+                      >
+                        <achievement.icon aria-hidden />
                       </span>
                     )
                   : (
@@ -119,7 +112,9 @@ export default function AccountProfile({ playerName }: Props) {
                         <Lock aria-hidden />
                       </span>
                     )}
-                <span className={`text-xs leading-[1.3] ${earned ? "" : "text-ludo-page-line"}`}>{name}</span>
+                <span className={`text-xs leading-[1.3] ${earned ? "" : "text-ludo-page-line"}`}>
+                  {profileMessages.placeholderAchievements[id]}
+                </span>
               </li>
             );
           })}
@@ -131,28 +126,17 @@ export default function AccountProfile({ playerName }: Props) {
           {profileMessages.rivalsHeading}
         </h2>
         <ul className="m-0 list-none rounded-[18px] border border-ludo-row-line bg-ludo-row px-4 py-1">
-          {profile.rivals.map(({ playerName: rivalName, seat, wins, losses }) => {
-            const colours = seatView(seat);
-            return (
-              <li
-                key={rivalName}
-                className="flex items-center gap-3 border-ludo-on-page/12 py-2.5 not-first:border-t"
-              >
-                <span
-                  className="flex size-9 flex-none items-center justify-center rounded-full border-2 border-ludo-card
-                      font-ludo-display text-[15px]"
-                  style={{ background: colours.colour, color: colours.textColour }}
-                  aria-hidden
-                >
-                  {initial(rivalName)}
-                </span>
-                <span className="min-w-0 flex-1 text-[15px] font-semibold wrap-anywhere">{rivalName}</span>
-                <span className="flex-none text-[13px] text-ludo-on-page-muted">
-                  {profileMessages.record(wins, losses)}
-                </span>
-              </li>
-            );
-          })}
+          {profile.rivals.map(({ playerName: rivalName, seat, wins, losses }) => (
+            <li key={rivalName} className="flex items-center gap-3 border-ludo-on-page/12 py-2.5 not-first:border-t">
+              <Avatar
+                playerName={rivalName}
+                colours={seatView(seat)}
+                className="size-9 border-ludo-card! text-[15px] font-normal!"
+              />
+              <span className="min-w-0 flex-1 text-[15px] font-semibold wrap-anywhere">{rivalName}</span>
+              <span className="flex-none text-[13px] text-ludo-on-page-muted">{profileMessages.record(wins, losses)}</span>
+            </li>
+          ))}
         </ul>
       </section>
 

@@ -1,5 +1,6 @@
 import { useId, type ReactNode, type RefObject } from "react";
 import type { LucideIcon } from "lucide-react";
+import { closeOnScrimTap } from "./dialog";
 
 interface Props {
   /** For the button that opens it to call showModal() on. */
@@ -22,7 +23,7 @@ export default function DialogCard({ ref, icon: DialogIcon, title, children }: P
       className="ludo-dialog m-auto w-[calc(100%-48px)] max-w-[342px] rounded-[22px] bg-ludo-card px-[22px] pt-7 pb-[22px]
         font-ludo-ui text-ludo-ink shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
       aria-labelledby={titleId}
-      onClick={(event) => event.target === ref.current && ref.current.close()}
+      onClick={closeOnScrimTap}
     >
       <div className="flex flex-col gap-3.5">
         <div className="flex flex-col items-center gap-3.5">

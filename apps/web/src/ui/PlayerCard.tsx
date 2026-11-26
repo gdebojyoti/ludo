@@ -1,6 +1,6 @@
 import type { SnapshotSeat } from "@ludo/shared";
-import PlayerAvatar from "./PlayerAvatar";
 import { boardMessages, commonMessages } from "./messages";
+import PlayerAvatar from "./PlayerAvatar";
 import { seatView } from "./seatView";
 
 interface Props {

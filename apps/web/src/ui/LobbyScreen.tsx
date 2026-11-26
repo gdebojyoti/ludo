@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Copy, Hourglass, Share2 } from "lucide-react";
 import { classicRules, type GameSnapshot } from "@ludo/shared";
 import { track } from "./analytics";
-import PlayerAvatar from "./PlayerAvatar";
+import BottomBar from "./BottomBar";
 import Button from "./Button";
 import ErrorMessage from "./ErrorMessage";
 import Header from "./Header";
@@ -10,6 +10,7 @@ import { joinLinkFor } from "./joinLink";
 import LeaveButton from "./LeaveButton";
 import Notice from "./Notice";
 import { commonMessages, leaveMessages, lobbyMessages, spacedGameCode } from "./messages";
+import PlayerAvatar from "./PlayerAvatar";
 import SnowCap from "./SnowCap";
 
 interface Props {
@@ -81,7 +82,8 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
     }
   };
 
-  // Only the Host can start the Game, once someone else has joined. The fourth join starts it by itself.
+  // Only the Host can start the Game, once someone else has joined. The fourth join starts it by itself, which the others
+  // are told while they wait.
   const canStart = isHost && players.length >= classicRules.minPlayers;
 
   const startPrompt = () => {
@@ -103,20 +105,14 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
     if (players.length < classicRules.minPlayers) {
       return <p className="m-0 text-center text-[13px] text-ludo-on-page-muted">{lobbyMessages.waitingForPlayers}</p>;
     }
-    // On phones, it stays in view at the bottom of the screen while the list above it scrolls, in a bar across the
-    // screen that blurs what scrolls under it, with the same space all round the button. It takes the screen's bottom
-    // padding into itself, so it reaches the bottom edge. Any error is shown in it, above the button, where the button
-    // doesn't cover it.
+    // Any error is shown with the button, above it, where the button doesn't cover it.
     return (
-      <div
-        className="sticky bottom-0 -mx-4 -mb-8 flex flex-col gap-2.5 bg-ludo-page/60 p-4 backdrop-blur-md xl:static
-          xl:m-0 xl:bg-transparent xl:p-0 xl:backdrop-blur-none"
-      >
+      <BottomBar className="-mb-8">
         <ErrorMessage error={error} />
         <Button variant="accent" disabled={disabled} onClick={onStartGame}>
           {lobbyMessages.start(players.length)}
         </Button>
-      </div>
+      </BottomBar>
     );
   };
 

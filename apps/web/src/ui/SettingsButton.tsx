@@ -11,8 +11,8 @@ interface Props {
   colours?: string;
 }
 
-// Beside Leave, on its right, and drawn the same way: only an icon on phones, and an icon and its text on desktop. It
-// opens the settings in a card like Leave's question.
+// On the right of the header, after Leave where there is one, and drawn the same way: only an icon on phones, and an
+// icon and its text on desktop. It opens the settings in a card like Leave's question.
 export default function SettingsButton({ colours = "text-ludo-on-page" }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 

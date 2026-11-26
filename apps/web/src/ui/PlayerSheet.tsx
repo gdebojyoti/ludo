@@ -1,14 +1,16 @@
 import { useId, type RefObject } from "react";
-import { Heart, Swords } from "lucide-react";
-import { initial } from "./Avatar";
+import { Swords } from "lucide-react";
+import Avatar from "./Avatar";
+import { closeOnScrimTap } from "./dialog";
 import { playerSheetMessages, profileMessages, tabMessages } from "./messages";
 import {
-  achievementIcons,
   placeholderOtherProfile,
   placeholderProfile,
   showPlaceholderProfile,
+  type PlayerProfile,
 } from "./profilePlaceholder";
 import StatsByMode from "./StatsByMode";
+import SupporterBadge from "./SupporterBadge";
 
 interface Props {
   /** For the avatar that opens it to call showModal() on. */
@@ -26,15 +28,17 @@ interface Props {
 export default function PlayerSheet({ ref, playerName, signedIn, isOwn }: Props) {
   const nameId = useId();
   // Their Level, title and badge, and stats, which a Guest has none of.
-  const profile = isOwn ? placeholderProfile : placeholderOtherProfile;
+  const profile: PlayerProfile = isOwn ? placeholderProfile : placeholderOtherProfile;
   const showProfile = signedIn && showPlaceholderProfile;
 
   const about = () => {
-    if (!signedIn) return <span className="text-[13px] text-ludo-ink-muted">{playerSheetMessages.guest}</span>;
+    if (!signedIn) return <span className="text-[13px] text-ludo-ink-muted">{profileMessages.guest}</span>;
     if (!showProfile) return null;
     return (
       <>
-        <span className="text-xs font-bold tracking-[0.12em] text-ludo-ink-muted uppercase">{profile.title}</span>
+        <span className="text-xs font-bold tracking-[0.12em] text-ludo-ink-muted uppercase">
+          {profileMessages.placeholderTitle}
+        </span>
         <span
           className="mt-0.5 inline-flex h-[22px] items-center rounded-full bg-ludo-card-sunk px-[9px] text-xs font-bold
             shadow-[inset_0_0_0_1px_var(--color-ludo-accent-shade)]"
@@ -64,25 +68,28 @@ export default function PlayerSheet({ ref, playerName, signedIn, isOwn }: Props)
             </div>
           );
     }
-    if (!showProfile) return <p className="m-0 py-6 text-center text-[15px] text-ludo-ink-muted">{tabMessages.comingSoon}</p>;
-    const { wins, losses } = placeholderOtherProfile.record;
+    if (!showProfile) {
+      return <p className="m-0 py-6 text-center text-[15px] text-ludo-ink-muted">{tabMessages.comingSoon}</p>;
+    }
+    const { record } = profile;
     return (
       <>
         <StatsByMode stats={profile.stats} onCard />
+        {/* Their earned Achievements, small, and how many they have. */}
         <div className="flex items-center gap-2.5">
-          {Object.entries(achievementIcons).map(([id, AchievementIcon]) => (
+          {profile.achievements.map((achievement) => achievement.earned && (
             <span
-              key={id}
+              key={achievement.id}
               className="flex size-7 flex-none items-center justify-center rounded-full bg-ludo-accent-light text-ludo-ink"
             >
-              <AchievementIcon size={16} aria-hidden />
+              <achievement.icon size={16} aria-hidden />
             </span>
           ))}
           <span className="text-sm text-ludo-ink-muted">
-            {playerSheetMessages.achievements(profile.achievementsEarned, placeholderProfile.achievementsTotal)}
+            {playerSheetMessages.achievements(profile.achievementsEarned, profile.achievementsTotal)}
           </span>
         </div>
-        {!isOwn && (
+        {record && (
           <div
             className="flex items-center justify-between gap-3 rounded-2xl border-[1.5px] border-ludo-notice-line
               bg-ludo-notice px-4 py-3.5"
@@ -91,7 +98,7 @@ export default function PlayerSheet({ ref, playerName, signedIn, isOwn }: Props)
               <span className="text-xs font-bold tracking-[0.12em] text-ludo-ink-muted uppercase">
                 {playerSheetMessages.recordHeading}
               </span>
-              <span className="font-ludo-display text-[22px]">{profileMessages.record(wins, losses)}</span>
+              <span className="font-ludo-display text-[22px]">{profileMessages.record(record.wins, record.losses)}</span>
             </div>
             <Swords className="flex-none text-ludo-ink-muted" aria-hidden />
           </div>
@@ -106,7 +113,7 @@ export default function PlayerSheet({ ref, playerName, signedIn, isOwn }: Props)
       className="ludo-dialog mx-auto mt-auto mb-0 w-full max-w-[430px] rounded-t-[28px] bg-ludo-card px-4 pt-2.5 pb-7
         font-ludo-ui text-ludo-ink motion-safe:animate-ludo-sheet-in"
       aria-labelledby={nameId}
-      onClick={(event) => event.target === ref.current && ref.current.close()}
+      onClick={closeOnScrimTap}
     >
       <div className="flex flex-col gap-4">
         <span className="h-1 w-10 self-center rounded-sm bg-ludo-board-line" aria-hidden />
@@ -127,27 +134,20 @@ export default function PlayerSheet({ ref, playerName, signedIn, isOwn }: Props)
                 />
               </svg>
             )}
-            <span
-              className="flex size-[62px] items-center justify-center rounded-full border-2 border-ludo-board-line
-                bg-ludo-card-raised font-ludo-display text-[26px]"
-              aria-hidden
-            >
-              {initial(playerName)}
-            </span>
+            <Avatar
+              playerName={playerName}
+              className="relative size-[62px] border-2 border-ludo-board-line bg-ludo-card-raised! text-[26px]
+                font-normal!"
+            />
           </span>
           <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
-            <h2 id={nameId} className="m-0 inline-flex items-center gap-2 font-ludo-display text-2xl leading-[1.15] font-normal wrap-anywhere">
+            <h2
+              id={nameId}
+              className="m-0 inline-flex items-center gap-2 font-ludo-display text-2xl leading-[1.15] font-normal
+                wrap-anywhere"
+            >
               {playerName}
-              {showProfile && profile.supporter && (
-                <span
-                  className="flex size-[18px] flex-none items-center justify-center rounded-full bg-[#b0417a] text-[#fff8e8]"
-                  role="img"
-                  aria-label={profileMessages.supporter}
-                  title={profileMessages.supporter}
-                >
-                  <Heart size={10} fill="currentColor" strokeWidth={0} aria-hidden />
-                </span>
-              )}
+              {showProfile && profile.supporter && <SupporterBadge small />}
             </h2>
             {about()}
           </div>

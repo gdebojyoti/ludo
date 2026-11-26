@@ -1,5 +1,6 @@
-import type { GameSnapshot } from "@ludo/shared";
 import { DoorClosed } from "lucide-react";
+import type { GameSnapshot } from "@ludo/shared";
+import BottomBar from "./BottomBar";
 import Button from "./Button";
 import Header from "./Header";
 import { resultMessages } from "./messages";
@@ -13,9 +14,9 @@ interface Props {
 export default function CancelledScreen({ game, onBackToStart }: Props) {
   const hostName = game.players.find((player) => player.isHost)?.playerName ?? "";
 
-  // On desktop, the header is a bar across the window, and the rest is in a phone-width column down the middle, with
-  // the button just below the message rather than at the bottom of the window. The column is left out of the layout on
-  // phones.
+  // On phones, the message is in the middle of the screen, with the button kept in view at the bottom. On desktop, the
+  // header is a bar across the window, and the rest is in a phone-width column down the middle, with the button just
+  // below the message rather than at the bottom of the window. The column is left out of the layout on phones.
   return (
     <div className="flex flex-1 flex-col items-center px-4 pt-3.5 pb-9 xl:p-0">
       <Header title={resultMessages.cancelledTitle} subtitle={resultMessages.cancelledSubtitle} settings="phones" />
@@ -36,16 +37,11 @@ export default function CancelledScreen({ game, onBackToStart }: Props) {
             <p className="m-0 text-[15px] leading-normal text-ludo-on-page-muted">{resultMessages.cancelledBy(hostName)}</p>
           </div>
         </div>
-        {/* On phones, as on the Result screen: kept in view at the bottom of the screen in a bar across it that blurs
-            what scrolls under it, with the same space all round the button, reaching the bottom edge. */}
-        <div
-          className="sticky bottom-0 -mx-4 -mb-9 self-stretch bg-ludo-page/60 p-4 backdrop-blur-md xl:static xl:m-0
-            xl:bg-transparent xl:p-0 xl:backdrop-blur-none"
-        >
+        <BottomBar className="-mb-9">
           <Button variant="accent" onClick={onBackToStart}>
             {resultMessages.backToStart}
           </Button>
-        </div>
+        </BottomBar>
       </div>
     </div>
   );

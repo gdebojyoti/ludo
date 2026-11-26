@@ -18,6 +18,7 @@ interface Props {
 export default function TabScreen({ title, aside, onBack, children }: Props) {
   return (
     <div className="flex flex-1 flex-col gap-[22px] px-4 pt-3.5 pb-7 xl:gap-0 xl:p-0">
+      {/* The tab's name twice: as the title on phones, and beside the wordmark on desktop, which shows no title. */}
       <Header
         title={title}
         subtitle={title}
@@ -26,7 +27,11 @@ export default function TabScreen({ title, aside, onBack, children }: Props) {
           <>
             {aside}
             <div className="hidden xl:block">
-              <Button variant="icon" className="h-12 w-auto px-5 text-base font-semibold text-ludo-on-page" onClick={onBack}>
+              <Button
+                variant="icon"
+                className="h-12 w-auto px-5 text-base font-semibold text-ludo-on-page"
+                onClick={onBack}
+              >
                 {tabMessages.back}
               </Button>
             </div>

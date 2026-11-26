@@ -38,7 +38,11 @@ export default function StatsByMode({ stats, onCard = false }: Props) {
 
   return (
     <div className="flex flex-col gap-2.5">
-      <div className={`grid grid-cols-3 rounded-xl border p-1 ${look.modes}`} role="group" aria-label={profileMessages.statsModes}>
+      <div
+        className={`grid grid-cols-3 rounded-xl border p-1 ${look.modes}`}
+        role="group"
+        aria-label={profileMessages.statsModes}
+      >
         {statsModes.map(({ mode: option, name }) => (
           <button
             key={option}

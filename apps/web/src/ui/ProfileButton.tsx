@@ -4,7 +4,8 @@ import AccountProfile from "./AccountProfile";
 import { track } from "./analytics";
 import Button from "./Button";
 import CoinBalance from "./CoinBalance";
-import { startMessages } from "./messages";
+import { closeOnScrimTap } from "./dialog";
+import { tabMessages } from "./messages";
 
 interface Props {
   playerName: string;
@@ -31,17 +32,17 @@ export default function ProfileButton({ playerName }: Props) {
         onClick={open}
       >
         <User aria-hidden />
-        {startMessages.profile}
+        {tabMessages.tabs.profile}
       </Button>
       <dialog
         ref={dialogRef}
         className="ludo-dialog m-auto max-h-[calc(100dvh-64px)] w-[430px] max-w-[calc(100%-48px)] overflow-y-auto
           rounded-[22px] bg-ludo-page font-ludo-ui text-ludo-on-page shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
         aria-labelledby={titleId}
-        onClick={(event) => event.target === dialogRef.current && dialogRef.current.close()}
+        onClick={closeOnScrimTap}
       >
         <div className="flex h-15 items-center justify-between gap-3 pr-4 pl-5">
-          <h2 id={titleId} className="m-0 font-ludo-display text-[26px] font-normal">{startMessages.profile}</h2>
+          <h2 id={titleId} className="m-0 font-ludo-display text-[26px] font-normal">{tabMessages.tabs.profile}</h2>
           <CoinBalance />
         </div>
         <div className="px-5 pt-3 pb-7">
