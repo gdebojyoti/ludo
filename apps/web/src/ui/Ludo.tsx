@@ -1,8 +1,11 @@
 import { useState } from "react";
 import type { SnapshotBoard } from "@ludo/shared";
+import { track } from "./analytics";
 import BoardScreen from "./BoardScreen";
 import CancelledScreen from "./CancelledScreen";
+import ComingSoonScreen from "./ComingSoonScreen";
 import LobbyScreen from "./LobbyScreen";
+import NavBar, { type Tab } from "./NavBar";
 import ResultScreen from "./ResultScreen";
 import ServerStatus from "./ServerStatus";
 import { useSettings } from "./settings";
@@ -38,6 +41,13 @@ export default function Ludo() {
   // The won Game's Board, once its last Move has played out, so its result can be shown.
   const [playedOutBoard, setPlayedOutBoard] = useState<SnapshotBoard>();
   const { theme } = useSettings();
+  // The tab open outside a Game. It's not in the address, which stays as it is.
+  const [tab, setTab] = useState<Tab>("play");
+
+  const openTab = (opened: Tab) => {
+    setTab(opened);
+    track("tab_open", { tab: opened });
+  };
 
   const screen = () => {
     if (game?.state === "lobby") {
@@ -76,20 +86,32 @@ export default function Ludo() {
     if (game?.state === "cancelled" && !game.isHost) {
       return <CancelledScreen game={game} onBackToStart={backToStart} />;
     }
-    // Shown, logo only, while the server is yet to say whether the Player has an active Game. Mounted afresh once it
-    // has, so a code from a Join link that didn't work is filled in.
+    // Outside a Game, the tabs, and the open one's screen. The Start screen is shown, logo only, while the server is
+    // yet to say whether the Player has an active Game, and the tabs are hidden. It's mounted afresh once it has, so a
+    // code from a Join link that didn't work is filled in.
     return (
-      <StartScreen
-        key={game === undefined ? "waiting" : "ready"}
-        waiting={game === undefined}
-        playerName={shownName}
-        disabled={busy}
-        error={error}
-        initialGameCode={gameCodeFromLink}
-        onNewPlayerName={account?.playerName ? undefined : () => setPlayerName(newPlayerName())}
-        onCreateGame={createGame}
-        onJoinGame={joinGame}
-      />
+      <>
+        {tab === "play"
+          ? (
+              <StartScreen
+                key={game === undefined ? "waiting" : "ready"}
+                waiting={game === undefined}
+                playerName={shownName}
+                signedIn={account === undefined ? undefined : account !== null}
+                disabled={busy}
+                error={error}
+                initialGameCode={gameCodeFromLink}
+                onNewPlayerName={account?.playerName ? undefined : () => setPlayerName(newPlayerName())}
+                onCreateGame={createGame}
+                onJoinGame={joinGame}
+                onOpenProfile={() => openTab("profile")}
+              />
+            )
+          : (
+              <ComingSoonScreen tab={tab} onBack={() => setTab("play")} />
+            )}
+        <NavBar open={tab} hidden={game === undefined} onOpen={openTab} />
+      </>
     );
   };
 

@@ -1,5 +1,6 @@
 import { classicRules, playerNameMaxLength, type GameMode, type RejectionReason } from "@ludo/shared";
 import type { LeaveText } from "./LeaveButton";
+import type { Tab } from "./NavBar";
 import type { ConnectionStatus, Notice } from "./useGameServer";
 
 // Every piece of text the web app shows, in one place. It's in sentence case: the glossary's terms are capitalised in
@@ -70,8 +71,25 @@ export const commonMessages = {
   away: "Away",
 };
 
+export const tabMessages = {
+  label: "Main",
+  tabs: {
+    play: "Play",
+    store: "Store",
+    leaderboard: "Leaderboard",
+    settings: "Settings",
+    profile: "Profile",
+  } satisfies Record<Tab, string>,
+  comingSoon: "Coming soon.",
+  back: "Back",
+};
+
 export const startMessages = {
-  tagline: "Classic Ludo, with friends",
+  tagline: "Play with friends.",
+  signIn: "Sign in with Google",
+  signInPitch: "Sign in to use your own name, keep your progress and earn coins.",
+  signInFailed: "Sign-in isn't working right now. Try again in a moment.",
+  profile: "Profile",
   playingAs: "You'll play as",
   newName: "Pick a different random name",
   createGame: "Create a game",
