@@ -7,6 +7,7 @@ describe("readConfig", () => {
       port: 4003,
       webOrigins: ["http://localhost:8083"],
       webAppUrl: "http://localhost:8083/ludo",
+      databaseUrl: null,
     });
   });
 
@@ -15,7 +16,12 @@ describe("readConfig", () => {
       PORT: "10000",
       WEB_ORIGIN: "https://tablehop.games",
       WEB_APP_URL: "https://tablehop.games/ludo",
-    })).toEqual({ port: 10000, webOrigins: ["https://tablehop.games"], webAppUrl: "https://tablehop.games/ludo" });
+    })).toEqual({
+      port: 10000,
+      webOrigins: ["https://tablehop.games"],
+      webAppUrl: "https://tablehop.games/ludo",
+      databaseUrl: null,
+    });
   });
 
   it("reads several web addresses separated by commas", () => {
@@ -32,6 +38,17 @@ describe("readConfig", () => {
   });
 
   it("refuses to start on Render without the web app's address, so Players are never sent to localhost", () => {
-    expect(() => readConfig({ RENDER: "true" })).toThrow("WEB_APP_URL must be set on Render");
+    expect(() => readConfig({ RENDER: "true", DATABASE_URL: "postgres://ludo@neon.example/neondb" }))
+      .toThrow("WEB_APP_URL must be set on Render");
+  });
+
+  it("reads the database's connection string", () => {
+    expect(readConfig({ DATABASE_URL: " postgres://ludo:secret@localhost:5432/accounts " }).databaseUrl)
+      .toBe("postgres://ludo:secret@localhost:5432/accounts");
+  });
+
+  it("refuses to start on Render without the database, so no finished Game's result is lost", () => {
+    expect(() => readConfig({ RENDER: "true", WEB_APP_URL: "https://tablehop.games/ludo" }))
+      .toThrow("DATABASE_URL must be set on Render");
   });
 });

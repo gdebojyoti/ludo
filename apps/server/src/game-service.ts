@@ -17,6 +17,7 @@ import {
   nextTakenSeat,
   rollPlaysOutFor,
   startingTokens,
+  tokensHome,
   wonByMove,
   type GameMode,
   type RejectionReason,
@@ -25,6 +26,7 @@ import {
 } from "@ludo/shared";
 
 import type { GameNotifier } from "./game-notifier.js";
+import { toGameResult, type GameResult, type GameResultStore } from "./game-results.js";
 import type { Game, GameBoard, GameSeat, GameStore, JoinedVia } from "./game-store.js";
 
 export type CommandResult = { ok: true; game: Game } | { ok: false; reason: RejectionReason };
@@ -40,6 +42,7 @@ export type Clock = () => Date;
 // tests can script those too.
 export const createGameService = (
   store: GameStore,
+  results: GameResultStore,
   notifier: GameNotifier,
   randomInt: RandomInt = cryptoRandomInt,
   now: Clock = () => new Date(),
@@ -54,13 +57,27 @@ export const createGameService = (
   /**
    * Saves the Game as of `savedAt`, now unless it's given, and publishes it, with the Player who just Left it if
    * they're no longer in it. Published before the command returns, so each Player is sent the change before the reply
-   * to their command.
+   * to their command. A Game saved as won has just ended, as nothing changes it after that, so its result is kept.
    */
   const save = async (game: Game, { leaverId, savedAt = timestamp() }: SaveOptions = {}): Promise<Game> => {
     const saved = { ...game, updatedAt: savedAt };
     await store.save(saved);
     notifier.publish(saved, leaverId);
+    const result = toGameResult(saved, savedAt);
+    if (result) keepResult(result);
     return saved;
+  };
+
+  /**
+   * Keeps the result of a Game that has ended, without waiting for it: the commands run one at a time, so a slow
+   * database, such as Neon starting up again, would otherwise hold up every Game. A result that can't be kept is
+   * logged, and the Game is still won.
+   */
+  const keepResult = (result: GameResult) => {
+    results.save(result).catch((error: unknown) => {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.error(`The result of Game ${result.gameId} couldn't be kept:`, reason);
+    });
   };
 
   const newGameCode = async (): Promise<string> => {
@@ -79,19 +96,30 @@ export const createGameService = (
     const seatsInJoinOrder = giveOutSeats(game.players.length);
     const seats = Array.from({ length: classicRules.seats }, (_, seat): GameSeat => {
       const player = game.players[seatsInJoinOrder.indexOf(seat)];
-      if (!player) return { playerId: null, leaverName: null, joinedVia: null, tokens: [] };
+      const atStart = { leaverName: null, leaverTokensHome: null, captures: 0 };
+      if (!player) return { ...atStart, playerId: null, joinedVia: null, tokens: [] };
       const { playerId, joinedVia } = player;
-      return { playerId, leaverName: null, joinedVia, tokens: startingTokens(game.mode, seat) };
+      return { ...atStart, playerId, joinedVia, tokens: startingTokens(game.mode, seat) };
     });
     // `randomInt` is always below the number of Players, so this is one of their Seats.
     const turn = seatsInJoinOrder[randomInt(seatsInJoinOrder.length)] as Seat;
-    const board = { seats, turn, rolled: false, lastRoll: null, lastMove: null, playsOutAt: null, winner: null };
+    const board = {
+      seats,
+      turn,
+      rolled: false,
+      lastRoll: null,
+      lastMove: null,
+      playsOutAt: null,
+      winner: null,
+      turnsPlayed: 1,
+    };
     return { ...game, state: "playing", board };
   };
 
-  /** The Board with the Turn passed to the next taken Seat clockwise, not yet Rolled for. */
+  /** The Board with the Turn passed to the next taken Seat clockwise, beginning a Turn not yet Rolled for. */
   const turnPassed = (board: GameBoard): GameBoard => {
-    return { ...board, turn: nextTakenSeat(board.turn, takenSeats(board)), rolled: false };
+    const turn = nextTakenSeat(board.turn, takenSeats(board));
+    return { ...board, turn, rolled: false, turnsPlayed: board.turnsPlayed + 1 };
   };
 
   /** The Player's Game in play, with its Board and their Seat at it, if it's their Turn; otherwise why not. */
@@ -198,8 +226,10 @@ export const createGameService = (
     const leaver = board.seats.findIndex((seat) => seat.playerId === playerId);
     const leaverName = game.players.find((player) => player.playerId === playerId)?.playerName ?? null;
     const players = game.players.filter((player) => player.playerId !== playerId);
-    // The Seat keeps how its Player joined, as it keeps their Player name.
-    const emptySeat = (seat: GameSeat) => ({ ...seat, playerId: null, leaverName, tokens: [] });
+    // The Seat keeps how its Player joined, their Captures and their Tokens Home, as it keeps their Player name.
+    const emptySeat = (seat: GameSeat) => {
+      return { ...seat, playerId: null, leaverName, leaverTokensHome: tokensHome(seat.tokens), tokens: [] };
+    };
     const seats = board.seats.map((seat, index) => (index === leaver ? emptySeat(seat) : seat));
     const withoutLeaver = { ...board, seats };
     const [winner, ...others] = takenSeats(withoutLeaver);
@@ -253,7 +283,11 @@ export const createGameService = (
       captured: after.captured,
       index: indexAfter(board.lastMove),
     };
-    const seats = board.seats.map((other, index) => ({ ...other, tokens: after.seats[index] ?? other.tokens }));
+    const seats = board.seats.map((other, index) => ({
+      ...other,
+      tokens: after.seats[index] ?? other.tokens,
+      captures: index === seat ? other.captures + after.captured.length : other.captures,
+    }));
     const playsOutAt = playsOutAfter(movePlaysOutFor(from, number, after.captured.length > 0));
     if (wonByMove(game.mode, { tokens: moved, captured: after.captured })) {
       const won = { ...board, seats, lastMove, playsOutAt, rolled: false, winner: seat };

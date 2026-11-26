@@ -38,6 +38,8 @@ export interface GameBoard {
   playsOutAt: string | null;
   /** The Seat whose Player won the Game: set exactly when the Game's state is won, and otherwise null. */
   winner: Seat | null;
+  /** How many Turns have begun, counting the one in play, or the one the Game ended in. */
+  turnsPlayed: number;
 }
 
 /** How a Player joined a Game: through the web app, or over MCP as an AI Player (ADR-0008). */
@@ -56,6 +58,10 @@ export interface GameSeat {
   playerId: string | null;
   /** The Player name of the Player who Left this Seat during play, emptying it for the rest of the Game; else null. */
   leaverName: string | null;
+  /** How many Tokens the Player who Left this Seat had brought Home when they Left; else null. */
+  leaverTokensHome: number | null;
+  /** How many opponents' Tokens the Seat's Player Captured, kept if they Leave it. */
+  captures: number;
   /** How the Player given this Seat joined the Game, kept if they Leave it; null if no Player was given it. */
   joinedVia: JoinedVia | null;
   /** Where each of the Seat's Tokens is. An empty Seat has none. */

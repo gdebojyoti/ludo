@@ -11,7 +11,8 @@ let server: GameServer;
 let url: string;
 
 beforeEach(async () => {
-  server = createGameServer({ port: 0, webOrigins: [webOrigin, hostAppOrigin], webAppUrl: `${webOrigin}/ludo` });
+  const webOrigins = [webOrigin, hostAppOrigin];
+  server = createGameServer({ port: 0, webOrigins, webAppUrl: `${webOrigin}/ludo`, databaseUrl: null });
   await new Promise<void>((resolve) => server.httpServer.listen(0, resolve));
   const { port } = server.httpServer.address() as AddressInfo;
   url = `http://localhost:${port}`;

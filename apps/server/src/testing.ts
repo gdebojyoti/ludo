@@ -16,6 +16,7 @@ import type {
 } from "@ludo/shared";
 
 import type { DebugGames } from "./debug-games.js";
+import { createMemoryGameResultStore, type GameResult } from "./game-results.js";
 import { playerIdCookieName } from "./identity.js";
 import { createGameServer, type GameServerOptions } from "./server.js";
 
@@ -121,6 +122,8 @@ export interface TestServer {
   debugGames: () => Promise<{ body: string } & DebugGames>;
   /** The player ID the server gave each open connection, in no particular order. */
   connectedPlayerIds: () => Promise<string[]>;
+  /** The result of every Game that has ended since the server started, in the order they ended. */
+  gameResults: () => Promise<GameResult[]>;
   close: () => Promise<void>;
   /**
    * Closes the server and starts a new one, with its random choices scripted to be these numbers in turn, then 0, and
@@ -130,12 +133,17 @@ export interface TestServer {
 }
 
 /**
- * Starts the server. `options.randomInt` scripts its random choices, such as Game codes, and `options.now` the times
- * its Games are created and saved.
+ * Starts the server, keeping the results of finished Games in memory, where `gameResults` reads them, unless
+ * `options.gameResults` is given. `options.randomInt` scripts its random choices, such as Game codes, and `options.now`
+ * the times its Games are created and saved.
  */
 export const startServer = async (options?: GameServerOptions): Promise<TestServer> => {
-  // AI Players act at once, unless a test is about their pace.
-  const server = createGameServer({ port: 0, webOrigins: [webOrigin], webAppUrl }, { paceAiPlayers: false, ...options });
+  const resultStore = createMemoryGameResultStore();
+  const server = createGameServer(
+    { port: 0, webOrigins: [webOrigin], webAppUrl, databaseUrl: null },
+    // AI Players act at once, unless a test is about their pace.
+    { paceAiPlayers: false, gameResults: resultStore, ...options },
+  );
   await new Promise<void>((resolve) => server.httpServer.listen(0, resolve));
   const { port } = server.httpServer.address() as AddressInfo;
   const url = `http://localhost:${port}`;
@@ -279,6 +287,8 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
 
   const connectedPlayerIds = async () => (await server.io.fetchSockets()).map((socket) => socket.data.playerId);
 
+  const gameResults = async () => resultStore.results();
+
   const debugGames = async () => {
     const response = await fetch(`${url}/debug/games`);
     if (!response.ok) throw new Error(`/debug/games answered ${response.status}`);
@@ -305,6 +315,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
     hostInLobby,
     playerInLobby,
     connectedPlayerIds,
+    gameResults,
     debugGames,
     close,
     restartWithRandomNumbers,

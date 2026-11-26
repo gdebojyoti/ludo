@@ -7,6 +7,7 @@ import type { Config } from "./config.js";
 import { handleDebugGames } from "./debug-games.js";
 import { createGameNotifier } from "./game-notifier.js";
 import { createGameService, type Clock, type RandomInt } from "./game-service.js";
+import { createMemoryGameResultStore, type GameResultStore } from "./game-results.js";
 import { handleGameSockets, type GameIo } from "./game-sockets.js";
 import { createMemoryGameStore } from "./game-store.js";
 import { identifyPlayers } from "./identity.js";
@@ -19,6 +20,11 @@ export interface GameServer {
 }
 
 export interface GameServerOptions {
+  /**
+   * Where the result of each finished Game is kept: Postgres in production. Kept in memory, for as long as the server
+   * runs, unless it's given.
+   */
+  gameResults?: GameResultStore;
   /** Makes every random choice, such as Game codes. Tests replace it to make them predictable. */
   randomInt?: RandomInt;
   /** Says when each Game is created and saved. Tests replace it to make the times predictable. */
@@ -63,7 +69,13 @@ export const createGameServer = (config: Config, options: GameServerOptions = {}
     });
   });
   const notifier = createGameNotifier();
-  const gameService = createGameService(createMemoryGameStore(), notifier, options.randomInt, options.now);
+  const gameService = createGameService(
+    createMemoryGameStore(),
+    options.gameResults ?? createMemoryGameResultStore(),
+    notifier,
+    options.randomInt,
+    options.now,
+  );
   // Long enough for a Game that stalls until the Player tells the AI to carry on (ADR-0008).
   const aiPlayers = createAiPlayers(gameService, notifier, options.aiPlayerIdleTimeout ?? 15 * 60_000);
   const { isAway } = handleGameSockets(io, gameService, notifier, aiPlayers.isConnected);

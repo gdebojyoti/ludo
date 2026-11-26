@@ -52,7 +52,7 @@ export const toSnapshotSeats = (game: Game, board: GameBoard, isAway: IsAway): S
 };
 
 /** Each Seat's Standing at the Game's Board, by Seat, once the Game is won; until then, all null. */
-const standingsAt = (board: GameBoard): (number | null)[] => {
+export const standingsAt = (board: GameBoard): (number | null)[] => {
   if (board.winner === null) return board.seats.map(() => null);
   const finalSeats = board.seats.map((seat) => {
     const taken = seat.playerId !== null || seat.leaverName !== null;
