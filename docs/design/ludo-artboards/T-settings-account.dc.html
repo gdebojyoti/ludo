@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ludo · Settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.set{display:flex;align-items:center;gap:14px}
+.st{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.stt{font-size:15px;font-weight:700;color:#3B1218}
+.std{font-size:13px;line-height:1.4;color:#6E5340}
+.sw{width:48px;height:28px;flex:none;border-radius:14px;position:relative;border:none;padding:0;cursor:pointer}
+.sw.off{background:#D9C49A}
+.sw.on{background:#3B1218}
+.sw span{position:absolute;top:4px;width:20px;height:20px;border-radius:50%;background:#FFF8E8}
+.sw.off span{left:4px}.sw.on span{right:4px}
+.chg{height:44px;padding:0 18px;flex:none;border:1.5px solid #A8916A;border-radius:12px;background:transparent;color:#3B1218;font:600 15px Figtree,sans-serif;cursor:pointer}
+.av{border-radius:50%;border:2px solid #F7F0DF;box-sizing:border-box;display:flex;align-items:center;justify-content:center;flex:none;background:#D2462E}
+.nav{height:64px;flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:#2A0C11;border-top:1px solid rgba(247,240,223,.14);box-sizing:border-box}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#D9C3A5;text-decoration:none;font:600 11px Figtree,sans-serif}
+.tab.on{color:#F3CF7E}
+.ind{position:absolute;top:0;width:28px;height:3px;border-radius:0 0 3px 3px;background:#F3CF7E}
+</style>
+</helmet>
+<div style="width: 370px; height: 844px; box-sizing: border-box; background: #3B1218; color: #F7F0DF; font-family: Figtree, sans-serif; display: flex; flex-direction: column">
+<div style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 20px">
+<h1 style="margin: 0; font-family: Marcellus, serif; font-weight: 400; font-size: 26px">Settings</h1>
+</div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 12px 20px 28px">
+<section style="border-radius: 20px; background: #F7F0DF; padding: 20px; display: flex; flex-direction: column; gap: 20px">
+<div class="set"><span class="st"><span class="stt">Dice on the left</span><span class="std">Handy if you play with your left thumb.</span></span><button class="sw off" role="switch" aria-checked="false" aria-label="Dice on the left"><span></span></button></div>
+<div class="set"><span class="st"><span class="stt">Automatic move</span><span class="std">Moves a token for you when there’s only one real option.</span></span><button class="sw on" role="switch" aria-checked="true" aria-label="Automatic move"><span></span></button></div>
+<div class="set"><span class="st"><span class="stt">Theme</span><span class="std">Try a different look.</span></span><button class="chg">Change</button></div>
+</section>
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 0 4px">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D9C3A5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 1px" aria-hidden="true"><path d="M17 18a5 5 0 0 0 .5-10 7 7 0 0 0-13.4 2A4 4 0 0 0 5 18h12Z"></path></svg>
+<span style="font-size: 13px; line-height: 1.45; color: #D9C3A5">Your settings follow your Account to any device you sign in on.</span>
+</div>
+</div>
+<nav class="nav" aria-label="Main">
+<a class="tab" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3.5"></rect><circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="15" cy="15" r="1.3" fill="currentColor" stroke="none"></circle></svg>Play</a>
+<a class="tab" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8Z"></path><path d="M9 8V6.5a3 3 0 0 1 6 0V8"></path></svg>Store</a>
+<a class="tab" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20v-7h5v7M9 20V5h6v15M15 20v-10h5v10M3 20h18"></path></svg>Leaderboard</a>
+<a class="tab on" href="#" aria-current="page"><span class="ind"></span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path><circle cx="12" cy="12" r="3"></circle></svg>Settings</a>
+<a class="tab" href="#"><span class="av" style="width: 22px; height: 22px; border-width: 1.5px"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.5 14.6A8 8 0 1 1 9.4 4.5a6.4 6.4 0 0 0 10.1 10.1Z" fill="#FFF8E8"></path></svg></span>Profile</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":370,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

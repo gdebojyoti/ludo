@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ludo · Profile tab · Guest</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.li{display:flex;align-items:flex-start;gap:12px;font-size:15px;line-height:1.4;color:#3B1218}
+.ic{width:32px;height:32px;flex:none;border-radius:10px;background:#EADBB9;color:#3B1218;display:flex;align-items:center;justify-content:center}
+.gbtn{width:100%;height:48px;padding:0 18px;border-radius:12px;border:1px solid #747775;background:#FFFFFF;color:#1F1F1F;display:flex;align-items:center;justify-content:center;gap:12px;font:500 15px Figtree,sans-serif;cursor:pointer}
+.glogo{width:24px;height:24px;flex:none;border-radius:4px;border:1.5px dashed #9AA0A6;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font:700 10px Figtree,sans-serif;color:#5F6368}
+.nav{height:64px;flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:#2A0C11;border-top:1px solid rgba(247,240,223,.14);box-sizing:border-box}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#D9C3A5;text-decoration:none;font:600 11px Figtree,sans-serif}
+.tab.on{color:#F3CF7E}
+.ind{position:absolute;top:0;width:28px;height:3px;border-radius:0 0 3px 3px;background:#F3CF7E}
+</style>
+</helmet>
+<div style="width: 370px; height: 844px; box-sizing: border-box; background: #3B1218; color: #F7F0DF; font-family: Figtree, sans-serif; display: flex; flex-direction: column">
+<div style="height: 60px; flex: none; display: flex; align-items: center; padding: 0 20px">
+<h1 style="margin: 0; font-family: Marcellus, serif; font-weight: 400; font-size: 26px">Profile</h1>
+</div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 22px; padding: 12px 20px 28px">
+<div style="display: flex; align-items: center; gap: 14px">
+<span style="width: 56px; height: 56px; flex: none; border-radius: 50%; background: #D2462E; border: 3px solid #FFF8E8; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font: 400 24px Marcellus, serif; color: #FFF8E8">N</span>
+<div style="display: flex; flex-direction: column; gap: 3px">
+<span style="font: 400 24px Marcellus, serif">Neville Lovegood</span>
+<span style="font-size: 13px; color: #D9C3A5">Guest</span>
+</div>
+</div>
+<section style="border-radius: 22px; background: #F7F0DF; color: #3B1218; padding: 22px 20px 20px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font: 400 26px/1.2 Marcellus, serif">Sign in to get a Profile</h2>
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div class="li"><span class="ic"><img src="/_blob/43e36bac26a919e52da9ee8ad6d30cc7" alt="" style="width: 18px; height: 18px"></span><span style="padding-top: 5px">Earn Coins and XP from every game</span></div>
+<div class="li"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2.5"></rect><path d="M11 18h2"></path></svg></span><span style="padding-top: 5px">Keep your progress on any device</span></div>
+<div class="li"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20v-7h5v7M9 20V5h6v15M15 20v-10h5v10M3 20h18"></path></svg></span><span style="padding-top: 5px">Climb the weekly Leaderboard</span></div>
+<div class="li"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><circle cx="17" cy="9" r="2.5"></circle><path d="M3 20c.8-3.4 3.2-5.2 6-5.2s5.2 1.8 6 5.2M15.5 14.6c2.6-.3 4.6 1.4 5.3 4.4"></path></svg></span><span style="padding-top: 5px">See your record against your Rivals</span></div>
+<div class="li"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"></rect><path d="M12 3v18M9 11v2M15 11v2"></path></svg></span><span style="padding-top: 5px">Collect Cosmetics in your Locker</span></div>
+</div>
+<button class="gbtn"><span class="glogo" aria-hidden="true">G</span>Sign in with Google</button>
+<p style="margin: 0; font-size: 13px; line-height: 1.45; color: #6E5340; text-align: center">No password to make or forget.</p>
+</section>
+</div>
+<nav class="nav" aria-label="Main">
+<a class="tab" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3.5"></rect><circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="15" cy="15" r="1.3" fill="currentColor" stroke="none"></circle></svg>Play</a>
+<a class="tab" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2L5 8Z"></path><path d="M9 8V6.5a3 3 0 0 1 6 0V8"></path></svg>Store</a>
+<a class="tab" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20v-7h5v7M9 20V5h6v15M15 20v-10h5v10M3 20h18"></path></svg>Leaderboard</a>
+<a class="tab" href="#"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path><circle cx="12" cy="12" r="3"></circle></svg>Settings</a>
+<a class="tab on" href="#" aria-current="page"><span class="ind"></span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 20c1.4-3.8 4.2-5.8 7.5-5.8s6.1 2 7.5 5.8"></path></svg>Profile</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":370,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
