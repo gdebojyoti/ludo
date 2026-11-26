@@ -5,9 +5,7 @@ import pkg from "./package.json" with { type: "json" };
 
 export default {
   entry: "./src/index.ts",
-  // Hashed names let fonts and sounds be cached forever (vercel.json). Scripts aren't: Vercel would add the header to a
-  // 404 too, and a chunk missing for a moment, as in a rollback, would stay missing for a year. remoteEntry.js keeps its
-  // name: host apps load it by URL.
+  // No file is cached forever, hashed name or not (ADR-0015). remoteEntry.js keeps its name: host apps load it by URL.
   output: {
     filename: "ludo/[name].[contenthash].js",
     chunkFilename: "ludo/[id].[contenthash].js",
