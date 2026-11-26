@@ -119,7 +119,6 @@ export const profileMessages = {
   record: (wins: number, losses: number) => `${count(wins, "win", "wins")} · ${count(losses, "loss", "losses")}`,
   locker: "Locker",
   lockerDetail: (cosmetics: number) => `${count(cosmetics, "cosmetic", "cosmetics")} · choose what you wear`,
-  close: "Close",
   signOut: "Sign out",
   signOutFailed: "Signing out isn't working right now. Try again in a moment.",
 };

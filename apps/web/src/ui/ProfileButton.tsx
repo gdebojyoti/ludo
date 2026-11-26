@@ -4,7 +4,7 @@ import AccountProfile from "./AccountProfile";
 import { track } from "./analytics";
 import Button from "./Button";
 import CoinBalance from "./CoinBalance";
-import { profileMessages, startMessages } from "./messages";
+import { startMessages } from "./messages";
 
 interface Props {
   playerName: string;
@@ -42,16 +42,7 @@ export default function ProfileButton({ playerName }: Props) {
       >
         <div className="flex h-15 items-center justify-between gap-3 pr-4 pl-5">
           <h2 id={titleId} className="m-0 font-ludo-display text-[26px] font-normal">{startMessages.profile}</h2>
-          <div className="flex items-center gap-3">
-            <CoinBalance />
-            <Button
-              variant="icon"
-              className="h-11 w-auto px-5 text-base font-semibold text-ludo-on-page"
-              onClick={() => dialogRef.current?.close()}
-            >
-              {profileMessages.close}
-            </Button>
-          </div>
+          <CoinBalance />
         </div>
         <div className="px-5 pt-3 pb-7">
           <AccountProfile playerName={playerName} />
