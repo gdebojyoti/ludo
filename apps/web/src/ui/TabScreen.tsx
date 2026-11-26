@@ -11,8 +11,8 @@ interface Props {
   children: ReactNode;
 }
 
-// A tab's screen, other than Play's: its title along the top, and what's on it below. On desktop, where only Profile
-// opens one, from the Start screen, it's a phone-width column down the middle, with Back beside the title.
+// A tab's screen, other than Play's: its title along the top, and what's on it below. Desktop has no tabs, but if the
+// window is widened with one open, it's a phone-width column down the middle, with Back beside the title.
 export default function TabScreen({ title, aside, onBack, children }: Props) {
   return (
     <div className="flex flex-1 flex-col xl:mx-auto xl:w-full xl:max-w-[430px] xl:pt-8">

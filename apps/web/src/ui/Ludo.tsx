@@ -118,7 +118,6 @@ export default function Ludo() {
         onNewPlayerName={account?.playerName ? undefined : () => setPlayerName(newPlayerName())}
         onCreateGame={createGame}
         onJoinGame={joinGame}
-        onOpenProfile={() => openTab("profile")}
       />
     );
   };

@@ -1,11 +1,11 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
-import { User } from "lucide-react";
 import { gameCodeLength, type GameMode } from "@ludo/shared";
 import Avatar from "./Avatar";
 import Button from "./Button";
 import CreateGameButton from "./CreateGameButton";
 import Icon from "./Icon";
 import { commonMessages, startMessages } from "./messages";
+import ProfileButton from "./ProfileButton";
 import { seatView } from "./seatView";
 import SettingsButton from "./SettingsButton";
 import SignIn from "./SignIn";
@@ -30,8 +30,6 @@ interface Props {
   onNewPlayerName: (() => void) | undefined;
   onCreateGame: (mode: GameMode) => void;
   onJoinGame: (gameCode: string) => void;
-  /** Opens the Profile, from its button on desktop, which has no tabs. */
-  onOpenProfile: () => void;
 }
 
 // The four Yards, as on the Board, clockwise from the top-left, as a picture of the game.
@@ -47,7 +45,6 @@ export default function StartScreen({
   onNewPlayerName,
   onCreateGame,
   onJoinGame,
-  onOpenProfile,
 }: Props) {
   const [gameCode, setGameCode] = useState(initialGameCode);
 
@@ -218,18 +215,10 @@ export default function StartScreen({
           </form>
         </div>
         {signedIn === false && <SignIn className={`px-2 xl:px-0 ${appear}`} />}
-        {/* In its place once signed in, on desktop only, which has no Profile tab. Drawn as Settings is. */}
+        {/* In its place once signed in, on desktop only, which has no Profile tab. */}
         {signedIn && (
-          <div className="hidden xl:block">
-            <Button
-              variant="icon"
-              className="h-12 w-auto gap-2 border-ludo-line px-5 text-base font-semibold text-ludo-ink
-                [--ludo-button-icon-fill:transparent]"
-              onClick={onOpenProfile}
-            >
-              <User size={18} aria-hidden />
-              {startMessages.profile}
-            </Button>
+          <div className="hidden xl:flex xl:justify-center">
+            <ProfileButton playerName={playerName} />
           </div>
         )}
       </div>
