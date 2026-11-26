@@ -30,7 +30,12 @@ export const toSnapshot = (game: Game, playerId: string, isAway: IsAway): GameSn
 
 /** One of the Game's Players, as every Player sees them. */
 export const toSnapshotPlayer = (game: Game, player: GamePlayer, isAway: IsAway): SnapshotPlayer => {
-  return { playerName: player.playerName, isHost: player.playerId === game.hostId, away: isAway(player.playerId) };
+  return {
+    playerName: player.playerName,
+    isHost: player.playerId === game.hostId,
+    away: isAway(player.playerId),
+    signedIn: player.accountId !== null,
+  };
 };
 
 /** One of the Seats at the Game's Board, with its Standing, as every Player sees it. */
@@ -40,6 +45,7 @@ const toSnapshotSeat = (game: Game, seat: GameSeat, standing: number | null, isA
     playerName: seat.playerId === null ? seat.leaverName : playerName(seat.playerId),
     left: seat.leaverName !== null,
     away: seat.playerId !== null && isAway(seat.playerId),
+    signedIn: seat.accountId !== null,
     tokens: seat.tokens,
     standing,
   };

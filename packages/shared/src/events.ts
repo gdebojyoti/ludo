@@ -102,6 +102,8 @@ export interface SnapshotPlayer {
   isHost: boolean;
   /** Whether the Player is Away: in the Game, with no tab connected to it right now. */
   away: boolean;
+  /** Whether the Player is signed in to an Account, rather than a Guest or an AI Player. Never which Account. */
+  signedIn: boolean;
 }
 
 /** One of the Seats at the Board, as every Player sees it. */
@@ -112,6 +114,11 @@ export interface SnapshotSeat {
   left: boolean;
   /** Whether the Seat's Player is Away: still in it, with no tab connected right now. False for an empty Seat. */
   away: boolean;
+  /**
+   * Whether the Seat's Player is signed in to an Account, or was when they Left it, rather than a Guest or an AI Player.
+   * Never which Account. False for an empty Seat.
+   */
+  signedIn: boolean;
   /** Where each of the Seat's Tokens is. An empty Seat has none. */
   tokens: TokenPosition[];
   /**

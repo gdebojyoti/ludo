@@ -1,5 +1,5 @@
 import { classicRules, seatsClockwise, tokensReachHome, type GameMode, type Seat, type SnapshotBoard } from "@ludo/shared";
-import Avatar from "./Avatar";
+import PlayerAvatar from "./PlayerAvatar";
 import { homeCountAt, howWonAt, playerNameAt, seatViewOf, winnerAt } from "./boardView";
 import Button from "./Button";
 import Header from "./Header";
@@ -63,11 +63,13 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
           <h2 className="m-0 hidden text-xs font-bold tracking-[0.14em] text-ludo-ink-muted uppercase xl:block">
             {resultMessages.won}
           </h2>
-          <Avatar
+          <PlayerAvatar
             playerName={winnerName}
             colours={colours(winner)}
             ringed
             className="size-[72px] border-[3px]! border-ludo-card-raised! text-[30px] font-normal!"
+            signedIn={board.seats[winner]?.signedIn ?? false}
+            isOwn={winner === viewer}
           />
           <h1 className="m-0 font-ludo-display text-[30px] leading-[1.15] font-normal wrap-anywhere" aria-live="polite">
             {resultMessages.winner(winnerName, winner === viewer)}
@@ -80,12 +82,17 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
             <h2 className="m-0 text-xs font-semibold tracking-widest text-ludo-on-page-muted uppercase">
               {resultMessages.tokensHomeHeading}
             </h2>
-            {others.map(({ playerName, left, standing, index }) => (
+            {others.map(({ playerName, left, standing, signedIn, index }) => (
               <div
                 key={index}
                 className="flex items-center gap-3 rounded-[14px] border border-ludo-row-line bg-ludo-row px-3.5 py-3"
               >
-                <Avatar playerName={playerName ?? ""} colours={colours(index)} />
+                <PlayerAvatar
+                  playerName={playerName ?? ""}
+                  colours={colours(index)}
+                  signedIn={signedIn}
+                  isOwn={index === viewer}
+                />
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{playerName}</span>
                   <span className="text-xs text-ludo-on-page-muted">{notes(index, left, standing)}</span>

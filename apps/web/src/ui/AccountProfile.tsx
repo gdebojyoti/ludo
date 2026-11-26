@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { Heart, House, Lock, Shirt, Swords, Trophy, type LucideIcon } from "lucide-react";
+import { Heart, Lock, Shirt } from "lucide-react";
 import { initial } from "./Avatar";
-import { modeMessages, profileMessages, tabMessages } from "./messages";
-import { placeholderProfile, showPlaceholderProfile, type StatsMode } from "./profilePlaceholder";
+import { profileMessages, tabMessages } from "./messages";
+import { achievementIcons, placeholderProfile, showPlaceholderProfile } from "./profilePlaceholder";
 import { seatView } from "./seatView";
 import SignOut from "./SignOut";
+import StatsByMode from "./StatsByMode";
 
 interface Props {
   playerName: string;
@@ -13,22 +13,11 @@ interface Props {
 // The viewer's own colour, as their Seat is on every Board they see.
 const ownColours = seatView(0);
 
-// Each placeholder Achievement's icon, until #65 settles the list.
-const achievementIcons: Record<string, LucideIcon> = { firstWin: Trophy, allFourHome: House, tenCaptures: Swords };
-
-const statsModes: { mode: StatsMode; name: string }[] = [
-  { mode: "classic", name: modeMessages.modes.classic.name },
-  { mode: "oneKillWin", name: modeMessages.modes.oneKillWin.name },
-  { mode: "houseRules", name: profileMessages.houseRules },
-];
-
 // What's on a signed-in Player's Profile, below its title: on the Profile tab on phones, and in the Profile dialog on
 // desktop. Made up, but for their Player name, when the placeholder is switched on (profilePlaceholder.ts); otherwise
 // only that it's coming soon. Sign out is real either way.
 export default function AccountProfile({ playerName }: Props) {
   const profile = placeholderProfile;
-  const [statsMode, setStatsMode] = useState<StatsMode>("classic");
-  const stats = profile.stats[statsMode];
 
   if (!showPlaceholderProfile) {
     return (
@@ -102,38 +91,7 @@ export default function AccountProfile({ playerName }: Props) {
         <h2 className="m-0 text-xs font-bold tracking-[0.12em] text-ludo-on-page-muted uppercase">
           {profileMessages.statsHeading}
         </h2>
-        <div
-          className="grid grid-cols-3 rounded-xl border border-ludo-row-line bg-ludo-row p-1"
-          role="group"
-          aria-label={profileMessages.statsModes}
-        >
-          {statsModes.map(({ mode, name }) => (
-            <button
-              key={mode}
-              type="button"
-              className={`h-9 cursor-pointer rounded-[9px] px-1 text-[13px] font-semibold ${
-                  mode === statsMode ? "bg-ludo-card text-ludo-ink" : "text-ludo-on-page-muted"
-                }`}
-              aria-pressed={mode === statsMode}
-              onClick={() => setStatsMode(mode)}
-            >
-              {name}
-            </button>
-          ))}
-        </div>
-        <dl className="m-0 grid grid-cols-2 gap-2.5">
-          {([
-            [profileMessages.played, stats.played],
-            [profileMessages.won, stats.won],
-            [profileMessages.captures, stats.captures],
-            [profileMessages.tokensHome, stats.tokensHome],
-          ] satisfies [string, number][]).map(([label, value]) => (
-            <div key={label} className="flex flex-col-reverse gap-0.5 rounded-[14px] bg-ludo-row px-3.5 py-3">
-              <dt className="text-xs text-ludo-on-page-muted">{label}</dt>
-              <dd className="m-0 font-ludo-display text-[28px] leading-[1.1]">{value.toLocaleString("en")}</dd>
-            </div>
-          ))}
-        </dl>
+        <StatsByMode stats={profile.stats} />
       </section>
 
       <section className="flex flex-col gap-3">

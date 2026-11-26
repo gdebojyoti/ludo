@@ -54,7 +54,7 @@ describe("the debug list of Games", () => {
       gameCode: `${gameCode.slice(0, 2)}****`,
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-01T00:00:00.000Z",
-      players: [{ label, joinedVia: "webApp", playerName: "Luna Lovegood", isHost: true, away: false }],
+      players: [{ label, joinedVia: "webApp", playerName: "Luna Lovegood", isHost: true, away: false, signedIn: false }],
       board: null,
     }]);
     // The Board is the longest part, so it comes after everything else.
@@ -81,8 +81,8 @@ describe("the debug list of Games", () => {
       state: "playing",
       gameCode: null,
       players: [
-        { label, playerName: "Luna Lovegood", isHost: true, away: false },
-        { label, playerName: "Ginny Weasley", isHost: false, away: false },
+        { label, playerName: "Luna Lovegood", isHost: true, away: false, signedIn: false },
+        { label, playerName: "Ginny Weasley", isHost: false, away: false, signedIn: false },
       ],
       board: {
         turn: 0,

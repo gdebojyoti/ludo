@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { classicRules, type GameSnapshot } from "@ludo/shared";
 import { track } from "./analytics";
-import Avatar from "./Avatar";
+import PlayerAvatar from "./PlayerAvatar";
 import Button from "./Button";
 import ErrorMessage from "./ErrorMessage";
 import Header from "./Header";
@@ -202,7 +202,12 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
                   : "border border-ludo-row-line bg-ludo-row px-3.5 py-3"
               }`}
             >
-              <Avatar playerName={player.playerName} absent={player.away} />
+              <PlayerAvatar
+                playerName={player.playerName}
+                absent={player.away}
+                signedIn={player.signedIn}
+                isOwn={isViewer}
+              />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span
                   className={`text-[15px] leading-tight wrap-anywhere ${

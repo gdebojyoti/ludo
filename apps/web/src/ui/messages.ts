@@ -80,7 +80,7 @@ export const tabMessages = {
     settings: "Settings",
     profile: "Profile",
   } satisfies Record<Tab, string>,
-  comingSoon: "Coming soon.",
+  comingSoon: "More details coming soon.",
   back: "Back",
 };
 
@@ -121,6 +121,19 @@ export const profileMessages = {
   lockerDetail: (cosmetics: number) => `${count(cosmetics, "cosmetic", "cosmetics")} · choose what you wear`,
   signOut: "Sign out",
   signOutFailed: "Signing out isn't working right now. Try again in a moment.",
+};
+
+export const playerSheetMessages = {
+  open: (playerName: string, isOwn: boolean) => isOwn ? "Your profile" : `${playerName}'s profile`,
+  guest: "Guest",
+  guestNoProfile: "Guests don't have a profile, so there are no stats or achievements to show.",
+  // In two parts, the first in bold.
+  askToSignIn: "Ask them to sign in",
+  askToSignInWhy: " so you can start seeing your record against each other.",
+  ownGuest: "You're playing as a guest, so you don't have a profile, with stats and achievements, yet.",
+  ownGuestSignIn: "Sign in from the start screen to get one.",
+  achievements: (earned: number, total: number) => `${earned} of ${total} achievements`,
+  recordHeading: "Your record against them",
 };
 
 export const startMessages = {

@@ -1,3 +1,5 @@
+import { House, Swords, Trophy, type LucideIcon } from "lucide-react";
+
 // PLACEHOLDER: what a signed-in Player's Profile shows, made up, until the server sends the real thing (#57). Only the
 // Player name is real. Everything here goes once Coins, XP, stats, Achievements, Rivals and the Locker exist.
 
@@ -16,6 +18,23 @@ export interface ModeStats {
   captures: number;
   tokensHome: number;
 }
+
+/** Each placeholder Achievement's icon, until #65 settles the list. */
+export const achievementIcons: Record<string, LucideIcon> = { firstWin: Trophy, allFourHome: House, tenCaptures: Swords };
+
+/** Another signed-in Player's Profile, as their sheet shows it, with the viewer's record against them. */
+export const placeholderOtherProfile = {
+  supporter: true,
+  title: "Weekly champion",
+  level: 14,
+  stats: {
+    classic: { played: 63, won: 25, captures: 131, tokensHome: 170 },
+    oneKillWin: { played: 30, won: 12, captures: 44, tokensHome: 0 },
+    houseRules: { played: 9, won: 4, captures: 21, tokensHome: 26 },
+  } satisfies Record<StatsMode, ModeStats>,
+  achievementsEarned: 9,
+  record: { wins: 3, losses: 2 },
+};
 
 export const placeholderProfile = {
   coins: 1240,

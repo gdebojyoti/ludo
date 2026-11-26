@@ -1,5 +1,5 @@
 import type { SnapshotSeat } from "@ludo/shared";
-import Avatar from "./Avatar";
+import PlayerAvatar from "./PlayerAvatar";
 import { boardMessages, commonMessages } from "./messages";
 import { seatView } from "./seatView";
 
@@ -48,7 +48,14 @@ export default function PlayerCard({ seat, seatsFromViewer, mirrored, isTurn, de
         isTurn ? "border-2 border-ludo-accent bg-ludo-turn-card" : "border border-ludo-row-line bg-ludo-row"
       }`}
     >
-      <Avatar playerName={playerName} colours={seatView(seatsFromViewer)} ringed={isTurn} absent={away || left} />
+      <PlayerAvatar
+        playerName={playerName}
+        colours={seatView(seatsFromViewer)}
+        ringed={isTurn}
+        absent={away || left}
+        signedIn={seat.signedIn}
+        isOwn={seatsFromViewer === 0}
+      />
       <span className={`flex min-w-0 flex-col gap-0.5 ${mirrored ? "items-end" : ""}`}>
         <span className="line-clamp-2 text-sm leading-tight font-semibold wrap-anywhere">{playerName}</span>
         {belowName()}
