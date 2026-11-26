@@ -1,4 +1,4 @@
-import Icon from "./Icon";
+import { Info } from "lucide-react";
 
 // Something that happened without the Player doing it, such as opening a Join link while in a Game. Announced to
 // screen readers politely, unlike an error.
@@ -10,7 +10,7 @@ export default function Notice({ notice }: { notice: string | undefined }) {
         leading-[1.45] text-ludo-ink"
       role="status"
     >
-      <Icon name="info" size={22} className="mt-px flex-none text-ludo-ink-muted" />
+      <Info className="flex-none text-ludo-ink-muted" aria-hidden />
       <span>{notice}</span>
     </p>
   );

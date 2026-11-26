@@ -1,4 +1,4 @@
-import Icon from "./Icon";
+import { CircleAlert } from "lucide-react";
 
 // Why the server refused the Player's last command, if it did. Announced to screen readers as it appears.
 export default function ErrorMessage({ error }: { error: string | undefined }) {
@@ -9,7 +9,7 @@ export default function ErrorMessage({ error }: { error: string | undefined }) {
         text-ludo-danger"
       role="alert"
     >
-      <Icon name="error" size={16} strokeWidth={2.2} className="mt-px flex-none" />
+      <CircleAlert className="flex-none" aria-hidden />
       <span>{error}</span>
     </p>
   );

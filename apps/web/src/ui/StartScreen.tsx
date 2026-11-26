@@ -1,9 +1,9 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
+import { CircleAlert, RefreshCw } from "lucide-react";
 import { gameCodeLength, type GameMode } from "@ludo/shared";
 import Avatar from "./Avatar";
 import Button from "./Button";
 import CreateGameButton from "./CreateGameButton";
-import Icon from "./Icon";
 import { commonMessages, startMessages } from "./messages";
 import ProfileButton from "./ProfileButton";
 import { seatView } from "./seatView";
@@ -166,7 +166,7 @@ export default function StartScreen({
                 disabled={disabled}
                 onClick={onNewPlayerName}
               >
-                <Icon name="newName" />
+                <RefreshCw aria-hidden />
               </Button>
             )}
           </div>
@@ -208,7 +208,7 @@ export default function StartScreen({
                 className="mt-0.5 mb-0 flex items-start gap-2 text-[13px] leading-[1.45] text-ludo-danger"
                 role="alert"
               >
-                <Icon name="error" size={16} strokeWidth={2.2} className="mt-px flex-none" />
+                <CircleAlert className="flex-none" aria-hidden />
                 <span>{error}</span>
               </p>
             )}

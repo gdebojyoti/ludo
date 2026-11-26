@@ -93,7 +93,7 @@ export default function PlayerSheet({ ref, playerName, signedIn, isOwn }: Props)
               </span>
               <span className="font-ludo-display text-[22px]">{profileMessages.record(wins, losses)}</span>
             </div>
-            <Swords size={28} strokeWidth={1.8} className="flex-none text-ludo-ink-muted" aria-hidden />
+            <Swords className="flex-none text-ludo-ink-muted" aria-hidden />
           </div>
         )}
       </>

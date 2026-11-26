@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
+import { Copy, Hourglass, Share2 } from "lucide-react";
 import { classicRules, type GameSnapshot } from "@ludo/shared";
 import { track } from "./analytics";
 import PlayerAvatar from "./PlayerAvatar";
 import Button from "./Button";
 import ErrorMessage from "./ErrorMessage";
 import Header from "./Header";
-import Icon from "./Icon";
 import { joinLinkFor } from "./joinLink";
 import LeaveButton from "./LeaveButton";
 import Notice from "./Notice";
@@ -92,12 +92,7 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
             christmas:border-ludo-page-line"
           role="status"
         >
-          <Icon
-            name="waiting"
-            size={26}
-            strokeWidth={1.8}
-            className="flex-none text-ludo-accent-light christmas:text-ludo-on-page-muted"
-          />
+          <Hourglass className="flex-none text-ludo-accent-light christmas:text-ludo-on-page-muted" aria-hidden />
           <div className="flex flex-col gap-[3px]">
             <span className="text-[15px] font-semibold">{lobbyMessages.waitingForHost(host?.playerName ?? "")}</span>
             <span className="text-[13px] text-ludo-on-page-muted">{lobbyMessages.orStartsByItself}</span>
@@ -155,7 +150,7 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
       </p>
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Button variant="outline" className="h-12" onClick={shareJoinLink}>
-          <Icon name="share" size={18} />
+          <Share2 aria-hidden />
           <span aria-live="polite">{copied === "joinLink" ? lobbyMessages.copied : lobbyMessages.shareJoinLink}</span>
         </Button>
         <button
@@ -164,7 +159,7 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
             text-ludo-ink-muted underline underline-offset-[3px]"
           onClick={() => copy("gameCode", gameCode)}
         >
-          <Icon name="copy" size={15} />
+          <Copy size={15} aria-hidden />
           <span aria-live="polite">{copied === "gameCode" ? lobbyMessages.copied : lobbyMessages.copyCode}</span>
         </button>
       </div>

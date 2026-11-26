@@ -42,7 +42,7 @@ export default function NavBar({ open, hidden, onOpen }: Props) {
             onClick={() => onOpen(tab)}
           >
             {isOpen && <span className="absolute top-0 h-[3px] w-7 rounded-b-[3px] bg-ludo-accent-light" />}
-            <TabIcon size={22} strokeWidth={1.8} aria-hidden />
+            <TabIcon aria-hidden />
             {tabMessages.tabs[tab]}
           </button>
         );

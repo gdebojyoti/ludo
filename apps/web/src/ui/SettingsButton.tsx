@@ -1,8 +1,8 @@
 import { useRef } from "react";
+import { Settings } from "lucide-react";
 import { track } from "./analytics";
 import Button from "./Button";
 import DialogCard from "./DialogCard";
-import Icon from "./Icon";
 import { settingsMessages } from "./messages";
 import SettingsList from "./SettingsList";
 
@@ -29,11 +29,11 @@ export default function SettingsButton({ colours = "text-ludo-on-page" }: Props)
         title={settingsMessages.label}
         onClick={open}
       >
-        <Icon name="settings" className="xl:size-4.5" />
+        <Settings aria-hidden />
         <span className="sr-only xl:hidden">{settingsMessages.label}</span>
         <span className="hidden xl:inline">{settingsMessages.button}</span>
       </Button>
-      <DialogCard ref={dialogRef} icon="settings" title={settingsMessages.title}>
+      <DialogCard ref={dialogRef} icon={Settings} title={settingsMessages.title}>
         <div className="mt-1.5 flex flex-col gap-7">
           <SettingsList idPrefix="settings-dialog" />
           <Button variant="solid" onClick={() => dialogRef.current?.close()}>

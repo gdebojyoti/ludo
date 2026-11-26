@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { LogOut } from "lucide-react";
+import { CircleAlert, LogOut } from "lucide-react";
 import { signOut } from "./accounts";
 import { track } from "./analytics";
 import Button from "./Button";
-import Icon from "./Icon";
 import { profileMessages } from "./messages";
 
 // At the bottom of a signed-in Player's Profile: Sign out, and below it, if it didn't work, that it didn't.
@@ -32,12 +31,12 @@ export default function SignOut() {
         disabled={busy}
         onClick={start}
       >
-        <LogOut size={18} aria-hidden />
+        <LogOut aria-hidden />
         {profileMessages.signOut}
       </Button>
       {failed && (
         <p className="m-0 flex items-start gap-2 text-[13px] leading-[1.4] text-ludo-on-page-muted" role="alert">
-          <Icon name="error" size={16} strokeWidth={2.2} className="mt-px flex-none" />
+          <CircleAlert className="flex-none" aria-hidden />
           <span>{profileMessages.signOutFailed}</span>
         </p>
       )}

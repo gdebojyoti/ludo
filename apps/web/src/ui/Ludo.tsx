@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { LucideProvider } from "lucide-react";
 import type { SnapshotBoard } from "@ludo/shared";
 import { track } from "./analytics";
 import BoardScreen from "./BoardScreen";
@@ -126,13 +127,16 @@ export default function Ludo() {
   // than a phone but narrower than desktop, the game keeps its phone layout, in a channel down the middle. From desktop
   // width (Tailwind's xl, 1280px) on, each screen has its own desktop layout, across the whole window. The Christmas
   // theme's snow falls behind the screen, which is positioned to stay in front of it.
+  // Every icon is Lucide's, drawn at this size and with this stroke unless it's given its own.
   return (
-    <div className="min-h-dvh bg-ludo-page-deep font-ludo-ui text-ludo-on-page" data-ludo-theme={theme}>
-      <main className="relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-ludo-page xl:max-w-none">
-        <Snowfall />
-        <ServerStatus status={status} />
-        <div className="relative flex flex-1 flex-col">{screen()}</div>
-      </main>
-    </div>
+    <LucideProvider size={20} strokeWidth={1.75}>
+      <div className="min-h-dvh bg-ludo-page-deep font-ludo-ui text-ludo-on-page" data-ludo-theme={theme}>
+        <main className="relative mx-auto flex min-h-dvh w-full max-w-[430px] flex-col bg-ludo-page xl:max-w-none">
+          <Snowfall />
+          <ServerStatus status={status} />
+          <div className="relative flex flex-1 flex-col">{screen()}</div>
+        </main>
+      </div>
+    </LucideProvider>
   );
 }

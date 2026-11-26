@@ -21,7 +21,7 @@ export default function SettingsScreen({ signedIn, onBack }: Props) {
         </section>
         {signedIn !== undefined && (
           <p className="m-0 flex items-start gap-2.5 px-1 text-[13px] leading-[1.45] text-ludo-on-page-muted">
-            <Cloud size={18} className="mt-px flex-none" aria-hidden />
+            <Cloud className="flex-none" aria-hidden />
             <span>{signedIn ? settingsMessages.followsAccount : settingsMessages.keptInBrowser}</span>
           </p>
         )}

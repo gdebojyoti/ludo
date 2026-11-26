@@ -106,7 +106,7 @@ export default function AccountProfile({ playerName }: Props) {
                 {earned && AchievementIcon
                   ? (
                       <span className="flex size-14 items-center justify-center rounded-full bg-ludo-accent-light text-ludo-ink">
-                        <AchievementIcon size={26} strokeWidth={1.9} aria-hidden />
+                        <AchievementIcon aria-hidden />
                       </span>
                     )
                   : (
@@ -116,7 +116,7 @@ export default function AccountProfile({ playerName }: Props) {
                         role="img"
                         aria-label={profileMessages.notEarned}
                       >
-                        <Lock size={22} aria-hidden />
+                        <Lock aria-hidden />
                       </span>
                     )}
                 <span className={`text-xs leading-[1.3] ${earned ? "" : "text-ludo-page-line"}`}>{name}</span>
@@ -161,7 +161,7 @@ export default function AccountProfile({ playerName }: Props) {
           className="flex size-10 flex-none items-center justify-center rounded-xl bg-ludo-accent-light/14
               text-ludo-accent-light"
         >
-          <Shirt size={22} strokeWidth={1.9} aria-hidden />
+          <Shirt aria-hidden />
         </span>
         <span className="flex flex-1 flex-col gap-0.5">
           <span className="text-[15px] font-bold">{profileMessages.locker}</span>

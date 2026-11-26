@@ -50,7 +50,7 @@ export default function GuestProfile({ playerName, onBack }: Props) {
             {perks.map(({ text, icon: PerkIcon }) => (
               <li key={text} className="flex items-start gap-3 text-[15px] leading-[1.4]">
                 <span className="flex size-8 flex-none items-center justify-center rounded-[10px] bg-ludo-card-sunk">
-                  {PerkIcon === "coin" ? <Coin size={18} /> : <PerkIcon size={18} aria-hidden />}
+                  {PerkIcon === "coin" ? <Coin size={18} /> : <PerkIcon aria-hidden />}
                 </span>
                 <span className="pt-[5px]">{text}</span>
               </li>

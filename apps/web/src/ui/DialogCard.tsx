@@ -1,11 +1,11 @@
 import { useId, type ReactNode, type RefObject } from "react";
-import Icon, { type IconName } from "./Icon";
+import type { LucideIcon } from "lucide-react";
 
 interface Props {
   /** For the button that opens it to call showModal() on. */
   ref: RefObject<HTMLDialogElement | null>;
   /** Shown large, in a circle above the title. */
-  icon: IconName;
+  icon: LucideIcon;
   title: string;
   /** Below the title. */
   children: ReactNode;
@@ -13,7 +13,7 @@ interface Props {
 
 // The card that Leave's question and Settings open in, in the middle of the screen over a scrim. A tap on the scrim,
 // outside the card, closes it, as does Escape.
-export default function DialogCard({ ref, icon, title, children }: Props) {
+export default function DialogCard({ ref, icon: DialogIcon, title, children }: Props) {
   const titleId = useId();
 
   return (
@@ -27,7 +27,7 @@ export default function DialogCard({ ref, icon, title, children }: Props) {
       <div className="flex flex-col gap-3.5">
         <div className="flex flex-col items-center gap-3.5">
           <span className="flex size-16 items-center justify-center rounded-full bg-ludo-card-sunk">
-            <Icon name={icon} size={28} />
+            <DialogIcon size={28} aria-hidden />
           </span>
           <h2 id={titleId} className="m-0 text-center font-ludo-display text-[26px] font-normal">{title}</h2>
         </div>

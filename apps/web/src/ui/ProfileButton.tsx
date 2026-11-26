@@ -30,7 +30,7 @@ export default function ProfileButton({ playerName }: Props) {
           [--ludo-button-icon-fill:transparent]"
         onClick={open}
       >
-        <User size={18} aria-hidden />
+        <User aria-hidden />
         {startMessages.profile}
       </Button>
       <dialog

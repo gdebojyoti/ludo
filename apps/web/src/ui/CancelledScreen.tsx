@@ -1,7 +1,7 @@
 import type { GameSnapshot } from "@ludo/shared";
+import { DoorClosed } from "lucide-react";
 import Button from "./Button";
 import Header from "./Header";
-import Icon from "./Icon";
 import { resultMessages } from "./messages";
 
 interface Props {
@@ -28,7 +28,7 @@ export default function CancelledScreen({ game, onBackToStart }: Props) {
             className="flex size-[120px] items-center justify-center rounded-full border-2 border-ludo-accent
               text-ludo-accent-light"
           >
-            <Icon name="closedDoor" size={52} strokeWidth={1.6} />
+            <DoorClosed size={52} aria-hidden />
           </div>
           <div className="flex max-w-[300px] flex-col gap-2.5" role="status">
             {/* Desktop only: on phones, the header says so. */}

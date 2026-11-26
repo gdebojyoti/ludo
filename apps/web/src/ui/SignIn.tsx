@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { CircleAlert } from "lucide-react";
 import { signIn } from "./accounts";
 import { track } from "./analytics";
-import Icon from "./Icon";
 import { startMessages } from "./messages";
 
 // Google's "G", in its own colours, as its sign-in branding asks.
@@ -68,7 +68,7 @@ export default function SignIn({ pitch = startMessages.signInPitch, onCard = fal
               className={`m-0 flex items-start justify-center gap-2 px-8 text-[13px] leading-[1.4] ${errorColour}`}
               role="alert"
             >
-              <Icon name="error" size={16} strokeWidth={2.2} className="mt-px flex-none" />
+              <CircleAlert className="flex-none" aria-hidden />
               <span>{startMessages.signInFailed}</span>
             </p>
           )
