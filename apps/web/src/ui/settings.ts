@@ -1,20 +1,8 @@
 import { useSyncExternalStore } from "react";
+import { isTheme, themes, type Settings, type Theme } from "@ludo/shared";
 
 // Every game on the site shares one origin, so the key is namespaced.
 const storageKey = "ludo-settings";
-
-/** The themes, in the order Change theme goes through them. The first, Christmas, is the default. */
-export const themes = ["christmas", "heritage"] as const;
-
-export type Theme = (typeof themes)[number];
-
-export interface Settings {
-  /** Whether the die is on the left of the Turn status on phones, rather than the right. */
-  diceOnLeft: boolean;
-  theme: Theme;
-  /** Whether the viewer's Token Moves by itself when there's no choice to make, as every legal Move is alike. */
-  autoplay: boolean;
-}
 
 const defaultSettings: Settings = { diceOnLeft: false, theme: themes[0], autoplay: false };
 
@@ -29,7 +17,7 @@ const loadSettings = (): Settings => {
     const { diceOnLeft, theme, autoplay } = kept as Record<string, unknown>;
     return {
       diceOnLeft: typeof diceOnLeft === "boolean" ? diceOnLeft : defaultSettings.diceOnLeft,
-      theme: themes.find((known) => known === theme) ?? defaultSettings.theme,
+      theme: isTheme(theme) ? theme : defaultSettings.theme,
       autoplay: typeof autoplay === "boolean" ? autoplay : defaultSettings.autoplay,
     };
   } catch {
@@ -42,6 +30,8 @@ const loadSettings = (): Settings => {
 // own Settings button switches the die.
 let current = loadSettings();
 const listeners = new Set<() => void>();
+// Sends a change to the Account the browser is signed in to, while it is.
+let sendToAccount: ((changed: Partial<Settings>) => void) | null = null;
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
@@ -50,8 +40,8 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-/** Changes some of the settings, and keeps them all for the next visit. */
-export const changeSettings = (changed: Partial<Settings>) => {
+/** Changes some of the settings, and keeps them all in the browser, as the ones it shows on its next visit. */
+const keep = (changed: Partial<Settings>) => {
   current = { ...current, ...changed };
   try {
     localStorage.setItem(storageKey, JSON.stringify(current));
@@ -59,6 +49,25 @@ export const changeSettings = (changed: Partial<Settings>) => {
     // Storage is blocked or full, so the settings last only until the page is closed.
   }
   listeners.forEach((listener) => listener());
+};
+
+/**
+ * Changes some of the settings, and keeps them all for the next visit: in the browser for a Guest, and with the Account
+ * too while the browser is signed in, so they follow it to its other browsers.
+ */
+export const changeSettings = (changed: Partial<Settings>) => {
+  keep(changed);
+  sendToAccount?.(changed);
+};
+
+/**
+ * Follows the Account the browser is signed in to, as the server sends it: shows the settings it has changed, keeping
+ * the browser's own for the rest, and sends it every change from now on. `send` is null for a Guest, whose settings stay
+ * in the browser only.
+ */
+export const followAccount = (settings: Partial<Settings>, send: ((changed: Partial<Settings>) => void) | null) => {
+  sendToAccount = send;
+  keep(settings);
 };
 
 /** The settings, which re-render the component when they change. */

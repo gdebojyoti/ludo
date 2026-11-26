@@ -1,6 +1,25 @@
 // The Socket.IO event contract between the web app and the server.
 // Both sides type their sockets with these, so a change here is checked on both.
 import type { GameMode, Seat, SeatToken, TokenPosition } from "./rules.js";
+import type { Settings } from "./settings.js";
+
+/**
+ * The Account a browser is signed in to, as its own Player sees it. Never its Account ID, or anything else that
+ * identifies it outside Ludo.
+ */
+export interface AccountSnapshot {
+  /**
+   * The Account's Player name, its Google name, cut to `playerNameMaxLength`, by which the server enters it in every
+   * Game, whatever Player name the web app sends. Null if its Google name has nothing in it to show, when the server
+   * uses the one the web app sends.
+   */
+  playerName: string | null;
+  /**
+   * The settings the Account has changed, on any browser, the latest change to each winning. Those it never has are left
+   * out, so the browser keeps its own.
+   */
+  settings: Partial<Settings>;
+}
 
 /**
  * Stages a Game goes through: in the Lobby, in play once it has started, then won by the first Player to do what its
@@ -115,10 +134,12 @@ export type RejectionReason =
   | "illegalMove"
   | "invalidGameMode"
   | "invalidPlayerName"
+  | "invalidSettings"
   | "noActiveGame"
   | "notEnoughPlayers"
   | "notHost"
   | "notRolled"
+  | "notSignedIn"
   | "notYourTurn"
   /** Something went wrong on the server, not with the command. */
   | "serverError";
@@ -180,6 +201,13 @@ export interface ClientToServerEvents {
    * Moves.
    */
   move: (token: number, ack: (reply: Acknowledgement) => void) => void;
+  /**
+   * Keeps a change to some of the settings of the Account the browser is signed in to, the others as they were, and
+   * sends the Account, with its settings, to every tab signed in to it, on every browser, this one included. Refused if
+   * the browser isn't signed in, or the change isn't an object or gives a setting a value it can't have. Anything else
+   * in it is left out.
+   */
+  changeSettings: (changed: Partial<Settings>, ack: (reply: Acknowledgement) => void) => void;
 }
 
 /** Events the server sends to the web app. */
@@ -191,4 +219,9 @@ export interface ServerToClientEvents {
   game: (game: GameSnapshot) => void;
   /** Sent when a Player connects without an active Game, so the web app shows the start screen. */
   noActiveGame: () => void;
+  /**
+   * The Account the browser is signed in to, or null for a Guest, sent as soon as the tab connects, before its Game, and
+   * again whenever the Account's settings change, on any browser.
+   */
+  account: (account: AccountSnapshot | null) => void;
 }

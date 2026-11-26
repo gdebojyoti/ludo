@@ -23,6 +23,11 @@ export interface PlayerResult {
   seat: Seat;
   /** How they created or joined the Game. */
   joinedVia: JoinedVia;
+  /**
+   * The ID of the Account the server knew them by when the Game ended, or when they Left it; null for a Guest or an AI
+   * Player.
+   */
+  accountId: string | null;
   /** Their Standing, counting from 1: Players who tie share one. */
   standing: number;
   /** How many opponents' Tokens they Captured. */
@@ -75,6 +80,7 @@ export const toGameResult = (game: Game, endedAt: string): GameResult | undefine
     return [{
       seat: index,
       joinedVia: seat.joinedVia,
+      accountId: seat.accountId,
       standing,
       captures: seat.captures,
       tokensHome: left ? seat.leaverTokensHome ?? 0 : tokensHome(seat.tokens),

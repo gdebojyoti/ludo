@@ -27,7 +27,8 @@ import {
 
 import type { GameNotifier } from "./game-notifier.js";
 import { toGameResult, type GameResult, type GameResultStore } from "./game-results.js";
-import type { Game, GameBoard, GameSeat, GameStore, JoinedVia } from "./game-store.js";
+import type { Game, GameBoard, GamePlayer, GameSeat, GameStore, JoinedVia } from "./game-store.js";
+import type { PlayerAccount } from "./identity.js";
 
 export type CommandResult = { ok: true; game: Game } | { ok: false; reason: RejectionReason };
 
@@ -97,9 +98,9 @@ export const createGameService = (
     const seats = Array.from({ length: classicRules.seats }, (_, seat): GameSeat => {
       const player = game.players[seatsInJoinOrder.indexOf(seat)];
       const atStart = { leaverName: null, leaverTokensHome: null, captures: 0 };
-      if (!player) return { ...atStart, playerId: null, joinedVia: null, tokens: [] };
-      const { playerId, joinedVia } = player;
-      return { ...atStart, playerId, joinedVia, tokens: startingTokens(game.mode, seat) };
+      if (!player) return { ...atStart, playerId: null, joinedVia: null, accountId: null, tokens: [] };
+      const { playerId, joinedVia, accountId } = player;
+      return { ...atStart, playerId, joinedVia, accountId, tokens: startingTokens(game.mode, seat) };
     });
     // `randomInt` is always below the number of Players, so this is one of their Seats.
     const turn = seatsInJoinOrder[randomInt(seatsInJoinOrder.length)] as Seat;
@@ -132,12 +133,16 @@ export const createGameService = (
     return { ok: true as const, game, board, seat: board.turn };
   };
 
-  /** Creates a Game in the Lobby, following this Game mode, with the Player as its Host, who created it `joinedVia`. */
+  /**
+   * Creates a Game in the Lobby, following this Game mode, with the Player as its Host, who created it `joinedVia`, known
+   * by the Account with this ID, or none for a Guest or an AI Player.
+   */
   const createGame = oneAtATime(async (
     playerId: string,
     playerName: string,
     mode: GameMode,
     joinedVia: JoinedVia,
+    accountId: string | null = null,
   ): Promise<CommandResult> => {
     if (!isValidPlayerName(playerName)) return { ok: false, reason: "invalidPlayerName" };
     if (!isGameMode(mode)) return { ok: false, reason: "invalidGameMode" };
@@ -149,7 +154,7 @@ export const createGameService = (
       state: "lobby",
       gameCode: await newGameCode(),
       hostId: playerId,
-      players: [{ playerId, playerName: playerName.trim(), joinedVia }],
+      players: [{ playerId, playerName: playerName.trim(), joinedVia, accountId }],
       board: null,
       createdAt,
       updatedAt: createdAt,
@@ -158,22 +163,23 @@ export const createGameService = (
   });
 
   /**
-   * Adds the Player, who joined `joinedVia`, to the Game in the Lobby with this Game code, after the Players already in
-   * it. The join that fills the Lobby starts the Game, after which its Game code no longer finds it. Joins run one at
-   * a time, so two Players can't both take the last place.
+   * Adds the Player, who joined `joinedVia`, known by the Account with this ID, or none, to the Game in the Lobby with
+   * this Game code, after the Players already in it. The join that fills the Lobby starts the Game, after which its Game
+   * code no longer finds it. Joins run one at a time, so two Players can't both take the last place.
    */
   const joinGame = oneAtATime(async (
     playerId: string,
     gameCode: string,
     playerName: string,
     joinedVia: JoinedVia,
+    accountId: string | null = null,
   ): Promise<CommandResult> => {
     if (!isValidPlayerName(playerName)) return { ok: false, reason: "invalidPlayerName" };
     // This also stops a Player joining a Game they're already in.
     if (await store.findActiveGameByPlayer(playerId)) return { ok: false, reason: "alreadyInActiveGame" };
     const game = await store.findLobbyGameByCode(gameCode);
     if (!game) return { ok: false, reason: "gameCodeNotFound" };
-    const players = [...game.players, { playerId, playerName: playerName.trim(), joinedVia }];
+    const players = [...game.players, { playerId, playerName: playerName.trim(), joinedVia, accountId }];
     const joined = { ...game, players };
     return { ok: true, game: await save(players.length === classicRules.maxPlayers ? started(joined) : joined) };
   });
@@ -300,6 +306,31 @@ export const createGameService = (
   });
 
   /**
+   * The Player, whose browser is signed in to the Account, is known by it in their active Game from now on, and shown by
+   * its Player name, if it has one: a Guest who signs in during a Game stays in it. Says whether that changed the Game,
+   * which is then sent to every Player in it. A browser that connects without a Session changes nothing here: what a
+   * Sign out during a Game does is for #66 to decide.
+   */
+  const signIn = oneAtATime(async (playerId: string, account: PlayerAccount): Promise<boolean> => {
+    const game = await store.findActiveGameByPlayer(playerId);
+    const player = game?.players.find((other) => other.playerId === playerId);
+    if (!game || !player) return false;
+    const playerName = account.playerName ?? player.playerName;
+    if (player.accountId === account.accountId && player.playerName === playerName) return false;
+    const { accountId } = account;
+    const signedIn = <Entry extends GamePlayer | GameSeat>(entry: Entry, changes: Partial<Entry>): Entry => {
+      return entry.playerId === playerId ? { ...entry, ...changes } : entry;
+    };
+    const players = game.players.map((other) => signedIn(other, { accountId, playerName }));
+    const board = game.board && {
+      ...game.board,
+      seats: game.board.seats.map((seat) => signedIn(seat, { accountId })),
+    };
+    await save({ ...game, players, board });
+    return true;
+  });
+
+  /**
    * Hands `use` the Player's active Game, or undefined if they have none. It runs in turn with the commands, before
    * the next can change the Game, so whatever it sends from the Game can't arrive after a newer one.
    */
@@ -330,6 +361,7 @@ export const createGameService = (
     leaveLobby,
     roll,
     move,
+    signIn,
     withActiveGame,
     findLastGame,
     findNewestGames,
@@ -352,7 +384,7 @@ const takenSeats = (board: GameBoard): Seat[] => {
 
 // Runs commands one at a time, each finishing before the next starts. Commands that run side by side could both pass
 // a check before either saves: a double click on Create would create two Games.
-const createQueue = () => {
+export const createQueue = () => {
   let last: Promise<unknown> = Promise.resolve();
 
   return <Args extends unknown[], Result>(command: (...args: Args) => Promise<Result>) => {

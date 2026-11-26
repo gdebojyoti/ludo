@@ -8,6 +8,7 @@ describe("readConfig", () => {
       webOrigins: ["http://localhost:8083"],
       webAppUrl: "http://localhost:8083/ludo",
       databaseUrl: null,
+      sessionCookieName: "tablehop.session_token",
     });
   });
 
@@ -21,6 +22,7 @@ describe("readConfig", () => {
       webOrigins: ["https://tablehop.games"],
       webAppUrl: "https://tablehop.games/ludo",
       databaseUrl: null,
+      sessionCookieName: "tablehop.session_token",
     });
   });
 
@@ -45,6 +47,12 @@ describe("readConfig", () => {
   it("reads the database's connection string", () => {
     expect(readConfig({ DATABASE_URL: " postgres://ludo:secret@localhost:5432/accounts " }).databaseUrl)
       .toBe("postgres://ludo:secret@localhost:5432/accounts");
+  });
+
+  it("reads the production session cookie on Render, where accounts sets it on tablehop.games", () => {
+    const onRender = { RENDER: "true", WEB_APP_URL: "https://tablehop.games/ludo", DATABASE_URL: "postgres://ludo@neon" };
+
+    expect(readConfig(onRender).sessionCookieName).toBe("__Secure-tablehop.session_token");
   });
 
   it("refuses to start on Render without the database, so no finished Game's result is lost", () => {

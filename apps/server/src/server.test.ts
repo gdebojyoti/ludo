@@ -3,6 +3,7 @@ import { io, type Socket } from "socket.io-client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { ClientToServerEvents, ServerToClientEvents } from "@ludo/shared";
 import { createGameServer, type GameServer } from "./server.js";
+import { localSessionCookieName } from "./sessions.js";
 
 const webOrigin = "http://localhost:8083";
 const hostAppOrigin = "https://tablehop.games";
@@ -12,7 +13,13 @@ let url: string;
 
 beforeEach(async () => {
   const webOrigins = [webOrigin, hostAppOrigin];
-  server = createGameServer({ port: 0, webOrigins, webAppUrl: `${webOrigin}/ludo`, databaseUrl: null });
+  server = createGameServer({
+    port: 0,
+    webOrigins,
+    webAppUrl: `${webOrigin}/ludo`,
+    databaseUrl: null,
+    sessionCookieName: localSessionCookieName,
+  });
   await new Promise<void>((resolve) => server.httpServer.listen(0, resolve));
   const { port } = server.httpServer.address() as AddressInfo;
   url = `http://localhost:${port}`;

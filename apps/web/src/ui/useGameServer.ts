@@ -1,9 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import { gameCodeLength, type Acknowledgement, type GameMode, type GameSnapshot } from "@ludo/shared";
+import {
+  gameCodeLength,
+  type AccountSnapshot,
+  type Acknowledgement,
+  type GameMode,
+  type GameSnapshot,
+} from "@ludo/shared";
 import { track } from "./analytics";
 import { enteringGame, leavingGame, sawGame } from "./gameAnalytics";
 import { gameCodeInAddress, isGameCode, removeJoinLinkFromAddress } from "./joinLink";
 import { rejectionMessages, startMessages } from "./messages";
+import { followAccount } from "./settings";
 import { connectToServer, type GameSocket } from "./socket";
 
 export type ConnectionStatus = "connecting" | "connected" | "disconnected";
@@ -15,8 +22,9 @@ export type Notice = "alreadyInGame";
 /** Whether a Game has ended, won or cancelled, so it's shown until the Player goes back to the start. */
 const isOver = (game: GameSnapshot) => game.state === "won" || game.state === "cancelled";
 
-// The connection to the server, and the latest snapshot of the Player's Game. The web app holds no game logic: it
-// shows what the server last sent, and sends commands, with this Player name where they need one.
+// The connection to the server, the Account the browser is signed in to, and the latest snapshot of the Player's Game.
+// The web app holds no game logic: it shows what the server last sent, and sends commands, with this Player name where
+// they need one, which the server replaces with the Account's own.
 export const useGameServer = (playerName: string) => {
   const socketRef = useRef<GameSocket>(null);
   const [status, setStatus] = useState<ConnectionStatus>("connecting");
@@ -27,6 +35,8 @@ export const useGameServer = (playerName: string) => {
   const [busy, setBusy] = useState(false);
   // The code from a Join link that didn't work, filled in on the start screen so it can be fixed by hand.
   const [gameCodeFromLink, setGameCodeFromLink] = useState("");
+  // Undefined until the server has said whether the browser is signed in to an Account; null for a Guest.
+  const [account, setAccount] = useState<AccountSnapshot | null>();
   // Read when a command is sent, so picking a new Player name doesn't reconnect.
   const playerNameRef = useRef(playerName);
 
@@ -45,6 +55,14 @@ export const useGameServer = (playerName: string) => {
     });
     socket.on("disconnect", () => setStatus("disconnected"));
     socket.on("connect_error", () => setStatus("disconnected"));
+    // Sent as each connection opens, and again when the Account's settings change on any browser.
+    socket.on("account", (account) => {
+      setAccount(account);
+      // A change the server refuses, such as one sent just as the browser signed out on another game, stays in this
+      // browser only.
+      const send = (changed: AccountSnapshot["settings"]) => socket.emit("changeSettings", changed, () => {});
+      followAccount(account?.settings ?? {}, account && send);
+    });
     socket.on("game", (game) => {
       gamesReceived++;
       // A Join link still in the address hasn't been used, as it's taken out before joining.
@@ -103,6 +121,7 @@ export const useGameServer = (playerName: string) => {
     return () => {
       window.removeEventListener("pagehide", leavePage);
       window.removeEventListener("pageshow", returnToPage);
+      followAccount({}, null);
       socket.disconnect();
       socketRef.current = null;
     };
@@ -181,6 +200,7 @@ export const useGameServer = (playerName: string) => {
 
   return {
     status,
+    account,
     game,
     error,
     notice,

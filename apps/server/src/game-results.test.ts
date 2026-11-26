@@ -31,9 +31,9 @@ const aResult = (): GameResult => ({
   turnsPlayed: 27,
   endedAt: "2026-11-26T10:15:30.125Z",
   players: [
-    { seat: 0, joinedVia: "webApp", standing: 2, captures: 0, tokensHome: 0, left: false },
-    { seat: 1, joinedVia: "mcp", standing: 3, captures: 0, tokensHome: 0, left: true },
-    { seat: 2, joinedVia: "webApp", standing: 1, captures: 1, tokensHome: 0, left: false },
+    { seat: 0, joinedVia: "webApp", accountId: randomUUID(), standing: 2, captures: 0, tokensHome: 0, left: false },
+    { seat: 1, joinedVia: "mcp", accountId: null, standing: 3, captures: 0, tokensHome: 0, left: true },
+    { seat: 2, joinedVia: "webApp", accountId: null, standing: 1, captures: 1, tokensHome: 0, left: false },
   ],
 });
 
@@ -77,8 +77,24 @@ describe.each([
       turnsPlayed: 1,
       endedAt: "2026-11-26T23:59:59.999Z",
       players: [
-        { seat: 0, joinedVia: "webApp", standing: 1, captures: 3, tokensHome: 4, left: false },
-        { seat: 2, joinedVia: "mcp", standing: 2, captures: 2, tokensHome: 2, left: true },
+        { seat: 0, joinedVia: "webApp", accountId: null, standing: 1, captures: 3, tokensHome: 4, left: false },
+        { seat: 2, joinedVia: "mcp", accountId: null, standing: 2, captures: 2, tokensHome: 2, left: true },
+      ],
+    };
+
+    await store().save(result);
+
+    expect(await store().findResult(result.gameId)).toEqual(result);
+  });
+
+  it("keeps the Account ID of each Player who had one, Leavers included, and none for Guests", async () => {
+    const [winner, leaver] = [randomUUID(), randomUUID()];
+    const result: GameResult = {
+      ...aResult(),
+      players: [
+        { seat: 0, joinedVia: "webApp", accountId: winner, standing: 1, captures: 1, tokensHome: 0, left: false },
+        { seat: 1, joinedVia: "webApp", accountId: null, standing: 2, captures: 0, tokensHome: 0, left: false },
+        { seat: 3, joinedVia: "webApp", accountId: leaver, standing: 3, captures: 0, tokensHome: 0, left: true },
       ],
     };
 

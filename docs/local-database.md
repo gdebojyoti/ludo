@@ -1,6 +1,6 @@
 # A local database
 
-Ludo's server keeps each finished Game's result in Postgres, in its own `ludo` schema (ADR-0013). Live Games stay in memory (ADR-0004). Locally, the server and its tests use the same Postgres on your machine that `accounts` uses, never production.
+Ludo's server keeps each finished Game's result, and the Accounts it has seen with their settings, in Postgres, in its own `ludo` schema (ADR-0013), and checks each Player's Session there, in `accounts`' tables (ADR-0014). Live Games stay in memory (ADR-0004). Locally, the server and its tests use the same Postgres on your machine that `accounts` uses, never production.
 
 You need two things on it:
 
@@ -27,7 +27,7 @@ CREATE DATABASE ludo_test;
 Line by line:
 
 1. Creates the `ludo` role, which can log in (`LOGIN`), much as `CREATE USER` in MySQL.
-2. Gives it `accounts_reader`, a role that holds no login of its own, only the right to read the few columns of `accounts`' tables that a game may read (thg.accounts' `docs/contract.md`). Holding it is how Ludo will check a Player's Session, and it can read nothing else of `accounts`.
+2. Gives it `accounts_reader`, a role that holds no login of its own, only the right to read the few columns of `accounts`' tables that a game may read (thg.accounts' `docs/contract.md`). Holding it is how Ludo checks a Player's Session, and it can read nothing else of `accounts`.
 3. Lets it create a schema in the `accounts` database. The first time the server starts, it creates the `ludo` schema, which it then owns, so it can create and change its own tables there and nowhere else.
 4. Creates the test database, which tests connect to as `postgres`. It's a separate database, not just a schema, so the tests can empty it without touching anything `npm run dev` uses.
 
@@ -54,13 +54,15 @@ npm run migrate -w @ludo/server
 
 This runs every migration in `apps/server/migrations/` that hasn't run yet against `DATABASE_URL`, and does nothing when they all have. The server does the same each time it starts, before it serves any request, so `npm run dev` and a deploy migrate by themselves too. `npm test` migrates `ludo_test` by itself.
 
-To check, connect as `ludo` (`psql -U ludo -d accounts`) and run `\dt ludo.*`: it lists `game_results`, `game_result_players` and `pgmigrations`.
+To check, connect as `ludo` (`psql -U ludo -d accounts`) and run `\dt ludo.*`: it lists `account_settings`, `game_results`, `game_result_players`, `pgmigrations` and `seen_accounts`.
 
 ## Run the tests
 
 ```sh
 npm test
 ```
+
+Each run empties `ludo_test` and makes it again: the `ludo` schema with every migration, and beside it a stand-in for the two tables of `accounts` that a game reads, so the session check is tested without `accounts`' own migrations.
 
 Without `TEST_DATABASE_URL`, the tests that need Postgres fail, each saying so, and the rest still run.
 
@@ -74,4 +76,4 @@ A migration is one numbered `.sql` file in `apps/server/migrations/` that change
 
 ## Without a database
 
-`DATABASE_URL` isn't needed for `npm run dev`. With its line deleted from `.env`, or with no `.env` at all, the server keeps finished Games' results in memory, until it stops, and says so as it starts. On Render it's required, and the server won't start without it.
+`DATABASE_URL` isn't needed for `npm run dev`. With its line deleted from `.env`, or with no `.env` at all, the server keeps finished Games' results and Accounts' settings in memory, until it stops, every Player is a Guest, and it says so as it starts. On Render it's required, and the server won't start without it.

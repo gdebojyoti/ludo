@@ -51,6 +51,11 @@ export interface GamePlayer {
   playerName: string;
   /** How they created or joined the Game, kept for the whole Game. */
   joinedVia: JoinedVia;
+  /**
+   * The ID of the Account the server knows them by, from when they entered the Game or signed in during it; null for a
+   * Guest or an AI Player. Never sent to any Player.
+   */
+  accountId: string | null;
 }
 
 export interface GameSeat {
@@ -64,6 +69,11 @@ export interface GameSeat {
   captures: number;
   /** How the Player given this Seat joined the Game, kept if they Leave it; null if no Player was given it. */
   joinedVia: JoinedVia | null;
+  /**
+   * The ID of the Account the server knows the Seat's Player by, kept if they Leave it; null for a Guest, an AI Player,
+   * or a Seat no Player was given. Never sent to any Player.
+   */
+  accountId: string | null;
   /** Where each of the Seat's Tokens is. An empty Seat has none. */
   tokens: TokenPosition[];
 }

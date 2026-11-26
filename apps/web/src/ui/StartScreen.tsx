@@ -23,7 +23,8 @@ interface Props {
   error: string | undefined;
   /** The code to fill in at first, from a Join link that didn't work. */
   initialGameCode: string;
-  onNewPlayerName: () => void;
+  /** Picks a new Player name; undefined for a Player signed in to an Account, who plays by its own. */
+  onNewPlayerName: (() => void) | undefined;
   onCreateGame: (mode: GameMode) => void;
   onJoinGame: (gameCode: string) => void;
 }
@@ -124,16 +125,18 @@ export default function StartScreen({
             <span className="text-xs text-ludo-ink-muted">{startMessages.playingAs}</span>
             <span className="text-[17px] font-bold wrap-anywhere" aria-live="polite">{playerName}</span>
           </span>
-          <Button
-            variant="icon"
-            className="border-ludo-line text-ludo-ink christmas:[--ludo-button-icon-fill:transparent]"
-            aria-label={startMessages.newName}
-            title={startMessages.newName}
-            disabled={disabled}
-            onClick={onNewPlayerName}
-          >
-            <Icon name="newName" />
-          </Button>
+          {onNewPlayerName && (
+            <Button
+              variant="icon"
+              className="border-ludo-line text-ludo-ink christmas:[--ludo-button-icon-fill:transparent]"
+              aria-label={startMessages.newName}
+              title={startMessages.newName}
+              disabled={disabled}
+              onClick={onNewPlayerName}
+            >
+              <Icon name="newName" />
+            </Button>
+          )}
         </div>
         <CreateGameButton disabled={disabled} onCreateGame={onCreateGame} />
         <form className="flex flex-col gap-2" onSubmit={joinGame}>

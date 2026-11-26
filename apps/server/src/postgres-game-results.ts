@@ -15,6 +15,7 @@ interface ResultRow {
 interface PlayerRow {
   seat: Seat;
   joined_via: JoinedVia;
+  account_id: string | null;
   standing: number;
   captures: number;
   tokens_home: number;
@@ -35,12 +36,14 @@ export const createPostgresGameResultStore = (pool: pg.Pool): GameResultStore =>
         );
         for (const player of result.players) {
           await client.query(
-            `INSERT INTO game_result_players (game_id, seat, joined_via, standing, captures, tokens_home, has_left)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            `INSERT INTO game_result_players
+               (game_id, seat, joined_via, account_id, standing, captures, tokens_home, has_left)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
             [
               result.gameId,
               player.seat,
               player.joinedVia,
+              player.accountId,
               player.standing,
               player.captures,
               player.tokensHome,
@@ -65,7 +68,7 @@ export const createPostgresGameResultStore = (pool: pg.Pool): GameResultStore =>
       );
       if (!row) return undefined;
       const { rows } = await pool.query<PlayerRow>(
-        `SELECT seat, joined_via, standing, captures, tokens_home, has_left
+        `SELECT seat, joined_via, account_id, standing, captures, tokens_home, has_left
          FROM game_result_players WHERE game_id = $1 ORDER BY seat`,
         [gameId],
       );
@@ -89,6 +92,7 @@ const fromPlayerRow = (row: PlayerRow): PlayerResult => {
   return {
     seat: row.seat,
     joinedVia: row.joined_via,
+    accountId: row.account_id,
     standing: row.standing,
     captures: row.captures,
     tokensHome: row.tokens_home,
