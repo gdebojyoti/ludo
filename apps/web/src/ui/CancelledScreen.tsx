@@ -17,8 +17,8 @@ export default function CancelledScreen({ game, onBackToStart }: Props) {
   // the button just below the message rather than at the bottom of the window. The column is left out of the layout on
   // phones.
   return (
-    <div className="flex flex-1 flex-col items-center px-6 pt-3.5 pb-9 xl:p-0">
-      <Header subtitle={resultMessages.cancelledSubtitle} />
+    <div className="flex flex-1 flex-col items-center px-4 pt-3.5 pb-9 xl:p-0">
+      <Header title={resultMessages.cancelledTitle} subtitle={resultMessages.cancelledSubtitle} settings="phones" />
       <div
         className="contents xl:mx-auto xl:flex xl:w-full xl:max-w-[430px] xl:flex-1 xl:flex-col xl:items-center
           xl:justify-center xl:gap-10 xl:px-6 xl:pt-10 xl:pb-12"
@@ -31,13 +31,21 @@ export default function CancelledScreen({ game, onBackToStart }: Props) {
             <Icon name="closedDoor" size={52} strokeWidth={1.6} />
           </div>
           <div className="flex max-w-[300px] flex-col gap-2.5" role="status">
-            <h1 className="m-0 font-ludo-display text-[32px] font-normal">{resultMessages.cancelled}</h1>
+            {/* Desktop only: on phones, the header says so. */}
+            <h1 className="m-0 hidden font-ludo-display text-[32px] font-normal xl:block">{resultMessages.cancelled}</h1>
             <p className="m-0 text-[15px] leading-normal text-ludo-on-page-muted">{resultMessages.cancelledBy(hostName)}</p>
           </div>
         </div>
-        <Button variant="accent" onClick={onBackToStart}>
-          {resultMessages.backToStart}
-        </Button>
+        {/* On phones, as on the Result screen: kept in view at the bottom of the screen in a bar across it that blurs
+            what scrolls under it, with the same space all round the button, reaching the bottom edge. */}
+        <div
+          className="sticky bottom-0 -mx-4 -mb-9 self-stretch bg-ludo-page/60 p-4 backdrop-blur-md xl:static xl:m-0
+            xl:bg-transparent xl:p-0 xl:backdrop-blur-none"
+        >
+          <Button variant="accent" onClick={onBackToStart}>
+            {resultMessages.backToStart}
+          </Button>
+        </div>
       </div>
     </div>
   );

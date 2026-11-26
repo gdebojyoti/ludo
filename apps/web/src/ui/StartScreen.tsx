@@ -62,7 +62,7 @@ export default function StartScreen({
     // left and the card is a panel on the right, and this is a size container, so the panel can tell where the screen's
     // left edge is.
     <div
-      className="relative flex min-h-full flex-1 flex-col overflow-clip px-3 pt-4 text-ludo-ink xl:@container
+      className="relative flex min-h-full flex-1 flex-col overflow-clip px-4 pt-3.5 text-ludo-ink xl:@container
         xl:flex-row xl:p-0"
     >
       {/* Desktop only: on phones, Settings is a tab. Where it is in the header on the other screens, so it stays put
@@ -71,7 +71,7 @@ export default function StartScreen({
       <div className="hidden xl:absolute xl:top-[18.5px] xl:right-8 xl:z-10 xl:block">
         <SettingsButton colours="border-ludo-line text-ludo-ink [--ludo-button-icon-fill:transparent]" />
       </div>
-      <div className="flex items-center gap-3.5 px-2 xl:hidden">
+      <div className="flex items-center gap-3.5 xl:hidden">
         <div
           className="grid size-[52px] flex-none grid-cols-2 gap-[3px] rounded-[10px] border-[1.5px] border-ludo-accent
             p-[3px] christmas:border-ludo-card"
@@ -214,7 +214,7 @@ export default function StartScreen({
             )}
           </form>
         </div>
-        {signedIn === false && <SignIn className={`px-2 xl:px-0 ${appear}`} />}
+        {signedIn === false && <SignIn className={appear} />}
         {/* In its place once signed in, on desktop only, which has no Profile tab. */}
         {signedIn && (
           <div className="hidden xl:flex xl:justify-center">

@@ -332,7 +332,7 @@ export default function BoardScreen({
   // The wrappers that make those columns are left out of the layout on phones, where it's one column, and the Notice,
   // above the cards there, is above the Turn status on desktop.
   return (
-    <div className="flex flex-1 flex-col items-center gap-3.5 px-[15px] pt-3.5 pb-7 xl:@container xl:gap-0 xl:p-0">
+    <div className="flex flex-1 flex-col items-center gap-3.5 px-4 pt-3.5 pb-7 xl:@container xl:gap-0 xl:p-0">
       <Header
         subtitle={boardMessages.subtitle(mode, playerCount)}
         action={<LeaveButton disabled={disabled} text={leaveMessages.inPlay(otherNames)} onLeave={onLeaveGame} />}

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Button from "./Button";
+import Header from "./Header";
 import { tabMessages } from "./messages";
 
 interface Props {
@@ -11,23 +12,28 @@ interface Props {
   children: ReactNode;
 }
 
-// A tab's screen, other than Play's: its title along the top, and what's on it below. Desktop has no tabs, but if the
-// window is widened with one open, it's a phone-width column down the middle, with Back beside the title.
+// A tab's screen, other than Play's: the header, with its title, and no Settings, as that's a tab, and what's on it
+// below. Desktop has no tabs, but if the window is widened with one open, the header is the bar across the window,
+// with the title beside the wordmark and Back on the right, and the rest is a phone-width column down the middle.
 export default function TabScreen({ title, aside, onBack, children }: Props) {
   return (
-    <div className="flex flex-1 flex-col xl:mx-auto xl:w-full xl:max-w-[430px] xl:pt-8">
-      <div className="flex h-15 flex-none items-center justify-between gap-3 pr-4 pl-5">
-        <h1 className="m-0 font-ludo-display text-[26px] font-normal">{title}</h1>
-        <div className="flex items-center gap-3">
-          {aside}
-          <div className="hidden xl:block">
-            <Button variant="icon" className="h-11 w-auto px-5 text-base font-semibold text-ludo-on-page" onClick={onBack}>
-              {tabMessages.back}
-            </Button>
-          </div>
-        </div>
-      </div>
-      <div className="flex flex-1 flex-col px-5 pt-3 pb-7">{children}</div>
+    <div className="flex flex-1 flex-col gap-[22px] px-4 pt-3.5 pb-7 xl:gap-0 xl:p-0">
+      <Header
+        title={title}
+        subtitle={title}
+        settings="never"
+        action={
+          <>
+            {aside}
+            <div className="hidden xl:block">
+              <Button variant="icon" className="h-12 w-auto px-5 text-base font-semibold text-ludo-on-page" onClick={onBack}>
+                {tabMessages.back}
+              </Button>
+            </div>
+          </>
+        }
+      />
+      <div className="flex flex-1 flex-col xl:mx-auto xl:w-full xl:max-w-[430px] xl:px-4 xl:pt-8 xl:pb-7">{children}</div>
     </div>
   );
 }

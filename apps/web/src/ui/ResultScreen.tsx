@@ -48,8 +48,8 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
   // On desktop, the header is a bar across the window, and the rest is in a phone-width column down the middle. The
   // column is left out of the layout on phones.
   return (
-    <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-9 xl:gap-0 xl:p-0">
-      <Header subtitle={resultMessages.subtitle(mode)} />
+    <div className="flex flex-1 flex-col gap-[22px] px-4 pt-3.5 pb-9 xl:gap-0 xl:p-0">
+      <Header title={resultMessages.gameOver} subtitle={resultMessages.subtitle(mode)} settings="phones" />
       <div
         className="contents xl:mx-auto xl:flex xl:w-full xl:max-w-[430px] xl:flex-1 xl:flex-col xl:gap-[22px] xl:px-5
           xl:pt-10 xl:pb-12"
@@ -59,7 +59,10 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
             text-center text-ludo-ink"
           style={{ borderTopColor: colours(winner).colour }}
         >
-          <h2 className="m-0 text-xs font-bold tracking-[0.14em] text-ludo-ink-muted uppercase">{resultMessages.won}</h2>
+          {/* Desktop only: on phones, the header says so. */}
+          <h2 className="m-0 hidden text-xs font-bold tracking-[0.14em] text-ludo-ink-muted uppercase xl:block">
+            {resultMessages.won}
+          </h2>
           <Avatar
             playerName={winnerName}
             colours={colours(winner)}
@@ -107,9 +110,16 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
           </section>
         )}
         <div className="flex-1 xl:hidden" />
-        <Button variant="accent" onClick={onBackToStart}>
-          {resultMessages.backToStart}
-        </Button>
+        {/* On phones, as the Lobby's Start button is: kept in view at the bottom of the screen in a bar across it that
+            blurs what scrolls under it, with the same space all round the button, reaching the bottom edge. */}
+        <div
+          className="sticky bottom-0 -mx-4 -mb-9 bg-ludo-page/60 p-4 backdrop-blur-md xl:static xl:m-0 xl:bg-transparent
+            xl:p-0 xl:backdrop-blur-none"
+        >
+          <Button variant="accent" onClick={onBackToStart}>
+            {resultMessages.backToStart}
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -114,7 +114,7 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
     // doesn't cover it.
     return (
       <div
-        className="sticky bottom-0 -mx-5 -mb-8 flex flex-col gap-2.5 bg-ludo-page/60 p-5 backdrop-blur-md xl:static
+        className="sticky bottom-0 -mx-4 -mb-8 flex flex-col gap-2.5 bg-ludo-page/60 p-4 backdrop-blur-md xl:static
           xl:m-0 xl:bg-transparent xl:p-0 xl:backdrop-blur-none"
       >
         <ErrorMessage error={error} />
@@ -243,8 +243,9 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
   // On desktop, the header is a bar across the window, and below it the Game code is on the left and the Players on the
   // right. The wrappers that make those columns are left out of the layout on phones, where it's one column.
   return (
-    <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-8 xl:gap-0 xl:p-0">
+    <div className="flex flex-1 flex-col gap-[22px] px-4 pt-3.5 pb-8 xl:gap-0 xl:p-0">
       <Header
+        title={lobbyMessages.heading}
         action={
           <LeaveButton
             disabled={disabled}
@@ -257,11 +258,10 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
         <div className="contents xl:grid xl:w-full xl:max-w-[1000px] xl:grid-cols-2 xl:items-start xl:gap-14">
           <div className="contents xl:flex xl:flex-col xl:gap-7">
             <Notice notice={notice} />
-            <div className="px-1 xl:p-0">
-              <h1 className="m-0 font-ludo-display text-[30px] font-normal xl:text-4xl">{lobbyMessages.heading}</h1>
-              <p className="mt-1.5 mb-0 text-sm text-ludo-on-page-muted xl:mt-2 xl:text-[15px]">
-                {lobbyMessages.shareHint}
-              </p>
+            {/* Desktop only: on phones, the heading is the header's title. */}
+            <div className="hidden xl:block">
+              <h1 className="m-0 font-ludo-display text-4xl font-normal">{lobbyMessages.heading}</h1>
+              <p className="mt-2 mb-0 text-[15px] text-ludo-on-page-muted">{lobbyMessages.shareHint}</p>
             </div>
             {gameCodeCard()}
           </div>

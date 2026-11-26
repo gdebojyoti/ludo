@@ -264,6 +264,7 @@ export const boardMessages = {
 
 export const resultMessages = {
   subtitle: (mode: GameMode) => modeName(mode),
+  gameOver: "Game over",
   won: "The game is over",
   winner: (playerName: string, isOwn: boolean) => isOwn ? "You win" : `${playerName} wins`,
   allHome: `All ${classicRules.tokensPerSeat} tokens reached home first.`,
@@ -278,6 +279,7 @@ export const resultMessages = {
   standing: (standing: number) => ordinal(standing),
   backToStart: "Back to start",
   cancelledSubtitle: "Lobby",
+  cancelledTitle: "Cancelled",
   cancelled: "Game cancelled",
   cancelledBy: (hostName: string) => `The host, ${hostName}, cancelled this game before it started.`,
 };
