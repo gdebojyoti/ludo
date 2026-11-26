@@ -1,13 +1,10 @@
 import { useState } from "react";
-import { Heart, House, Lock, LogOut, Shirt, Swords, Trophy, type LucideIcon } from "lucide-react";
-import { signOut } from "./accounts";
-import { track } from "./analytics";
+import { Heart, House, Lock, Shirt, Swords, Trophy, type LucideIcon } from "lucide-react";
 import { initial } from "./Avatar";
-import Button from "./Button";
-import Icon from "./Icon";
-import { modeMessages, profileMessages } from "./messages";
-import { placeholderProfile, type StatsMode } from "./profilePlaceholder";
+import { modeMessages, profileMessages, tabMessages } from "./messages";
+import { placeholderProfile, showPlaceholderProfile, type StatsMode } from "./profilePlaceholder";
 import { seatView } from "./seatView";
+import SignOut from "./SignOut";
 
 interface Props {
   playerName: string;
@@ -26,26 +23,21 @@ const statsModes: { mode: StatsMode; name: string }[] = [
 ];
 
 // What's on a signed-in Player's Profile, below its title: on the Profile tab on phones, and in the Profile dialog on
-// desktop. From placeholder data for now (profilePlaceholder.ts), but for their Player name.
+// desktop. Made up, but for their Player name, when the placeholder is switched on (profilePlaceholder.ts); otherwise
+// only that it's coming soon. Sign out is real either way.
 export default function AccountProfile({ playerName }: Props) {
   const profile = placeholderProfile;
   const [statsMode, setStatsMode] = useState<StatsMode>("classic");
-  const [signingOut, setSigningOut] = useState(false);
-  const [signOutFailed, setSignOutFailed] = useState(false);
   const stats = profile.stats[statsMode];
 
-  const startSignOut = async () => {
-    setSigningOut(true);
-    setSignOutFailed(false);
-    track("sign_out");
-    try {
-      // The page reloads, so it stays busy.
-      await signOut();
-    } catch {
-      setSigningOut(false);
-      setSignOutFailed(true);
-    }
-  };
+  if (!showPlaceholderProfile) {
+    return (
+      <div className="flex flex-1 flex-col gap-6">
+        <p className="m-auto py-10 text-[15px] text-ludo-on-page-muted">{tabMessages.comingSoon}</p>
+        <SignOut />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -219,23 +211,7 @@ export default function AccountProfile({ playerName }: Props) {
         </span>
       </div>
 
-      <div className="flex flex-col items-start gap-2">
-        <Button
-          variant="icon"
-          className="h-12 w-auto gap-2 px-5 text-base font-semibold text-ludo-on-page"
-          disabled={signingOut}
-          onClick={startSignOut}
-        >
-          <LogOut size={18} aria-hidden />
-          {profileMessages.signOut}
-        </Button>
-        {signOutFailed && (
-          <p className="m-0 flex items-start gap-2 text-[13px] leading-[1.4] text-ludo-on-page-muted" role="alert">
-            <Icon name="error" size={16} strokeWidth={2.2} className="mt-px flex-none" />
-            <span>{profileMessages.signOutFailed}</span>
-          </p>
-        )}
-      </div>
+      <SignOut />
     </div>
   );
 }

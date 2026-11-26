@@ -1,6 +1,12 @@
 // PLACEHOLDER: what a signed-in Player's Profile shows, made up, until the server sends the real thing (#57). Only the
 // Player name is real. Everything here goes once Coins, XP, stats, Achievements, Rivals and the Locker exist.
 
+/**
+ * Whether a signed-in Player's Profile shows the made-up data below, its Coins included, to see how it looks. Set by
+ * hand: false shows that the Profile is coming soon, as Players should see it until it's real.
+ */
+export const showPlaceholderProfile = false;
+
 /** The Game modes the stats are kept for, House Rules being Games with any Modifier (ADR-0009). */
 export type StatsMode = "classic" | "oneKillWin" | "houseRules";
 

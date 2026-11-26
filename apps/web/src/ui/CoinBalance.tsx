@@ -1,9 +1,11 @@
 import Coin from "./Coin";
 import { profileMessages } from "./messages";
-import { placeholderProfile } from "./profilePlaceholder";
+import { placeholderProfile, showPlaceholderProfile } from "./profilePlaceholder";
 
-// The Player's Coins, beside the Profile's title, from placeholder data for now (profilePlaceholder.ts).
+// The Player's Coins, beside the Profile's title, from placeholder data for now (profilePlaceholder.ts): none while the
+// placeholder is switched off.
 export default function CoinBalance() {
+  if (!showPlaceholderProfile) return null;
   const { coins } = placeholderProfile;
   return (
     <span
