@@ -5,11 +5,16 @@ import pkg from "./package.json" with { type: "json" };
 
 export default {
   entry: "./src/index.ts",
-  // Hashed names can be cached forever (vercel.json). remoteEntry.js keeps its name: host apps load it by URL.
+  // Hashed names let fonts and sounds be cached forever (vercel.json). Scripts aren't: Vercel would add the header to a
+  // 404 too, and a chunk missing for a moment, as in a rollback, would stay missing for a year. remoteEntry.js keeps its
+  // name: host apps load it by URL.
   output: {
     filename: "ludo/[name].[contenthash].js",
     chunkFilename: "ludo/[id].[contenthash].js",
     assetModuleFilename: "ludo/[hash][ext][query]",
+    // Changing the salt renames every hashed file, so browsers and caches that kept a broken copy of one (a 404, or
+    // part of a file) fetch it afresh. Changed 2026-11-26, when a 404 for an app chunk was cached for a year.
+    hashSalt: "2026-11-26",
     publicPath: "/",
     clean: true,
   },
