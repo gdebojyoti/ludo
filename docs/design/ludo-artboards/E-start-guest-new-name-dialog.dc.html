@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ludo · Start · Guest · New name dialog</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&amp;family=Figtree:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+.yd{border-radius:16px;display:flex;align-items:center;justify-content:center}
+.yd span{width:58%;aspect-ratio:1/1;border-radius:50%;background:#F7F0DF;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:12px;box-sizing:border-box}
+.yd i{border-radius:50%;background:#EADBB9;display:block;aspect-ratio:1/1}
+.btn{width:100%;height:54px;border:none;border-radius:14px;background:#3B1218;color:#F3CF7E;font:600 16px Figtree,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none;box-sizing:border-box}
+.btn2{height:54px;padding:0 20px;flex:none;border:1.5px solid #A8916A;border-radius:12px;background:transparent;color:#3B1218;font:600 16px Figtree,sans-serif}
+.code{flex:1;min-width:0;height:54px;box-sizing:border-box;border-radius:14px;border:1.5px solid #CDBB94;background:#FFFFFF;color:#3B1218;padding:0 16px;font:600 20px Figtree,sans-serif}
+.code::placeholder{color:#8C7458;font-size:15px;font-weight:400}
+.lbl{font-size:12px;font-weight:700;letter-spacing:0.1em;color:#6E5340}
+.regen{width:44px;height:44px;flex:none;border-radius:12px;border:1.5px solid #A8916A;background:transparent;color:#3B1218;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+.nav{height:64px;flex:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:#2A0C11;border-top:1px solid rgba(247,240,223,.14);box-sizing:border-box}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#D9C3A5;font:600 11px Figtree,sans-serif}
+.tab.on{color:#F3CF7E}
+.ind{position:absolute;top:0;width:28px;height:3px;border-radius:0 0 3px 3px;background:#F3CF7E}
+.gbtn{width:100%;height:48px;padding:0 18px;border-radius:12px;border:1px solid #747775;background:#FFFFFF;color:#1F1F1F;display:flex;align-items:center;justify-content:center;gap:12px;font:500 15px Figtree,sans-serif;cursor:pointer}
+.glogo{width:24px;height:24px;flex:none;border-radius:4px;border:1.5px dashed #9AA0A6;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font:700 10px Figtree,sans-serif;color:#5F6368}
+</style>
+</helmet>
+<div style="position: relative; width: 370px; height: 844px; box-sizing: border-box; background: #3B1218; color: #3B1218; font-family: Figtree, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+<div aria-hidden="true" style="flex: 1; display: flex; flex-direction: column">
+<div style="height: 60px; flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 0 16px">
+<span style="height: 40px; padding: 0 16px; border-radius: 12px; border: 1.5px solid #9C7B68; box-sizing: border-box; display: inline-flex; align-items: center; color: #F7F0DF; font: 600 14px Figtree, sans-serif">Sign in</span>
+</div>
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 0 24px 28px">
+<div style="width: 200px; height: 200px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; padding: 9px; box-sizing: border-box; border: 2px solid #E8B54A; border-radius: 24px">
+<div class="yd" style="background: #1F7A4D"><span><i></i><i></i><i></i><i></i></span></div>
+<div class="yd" style="background: #E3A21A"><span><i></i><i></i><i></i><i></i></span></div>
+<div class="yd" style="background: #D2462E"><span><i></i><i></i><i></i><i></i></span></div>
+<div class="yd" style="background: #2F4A9E"><span><i></i><i></i><i></i><i></i></span></div>
+</div>
+<div style="text-align: center">
+<div style="font-family: Marcellus, serif; font-size: 46px; letter-spacing: 0.14em; color: #F3CF7E">LUDO</div>
+<div style="margin-top: 4px; font-size: 15px; color: #D9C3A5">Classic Ludo, with friends</div>
+</div>
+</div>
+<div style="background: #F7F0DF; border-radius: 28px 28px 0 0; padding: 26px 24px 28px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; gap: 12px">
+<span style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #FFF8E8; box-shadow: 0 0 0 2px #D2462E; box-sizing: border-box; background: #D2462E; color: #FFF8E8; display: flex; align-items: center; justify-content: center; font: 600 16px Marcellus, serif">N</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 12px; color: #6E5340">You’ll play as</span><span style="font-size: 17px; font-weight: 700">Neville Lovegood</span></span>
+<span class="regen"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"></path><path d="M4 3v5h5"></path><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"></path><path d="M20 21v-5h-5"></path></svg></span>
+</div>
+<span class="btn">Create a game</span>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span class="lbl">JOIN WITH A GAME CODE</span>
+<div style="display: flex; gap: 10px"><span class="code" style="display: flex; align-items: center; color: #8C7458; font-size: 15px; font-weight: 400">6-digit code</span><span class="btn2" style="display: flex; align-items: center; box-sizing: border-box">Join</span></div>
+</div>
+</div>
+<div class="nav">
+<span class="tab on"><span class="ind"></span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3.5"></rect><circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="15" cy="15" r="1.3" fill="currentColor" stroke="none"></circle></svg>Play</span>
+<span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 12H6.2L5 8Z"></path><path d="M9 8V6.5a3 3 0 0 1 6 0V8"></path></svg>Store</span>
+<span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20v-7h5v7M9 20V5h6v15M15 20v-10h5v10M3 20h18"></path></svg>Leaderboard</span>
+<span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path><circle cx="12" cy="12" r="3"></circle></svg>Settings</span>
+<span class="tab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 20c1.4-3.8 4.2-5.8 7.5-5.8s6.1 2 7.5 5.8"></path></svg>Profile</span>
+</div>
+</div>
+
+<div style="position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: rgba(24,6,10,.74); display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box">
+<div role="dialog" aria-modal="true" aria-labelledby="nameTitle" style="width: 100%; background: #F7F0DF; border-radius: 22px; padding: 24px 20px 20px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+<span style="width: 64px; height: 64px; border-radius: 50%; background: #EADBB9; display: flex; align-items: center; justify-content: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3B1218" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"></path><path d="M4 3v5h5"></path><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"></path><path d="M20 21v-5h-5"></path></svg></span>
+<h2 id="nameTitle" style="margin: 0; font-family: Marcellus, serif; font-weight: 400; font-size: 26px; color: #3B1218">Pick a new name</h2>
+<div style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 7px 7px 7px 16px; border-radius: 14px; background: #FFFFFF; border: 1.5px solid #CDBB94; box-sizing: border-box; margin-top: 4px">
+<span aria-live="polite" style="flex: 1; min-width: 0; text-align: left; font-size: 17px; font-weight: 700; color: #3B1218">{{name}}</span>
+<button class="regen" onClick="{{roll}}" aria-label="Roll another name" title="Roll another name"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"></path><path d="M4 3v5h5"></path><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"></path><path d="M20 21v-5h-5"></path></svg></button>
+</div>
+<span style="font-size: 13px; color: #6E5340">Roll as many times as you like.</span>
+<a class="btn" href="HNStartGuest.dc.html" style="margin-top: 4px">Done</a>
+<div style="width: 100%; display: flex; align-items: center; gap: 12px; margin-top: 4px"><span style="flex: 1; height: 1px; background: #D9C49A"></span><span style="font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: #6E5340">OR</span><span style="flex: 1; height: 1px; background: #D9C49A"></span></div>
+<p style="margin: 0; font-size: 14px; line-height: 1.45; color: #6E5340">Sign in to play under your own name.</p>
+<button class="gbtn"><span class="glogo" aria-hidden="true">G</span>Sign in with Google</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":370,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { i: 0 }; }
+  renderVals() {
+    const names = ['Neville Lovegood', 'Bartemius Shacklebolt', 'Hermione Weasley', 'Luna Diggory'];
+    return {
+      name: names[this.state.i % names.length],
+      roll: () => this.setState({ i: this.state.i + 1 })
+    };
+  }
+}
+</script>
+</body>
+</html>

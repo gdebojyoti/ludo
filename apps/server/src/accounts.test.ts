@@ -163,7 +163,14 @@ describe("a Guest in a Game who signs in", () => {
     guest.signIn({ name: "Ginny Weasley" });
     const tab = await guest.connect();
 
-    const seen = { seats: [{ playerName: "Luna Lovegood" }, {}, { playerName: "Ginny Weasley", away: false }, {}] };
+    const seen = {
+      seats: [
+        { playerName: "Luna Lovegood", signedIn: false },
+        {},
+        { playerName: "Ginny Weasley", away: false, signedIn: true },
+        {},
+      ],
+    };
     expect(await tab.nextMessage()).toMatchObject({ event: "game", game: { state: "playing", board: seen } });
     expect(await host.nextMessage()).toMatchObject({ event: "game", game: { board: seen } });
     expect(await tab.roll()).not.toEqual({ ok: false, reason: "noActiveGame" });
@@ -229,6 +236,34 @@ describe("a finished Game's result", () => {
       ["webApp", accountId],
       ["mcp", null],
     ]);
+  });
+});
+
+describe("whether a Player is signed in", () => {
+  it("is shown to everyone in the Lobby, for each Player", async () => {
+    const luna = signedIn("Luna Lovegood");
+    const { host, gameCode } = await server.hostInLobby({ player: luna.player });
+
+    const guest = await server.playerWithNoGame(server.createPlayer());
+    const reply = await guest.joinGame(gameCode, "Neville Longbottom");
+
+    const players = [
+      { playerName: "Luna Lovegood", signedIn: true },
+      { playerName: "Neville Longbottom", signedIn: false },
+    ];
+    expect(reply).toMatchObject({ ok: true, game: { players } });
+    expect(await host.nextMessage()).toMatchObject({ event: "game", game: { players } });
+  });
+
+  it("is shown to everyone in play, for each Player and Seat, a Leaver's included, but not an empty Seat", async () => {
+    const { host, guest } = await gameWithTwoAccountsAndAGuest();
+
+    await guest.leaveGame();
+
+    const seats = [{ signedIn: true }, { signedIn: true }, { left: true, signedIn: false }, { signedIn: false }];
+    const reply = await host.nextMessage();
+    expect(reply).toMatchObject({ event: "game", game: { board: { seats } } });
+    expect(reply).toMatchObject({ game: { players: [{ signedIn: true }, { signedIn: true }] } });
   });
 });
 

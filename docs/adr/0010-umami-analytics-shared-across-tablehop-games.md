@@ -20,7 +20,11 @@ Every custom event goes through one wrapper, `track()` in `apps/web/src/ui/analy
 | `ludo_game_over` | The page sees the Game won. | `mode`; `players`; `won`; `how`: `all_home`, `capture` or `others_left` |
 | `ludo_game_left` | The server accepts the Player's Leave. | `mode`; `players`; `phase`: `lobby` or `playing` |
 | `ludo_back_to_start` | Back to start, after the Game ended. | `from`: `result` (the Game was won) or `cancelled` (the Host Left the Lobby) |
-| `ludo_settings_open` | The Settings button, on the start screen, in the Lobby or in play. | Nothing else |
+| `ludo_settings_open` | The Settings button, in the Lobby or in play, or on the start screen on desktop. | Nothing else |
+| `ludo_tab_open` | A tab in the bottom bar on phones, outside a Game. | `tab`: `play`, `store`, `leaderboard`, `settings` or `profile` |
+| `ludo_sign_in_start` | Sign in with Google, on the start screen or the Profile tab, before the page goes to Google. | Nothing else |
+| `ludo_sign_out` | Sign out, on the Profile tab on phones or in the Profile dialog on desktop. | Nothing else |
+| `ludo_profile_open` | The Profile button, on the start screen on desktop, for a signed-in Player. | Nothing else |
 | `ludo_theme_change` | Change theme, in Settings. | `theme` |
 | `ludo_dice_side_change` | The Dice on the left switch. | `on_left` |
 | `ludo_automatic_move_change` | The Automatic move switch. | `on` |

@@ -1,7 +1,7 @@
 import { useRef } from "react";
+import { LogOut } from "lucide-react";
 import Button from "./Button";
 import DialogCard from "./DialogCard";
-import Icon from "./Icon";
 
 /** What the Leave button and its question say, which depends on what Leaving does there. */
 export interface LeaveText {
@@ -41,12 +41,12 @@ export default function LeaveButton({ disabled, text, onLeave }: Props) {
         title={text.label}
         onClick={() => dialogRef.current?.showModal()}
       >
-        <Icon name="leave" className="xl:size-4.5" />
+        <LogOut aria-hidden />
         <span className="sr-only xl:hidden">{text.label}</span>
         <span className="hidden xl:inline">{text.button}</span>
       </Button>
       {/* A tap on the scrim, outside the card, is a choice to stay. */}
-      <DialogCard ref={dialogRef} icon="leave" title={text.title}>
+      <DialogCard ref={dialogRef} icon={LogOut} title={text.title}>
         <p className="m-0 text-center text-[15px] leading-normal text-ludo-ink-muted">{text.message}</p>
         <div className="mt-2 flex flex-col gap-2.5">
           <Button variant="solid" onClick={() => dialogRef.current?.close()}>

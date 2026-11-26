@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@ludo/shared": "*",
+    "lucide-react": "^1.81.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "socket.io-client": "^4.8.4"

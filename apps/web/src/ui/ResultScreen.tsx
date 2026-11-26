@@ -1,9 +1,10 @@
 import { classicRules, seatsClockwise, tokensReachHome, type GameMode, type Seat, type SnapshotBoard } from "@ludo/shared";
-import Avatar from "./Avatar";
 import { homeCountAt, howWonAt, playerNameAt, seatViewOf, winnerAt } from "./boardView";
+import BottomBar from "./BottomBar";
 import Button from "./Button";
 import Header from "./Header";
 import { boardMessages, commonMessages, resultMessages } from "./messages";
+import PlayerAvatar from "./PlayerAvatar";
 
 interface Props {
   mode: GameMode;
@@ -48,8 +49,8 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
   // On desktop, the header is a bar across the window, and the rest is in a phone-width column down the middle. The
   // column is left out of the layout on phones.
   return (
-    <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-9 xl:gap-0 xl:p-0">
-      <Header subtitle={resultMessages.subtitle(mode)} />
+    <div className="flex flex-1 flex-col gap-[22px] px-4 pt-3.5 pb-9 xl:gap-0 xl:p-0">
+      <Header title={resultMessages.gameOver} subtitle={resultMessages.subtitle(mode)} settings="phones" />
       <div
         className="contents xl:mx-auto xl:flex xl:w-full xl:max-w-[430px] xl:flex-1 xl:flex-col xl:gap-[22px] xl:px-5
           xl:pt-10 xl:pb-12"
@@ -59,12 +60,17 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
             text-center text-ludo-ink"
           style={{ borderTopColor: colours(winner).colour }}
         >
-          <h2 className="m-0 text-xs font-bold tracking-[0.14em] text-ludo-ink-muted uppercase">{resultMessages.won}</h2>
-          <Avatar
+          {/* Desktop only: on phones, the header says so. */}
+          <h2 className="m-0 hidden text-xs font-bold tracking-[0.14em] text-ludo-ink-muted uppercase xl:block">
+            {resultMessages.won}
+          </h2>
+          <PlayerAvatar
             playerName={winnerName}
             colours={colours(winner)}
             ringed
             className="size-[72px] border-[3px]! border-ludo-card-raised! text-[30px] font-normal!"
+            signedIn={board.seats[winner]?.signedIn ?? false}
+            isOwn={winner === viewer}
           />
           <h1 className="m-0 font-ludo-display text-[30px] leading-[1.15] font-normal wrap-anywhere" aria-live="polite">
             {resultMessages.winner(winnerName, winner === viewer)}
@@ -77,12 +83,17 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
             <h2 className="m-0 text-xs font-semibold tracking-widest text-ludo-on-page-muted uppercase">
               {resultMessages.tokensHomeHeading}
             </h2>
-            {others.map(({ playerName, left, standing, index }) => (
+            {others.map(({ playerName, left, standing, signedIn, index }) => (
               <div
                 key={index}
                 className="flex items-center gap-3 rounded-[14px] border border-ludo-row-line bg-ludo-row px-3.5 py-3"
               >
-                <Avatar playerName={playerName ?? ""} colours={colours(index)} />
+                <PlayerAvatar
+                  playerName={playerName ?? ""}
+                  colours={colours(index)}
+                  signedIn={signedIn}
+                  isOwn={index === viewer}
+                />
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{playerName}</span>
                   <span className="text-xs text-ludo-on-page-muted">{notes(index, left, standing)}</span>
@@ -107,9 +118,11 @@ export default function ResultScreen({ mode, board, onBackToStart }: Props) {
           </section>
         )}
         <div className="flex-1 xl:hidden" />
-        <Button variant="accent" onClick={onBackToStart}>
-          {resultMessages.backToStart}
-        </Button>
+        <BottomBar className="-mb-9">
+          <Button variant="accent" onClick={onBackToStart}>
+            {resultMessages.backToStart}
+          </Button>
+        </BottomBar>
       </div>
     </div>
   );

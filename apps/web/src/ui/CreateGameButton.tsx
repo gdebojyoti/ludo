@@ -1,7 +1,8 @@
 import { useRef, type FormEvent } from "react";
+import { Crosshair, Dice4, Zap } from "lucide-react";
 import { isGameMode, type GameMode } from "@ludo/shared";
 import Button from "./Button";
-import Icon from "./Icon";
+import { closeOnScrimTap } from "./dialog";
 import { modeMessages, startMessages } from "./messages";
 
 interface Props {
@@ -9,11 +10,11 @@ interface Props {
   onCreateGame: (mode: GameMode) => void;
 }
 
-/** The Game modes the Host can choose from, each drawn with the icon of the same name. Quick Game isn't played yet. */
+/** The Game modes the Host can choose from, each with its icon. Quick Game isn't played yet. */
 const modes = [
-  { mode: "classic", available: true },
-  { mode: "oneKillWin", available: true },
-  { mode: "quick", available: false },
+  { mode: "classic", available: true, icon: Dice4 },
+  { mode: "oneKillWin", available: true, icon: Crosshair },
+  { mode: "quick", available: false, icon: Zap },
 ] as const;
 
 // How a Game mode's option looks, by whether it can be chosen yet. The chosen one's icon is gold, or in the Christmas
@@ -59,7 +60,7 @@ export default function CreateGameButton({ disabled, onCreateGame }: Props) {
           motion-safe:animate-ludo-sheet-in xl:m-auto xl:w-[calc(100%-48px)] xl:max-w-[420px] xl:rounded-[22px]
           xl:shadow-[0_20px_50px_rgba(0,0,0,0.5)] xl:motion-safe:animate-none"
         aria-labelledby="mode-title"
-        onClick={(event) => event.target === dialogRef.current && dialogRef.current.close()}
+        onClick={closeOnScrimTap}
       >
         {/* The design's text is spaced at the font's normal line height, not the page's. */}
         <form
@@ -76,7 +77,7 @@ export default function CreateGameButton({ disabled, onCreateGame }: Props) {
           <fieldset className="m-0 flex flex-col border-none p-0">
             <legend className="sr-only">{modeMessages.legend}</legend>
             <span id="mode-soon-note" className="sr-only">{modeMessages.soonNote}</span>
-            {modes.map(({ mode, available }) => {
+            {modes.map(({ mode, available, icon: ModeIcon }) => {
               const styles = available ? availableStyles : soonStyles;
               return (
                 <label
@@ -88,7 +89,7 @@ export default function CreateGameButton({ disabled, onCreateGame }: Props) {
                     className={`flex size-10 flex-none items-center justify-center rounded-full ${styles.icon}`}
                     aria-hidden
                   >
-                    <Icon name={mode} />
+                    <ModeIcon />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
                     <span className="flex flex-wrap items-center gap-2">

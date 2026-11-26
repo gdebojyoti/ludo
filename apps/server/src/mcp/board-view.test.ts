@@ -8,7 +8,7 @@ const home: TokenPosition = { area: "home" };
 const track = (cell: number): TokenPosition => ({ area: "track", cell });
 
 const seatOf = (playerName: string | null, tokens: TokenPosition[]): SnapshotSeat => {
-  return { playerName, left: false, away: false, tokens, standing: null };
+  return { playerName, left: false, away: false, signedIn: false, tokens, standing: null };
 };
 
 /** A Classic Game between the AI in Seat 0 and Ginny in Seat 2, on the AI's Turn, once it has Rolled. */

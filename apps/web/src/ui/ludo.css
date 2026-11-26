@@ -69,6 +69,14 @@
     }
   }
 
+  --animate-ludo-fade-in: ludo-fade-in 0.2s ease-out;
+
+  @keyframes ludo-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
   /* The die, from the design's roll animation: it tumbles when tapped, spins on while the server is slow to reply,
      bounces as it lands, and shakes if the Roll didn't go through. The Roll button wiggles every 3s while it waits to
      be tapped, starting as soon as it's shown. */
