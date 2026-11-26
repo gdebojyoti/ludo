@@ -84,6 +84,45 @@ export const tabMessages = {
   back: "Back",
 };
 
+/** "1 win" or "2 wins", and the like. */
+const count = (n: number, one: string, many: string) => `${n.toLocaleString("en")} ${n === 1 ? one : many}`;
+
+export const profileMessages = {
+  coins: (coins: number) => count(coins, "coin", "coins"),
+  supporter: "Supporter",
+  guest: "Guest",
+  signInTitle: "Sign in to get a profile",
+  perks: {
+    coins: "Earn coins and XP from every game",
+    devices: "Keep your progress on any device",
+    leaderboard: "Climb the weekly leaderboard",
+    rivals: "See your record against your rivals",
+    locker: "Collect cosmetics in your locker",
+  },
+  noPassword: "No password to make or forget.",
+  level: (level: number) => `Lv ${level}`,
+  xp: (xp: number, xpForNextLevel: number, level: number) =>
+    `${xp} / ${xpForNextLevel} XP · ${xpForNextLevel - xp} to level ${level + 1}`,
+  xpLabel: (xp: number, xpForNextLevel: number, level: number) =>
+    `${xp} of ${xpForNextLevel} XP towards level ${level + 1}`,
+  statsHeading: "Stats",
+  statsModes: "Game mode",
+  // Named as the Game modes are, so not in sentence case.
+  houseRules: "House Rules",
+  played: "Games played",
+  won: "Games won",
+  captures: "Captures",
+  tokensHome: "Tokens home",
+  achievementsHeading: (earned: number, total: number) => `Achievements · ${earned} of ${total}`,
+  notEarned: "Not earned yet",
+  rivalsHeading: "Rivals",
+  record: (wins: number, losses: number) => `${count(wins, "win", "wins")} · ${count(losses, "loss", "losses")}`,
+  locker: "Locker",
+  lockerDetail: (cosmetics: number) => `${count(cosmetics, "cosmetic", "cosmetics")} · choose what you wear`,
+  signOut: "Sign out",
+  signOutFailed: "Signing out isn't working right now. Try again in a moment.",
+};
+
 export const startMessages = {
   tagline: "Play with friends.",
   signIn: "Sign in with Google",
@@ -151,6 +190,8 @@ export const settingsMessages = {
   themeDetail: "Try a different look.",
   changeTheme: "Change",
   done: "Done",
+  followsAccount: "Your settings follow your account to any device you sign in on.",
+  keptInBrowser: "Your settings are kept on this device. Sign in and they'll follow you to any device.",
 };
 
 export const leaveMessages = {

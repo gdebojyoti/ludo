@@ -6,6 +6,8 @@ import CancelledScreen from "./CancelledScreen";
 import ComingSoonScreen from "./ComingSoonScreen";
 import LobbyScreen from "./LobbyScreen";
 import NavBar, { type Tab } from "./NavBar";
+import ProfileScreen from "./ProfileScreen";
+import SettingsScreen from "./SettingsScreen";
 import ResultScreen from "./ResultScreen";
 import ServerStatus from "./ServerStatus";
 import { useSettings } from "./settings";
@@ -38,6 +40,8 @@ export default function Ludo() {
   const noticeMessage = notice && noticeMessages[notice];
   // A Player signed in to an Account plays by its Player name, from Google, which the server enters them by.
   const shownName = account?.playerName ?? playerName;
+  // Undefined until the server says.
+  const signedIn = account === undefined ? undefined : account !== null;
   // The won Game's Board, once its last Move has played out, so its result can be shown.
   const [playedOutBoard, setPlayedOutBoard] = useState<SnapshotBoard>();
   const { theme } = useSettings();
@@ -91,27 +95,31 @@ export default function Ludo() {
     // code from a Join link that didn't work is filled in.
     return (
       <>
-        {tab === "play"
-          ? (
-              <StartScreen
-                key={game === undefined ? "waiting" : "ready"}
-                waiting={game === undefined}
-                playerName={shownName}
-                signedIn={account === undefined ? undefined : account !== null}
-                disabled={busy}
-                error={error}
-                initialGameCode={gameCodeFromLink}
-                onNewPlayerName={account?.playerName ? undefined : () => setPlayerName(newPlayerName())}
-                onCreateGame={createGame}
-                onJoinGame={joinGame}
-                onOpenProfile={() => openTab("profile")}
-              />
-            )
-          : (
-              <ComingSoonScreen tab={tab} onBack={() => setTab("play")} />
-            )}
+        {tabScreen()}
         <NavBar open={tab} hidden={game === undefined} onOpen={openTab} />
       </>
+    );
+  };
+
+  const tabScreen = () => {
+    const back = () => setTab("play");
+    if (tab === "settings") return <SettingsScreen signedIn={signedIn} onBack={back} />;
+    if (tab === "profile") return <ProfileScreen playerName={shownName} signedIn={signedIn} onBack={back} />;
+    if (tab !== "play") return <ComingSoonScreen tab={tab} onBack={back} />;
+    return (
+      <StartScreen
+        key={game === undefined ? "waiting" : "ready"}
+        waiting={game === undefined}
+        playerName={shownName}
+        signedIn={signedIn}
+        disabled={busy}
+        error={error}
+        initialGameCode={gameCodeFromLink}
+        onNewPlayerName={account?.playerName ? undefined : () => setPlayerName(newPlayerName())}
+        onCreateGame={createGame}
+        onJoinGame={joinGame}
+        onOpenProfile={() => openTab("profile")}
+      />
     );
   };
 

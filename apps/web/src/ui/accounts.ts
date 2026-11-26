@@ -16,3 +16,18 @@ export const signIn = async () => {
   const { url } = (await response.json()) as { url: string };
   location.assign(url);
 };
+
+/**
+ * Ends the Session in `accounts`, which signs the Player out of every TableHop game, and reloads the page, so Ludo's
+ * server sees them as a Guest. Throws if `accounts` can't be reached or refuses.
+ */
+export const signOut = async () => {
+  const response = await fetch(`${accountsUrl}/api/auth/sign-out`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "content-type": "application/json" },
+    body: "{}",
+  });
+  if (!response.ok) throw new Error(`accounts refused the sign-out: HTTP ${response.status}`);
+  location.reload();
+};

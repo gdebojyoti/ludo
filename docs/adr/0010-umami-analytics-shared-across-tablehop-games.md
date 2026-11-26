@@ -22,7 +22,8 @@ Every custom event goes through one wrapper, `track()` in `apps/web/src/ui/analy
 | `ludo_back_to_start` | Back to start, after the Game ended. | `from`: `result` (the Game was won) or `cancelled` (the Host Left the Lobby) |
 | `ludo_settings_open` | The Settings button, in the Lobby or in play, or on the start screen on desktop. | Nothing else |
 | `ludo_tab_open` | A tab in the bottom bar on phones, outside a Game, or the Profile button on the desktop start screen. | `tab`: `play`, `store`, `leaderboard`, `settings` or `profile` |
-| `ludo_sign_in_start` | Sign in with Google, on the start screen, before the page goes to Google. | Nothing else |
+| `ludo_sign_in_start` | Sign in with Google, on the start screen or the Profile tab, before the page goes to Google. | Nothing else |
+| `ludo_sign_out` | Sign out, on the Profile tab. | Nothing else |
 | `ludo_theme_change` | Change theme, in Settings. | `theme` |
 | `ludo_dice_side_change` | The Dice on the left switch. | `on_left` |
 | `ludo_automatic_move_change` | The Automatic move switch. | `on` |

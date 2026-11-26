@@ -17,12 +17,16 @@ const googleLogo = [
 ] as const;
 
 interface Props {
+  /** Below the button: why to sign in. */
+  pitch?: string;
+  /** On a card, on phones too; otherwise on the page on phones, and on the Start screen's panel on desktop. */
+  onCard?: boolean;
   className?: string;
 }
 
 // For a Guest: Google's sign-in button, in Google's own light colours in every theme, and below it, why to sign in, or
-// that it didn't work. On phones it's on the page, and on desktop in the Start screen's panel.
-export default function SignIn({ className = "" }: Props) {
+// that it didn't work: on the Start screen, and on a Guest's Profile tab.
+export default function SignIn({ pitch = startMessages.signInPitch, onCard = false, className = "" }: Props) {
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -38,6 +42,10 @@ export default function SignIn({ className = "" }: Props) {
       setFailed(true);
     }
   };
+
+  // The text below the button, and the error in its place, in the colours for what they're on.
+  const textColour = onCard ? "text-ludo-ink-muted" : "text-ludo-on-page-muted xl:text-ludo-ink-muted";
+  const errorColour = onCard ? "text-ludo-danger" : "text-ludo-on-page-muted xl:text-ludo-danger";
 
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
@@ -57,8 +65,7 @@ export default function SignIn({ className = "" }: Props) {
       {failed
         ? (
             <p
-              className="m-0 flex items-start justify-center gap-2 px-8 text-[13px] leading-[1.4] text-ludo-on-page-muted
-            xl:text-ludo-danger"
+              className={`m-0 flex items-start justify-center gap-2 px-8 text-[13px] leading-[1.4] ${errorColour}`}
               role="alert"
             >
               <Icon name="error" size={16} strokeWidth={2.2} className="mt-px flex-none" />
@@ -66,8 +73,8 @@ export default function SignIn({ className = "" }: Props) {
             </p>
           )
         : (
-            <p className="m-0 px-8 text-center text-[13px] leading-[1.4] text-ludo-on-page-muted xl:text-ludo-ink-muted">
-              {startMessages.signInPitch}
+            <p className={`m-0 px-8 text-center text-[13px] leading-[1.4] ${textColour}`}>
+              {pitch}
             </p>
           )}
     </div>

@@ -13,7 +13,7 @@ interface Props {
 }
 
 /** A Player name's first letter, as on an avatar. */
-const initial = (playerName: string) => [...playerName.trim()][0]?.toUpperCase() ?? "";
+export const initial = (playerName: string) => [...playerName.trim()][0]?.toUpperCase() ?? "";
 
 // Decorative: the Player name is always shown beside it.
 export default function Avatar({
