@@ -3,6 +3,7 @@ import { createServer, type Server as HttpServer } from "node:http";
 import express from "express";
 import { Server } from "socket.io";
 
+import { createMemoryAccountStore, type AccountStore } from "./account-store.js";
 import type { Config } from "./config.js";
 import { handleDebugGames } from "./debug-games.js";
 import { createGameNotifier } from "./game-notifier.js";
@@ -13,6 +14,7 @@ import { createMemoryGameStore } from "./game-store.js";
 import { identifyPlayers } from "./identity.js";
 import { createAiPlayers } from "./mcp/ai-players.js";
 import { handleGameMcp } from "./mcp/game-mcp.js";
+import type { CheckSession } from "./sessions.js";
 
 export interface GameServer {
   httpServer: HttpServer;
@@ -25,6 +27,16 @@ export interface GameServerOptions {
    * runs, unless it's given.
    */
   gameResults?: GameResultStore;
+  /**
+   * Checks a Player's Session, made by `accounts`: in the shared database in production, and a fake in tests. Without
+   * it, every Player is a Guest.
+   */
+  checkSession?: CheckSession;
+  /**
+   * What Ludo keeps of the Accounts it has seen, and their settings: Postgres in production. Kept in memory, for as long
+   * as the server runs, unless it's given.
+   */
+  accounts?: AccountStore;
   /** Makes every random choice, such as Game codes. Tests replace it to make them predictable. */
   randomInt?: RandomInt;
   /** Says when each Game is created and saved. Tests replace it to make the times predictable. */
@@ -60,7 +72,12 @@ export const createGameServer = (config: Config, options: GameServerOptions = {}
     pingInterval: 5000,
     pingTimeout: 5000,
   });
-  identifyPlayers(io);
+  const accounts = options.accounts ?? createMemoryAccountStore();
+  identifyPlayers(io, {
+    sessionCookieName: config.sessionCookieName,
+    checkSession: options.checkSession,
+    markSeen: accounts.markSeen,
+  });
   io.on("connection", (socket) => {
     // Every command expects a reply. One sent without a callback for it would crash the server when answered,
     // so it's dropped here instead.
@@ -78,7 +95,7 @@ export const createGameServer = (config: Config, options: GameServerOptions = {}
   );
   // Long enough for a Game that stalls until the Player tells the AI to carry on (ADR-0008).
   const aiPlayers = createAiPlayers(gameService, notifier, options.aiPlayerIdleTimeout ?? 15 * 60_000);
-  const { isAway } = handleGameSockets(io, gameService, notifier, aiPlayers.isConnected);
+  const { isAway } = handleGameSockets(io, gameService, notifier, aiPlayers.isConnected, accounts);
   handleDebugGames(app, gameService, isAway);
   handleGameMcp(app, gameService, notifier, aiPlayers, isAway, config.webAppUrl, {
     waitForTurn: options.waitForTurnTimeout ?? 30_000,

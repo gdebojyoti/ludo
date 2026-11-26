@@ -1,5 +1,6 @@
 // Test helper: starts the real server in-process, and connects Players to it the way the web app does, or the way
 // an AI client does over MCP.
+import { randomUUID } from "node:crypto";
 import type { IncomingMessage } from "node:http";
 import type { AddressInfo } from "node:net";
 
@@ -8,17 +9,21 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import { NodeWebSocket } from "engine.io-client";
 import { io, type Socket } from "socket.io-client";
 import type {
+  AccountSnapshot,
   Acknowledgement,
   ClientToServerEvents,
   GameMode,
   GameSnapshot,
   ServerToClientEvents,
+  Settings,
 } from "@ludo/shared";
 
+import { createMemoryAccountStore } from "./account-store.js";
 import type { DebugGames } from "./debug-games.js";
 import { createMemoryGameResultStore, type GameResult } from "./game-results.js";
 import { playerIdCookieName } from "./identity.js";
 import { createGameServer, type GameServerOptions } from "./server.js";
+import { localSessionCookieName, type SessionAccount } from "./sessions.js";
 
 export const webOrigin = "http://localhost:8083";
 
@@ -31,6 +36,13 @@ type Message = { event: "game"; game: GameSnapshot } | { event: "noActiveGame" }
 export interface Connection {
   /** Waits for the next message from the server that this connection hasn't read yet. */
   nextMessage: () => Promise<Message>;
+  /**
+   * Waits for the next Account the server sent this connection that it hasn't read yet: null for a Guest. It's sent as
+   * the connection opens, and again whenever the Account's settings change.
+   */
+  nextAccount: () => Promise<AccountSnapshot | null>;
+  /** Everything the server has sent this connection, read or not, as the JSON it was sent as, in the order it arrived. */
+  received: () => string[];
   ping: () => Promise<"pong">;
   /** Creates a Game following this Game mode, Classic unless it's given. */
   createGame: (playerName: string, mode?: GameMode) => Promise<Acknowledgement<{ game: GameSnapshot }>>;
@@ -39,6 +51,7 @@ export interface Connection {
   startGame: () => Promise<Acknowledgement>;
   roll: () => Promise<Acknowledgement>;
   move: (token: number) => Promise<Acknowledgement>;
+  changeSettings: (changed: Partial<Settings>) => Promise<Acknowledgement>;
   /** Sends a command with any arguments, unchecked by the event types, as no well-behaved client would. */
   sendUnchecked: (event: keyof ClientToServerEvents, ...args: unknown[]) => void;
   /** Closes the connection, like closing the tab. */
@@ -51,6 +64,16 @@ export interface Player {
   connect: () => Promise<Connection>;
   /** The player ID the server issued in the cookie, once the Player has connected. */
   playerId: () => string | undefined;
+  /**
+   * Signs the browser in, as `accounts` does after Google, to the Account with this ID, a new one unless it's given, and
+   * Google name. The connections it opens from then on carry the Session; those already open don't. Returns the
+   * Account ID.
+   */
+  signIn: (account: { accountId?: string; name: string }) => string;
+  /** Ends the browser's Session, as when it expires or a Sign out on another device ends it, leaving its cookie. */
+  endSession: () => void;
+  /** Sets a cookie in the browser, as any other site on the parent domain could. */
+  setCookie: (name: string, value: string) => void;
 }
 
 /** What a tool call returned: its text, and whether it was refused. */
@@ -124,6 +147,8 @@ export interface TestServer {
   connectedPlayerIds: () => Promise<string[]>;
   /** The result of every Game that has ended since the server started, in the order they ended. */
   gameResults: () => Promise<GameResult[]>;
+  /** The IDs of the Accounts the server has seen, in the order it first saw them. */
+  seenAccounts: () => string[];
   close: () => Promise<void>;
   /**
    * Closes the server and starts a new one, with its random choices scripted to be these numbers in turn, then 0, and
@@ -135,14 +160,28 @@ export interface TestServer {
 /**
  * Starts the server, keeping the results of finished Games in memory, where `gameResults` reads them, unless
  * `options.gameResults` is given. `options.randomInt` scripts its random choices, such as Game codes, and `options.now`
- * the times its Games are created and saved.
+ * the times its Games are created and saved. Sessions are checked by a fake of `accounts`, which knows those a
+ * Player's `signIn` starts, unless `options.checkSession` is given. The local session cookie is read, unless
+ * `sessionCookieName` is given.
  */
-export const startServer = async (options?: GameServerOptions): Promise<TestServer> => {
+export const startServer = async (
+  options?: GameServerOptions,
+  sessionCookieName = localSessionCookieName,
+): Promise<TestServer> => {
   const resultStore = createMemoryGameResultStore();
+  const accountStore = createMemoryAccountStore();
+  // The fake of `accounts`: each Session's token, and the Account it's for.
+  const sessions = new Map<string, SessionAccount>();
   const server = createGameServer(
-    { port: 0, webOrigins: [webOrigin], webAppUrl, databaseUrl: null },
+    { port: 0, webOrigins: [webOrigin], webAppUrl, databaseUrl: null, sessionCookieName },
     // AI Players act at once, unless a test is about their pace.
-    { paceAiPlayers: false, gameResults: resultStore, ...options },
+    {
+      paceAiPlayers: false,
+      gameResults: resultStore,
+      accounts: accountStore,
+      checkSession: async (token) => sessions.get(token),
+      ...options,
+    },
   );
   await new Promise<void>((resolve) => server.httpServer.listen(0, resolve));
   const { port } = server.httpServer.address() as AddressInfo;
@@ -165,8 +204,12 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
       sockets.push(socket);
 
       const inbox = createInbox<Message>();
+      const accountInbox = createInbox<AccountSnapshot | null>();
       socket.on("game", (game) => inbox.put({ event: "game", game }));
       socket.on("noActiveGame", () => inbox.put({ event: "noActiveGame" }));
+      socket.on("account", (account) => accountInbox.put(account));
+      const received: string[] = [];
+      socket.onAny((event: string, ...args: unknown[]) => received.push(JSON.stringify([event, ...args])));
 
       await new Promise<void>((resolve, reject) => {
         socket.once("connect", resolve);
@@ -176,6 +219,8 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
 
       return {
         nextMessage: inbox.take,
+        nextAccount: accountInbox.take,
+        received: () => [...received],
         ping: () => socket.emitWithAck("ping"),
         createGame: (playerName, mode = "classic") => socket.emitWithAck("createGame", playerName, mode),
         joinGame: (gameCode, playerName) => socket.emitWithAck("joinGame", gameCode, playerName),
@@ -183,6 +228,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
         startGame: () => socket.emitWithAck("startGame"),
         roll: () => socket.emitWithAck("roll"),
         move: (token) => socket.emitWithAck("move", token),
+        changeSettings: (changed) => socket.emitWithAck("changeSettings", changed),
         sendUnchecked: (event, ...args) => {
           (socket.emit as (event: string, ...args: unknown[]) => void)(event, ...args);
         },
@@ -196,7 +242,28 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
       };
     };
 
-    return { connect, playerId: () => cookieJar.get(playerIdCookieName) };
+    let sessionToken: string | undefined;
+
+    const signIn = ({ accountId = randomUUID(), name }: { accountId?: string; name: string }) => {
+      sessionToken = randomUUID();
+      sessions.set(sessionToken, { accountId, name });
+      // As `accounts` sets it: the token and a signature, URL-encoded, which turns the signature's `+`, `/` and `=`
+      // into `%2B`, `%2F` and `%3D`.
+      cookieJar.set(sessionCookieName, encodeURIComponent(`${sessionToken}.Zm9v+YmFy/c2ln=`));
+      return accountId;
+    };
+
+    const endSession = () => {
+      if (sessionToken) sessions.delete(sessionToken);
+    };
+
+    return {
+      connect,
+      playerId: () => cookieJar.get(playerIdCookieName),
+      signIn,
+      endSession,
+      setCookie: (name, value) => cookieJar.set(name, value),
+    };
   };
 
   const playerWithNoGame = async (player = createPlayer()) => {
@@ -289,6 +356,8 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
 
   const gameResults = async () => resultStore.results();
 
+  const seenAccounts = () => accountStore.seenAccounts();
+
   const debugGames = async () => {
     const response = await fetch(`${url}/debug/games`);
     if (!response.ok) throw new Error(`/debug/games answered ${response.status}`);
@@ -304,7 +373,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
 
   const restartWithRandomNumbers = async (...numbers: number[]) => {
     await close();
-    return startServer({ ...options, randomInt: () => numbers.shift() ?? 0 });
+    return startServer({ ...options, randomInt: () => numbers.shift() ?? 0 }, sessionCookieName);
   };
 
   return {
@@ -316,6 +385,7 @@ export const startServer = async (options?: GameServerOptions): Promise<TestServ
     playerInLobby,
     connectedPlayerIds,
     gameResults,
+    seenAccounts,
     debugGames,
     close,
     restartWithRandomNumbers,

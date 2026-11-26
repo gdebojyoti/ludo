@@ -1,4 +1,5 @@
 export type {
+  AccountSnapshot,
   Acknowledgement,
   ClientToServerEvents,
   GameSnapshot,
@@ -14,6 +15,8 @@ export type {
 export { indexAfter } from "./events.js";
 export { captureReturnFor, movePlaysOutFor, restFor, rollPlaysOutFor, stepEvery, tumbleFor } from "./playout.js";
 export { randomPlayerName } from "./player-names.js";
+export type { Settings, Theme } from "./settings.js";
+export { isTheme, settingsChangeIn, themes } from "./settings.js";
 export {
   allMovesAlike,
   applyMove,

@@ -18,6 +18,7 @@ export default function Ludo() {
   const [playerName, setPlayerName] = useState(loadPlayerName);
   const {
     status,
+    account,
     game,
     error,
     notice,
@@ -32,6 +33,8 @@ export default function Ludo() {
     backToStart,
   } = useGameServer(playerName);
   const noticeMessage = notice && noticeMessages[notice];
+  // A Player signed in to an Account plays by its Player name, from Google, which the server enters them by.
+  const shownName = account?.playerName ?? playerName;
   // The won Game's Board, once its last Move has played out, so its result can be shown.
   const [playedOutBoard, setPlayedOutBoard] = useState<SnapshotBoard>();
   const { theme } = useSettings();
@@ -41,7 +44,7 @@ export default function Ludo() {
       return (
         <LobbyScreen
           game={game}
-          playerName={playerName}
+          playerName={shownName}
           disabled={busy}
           notice={noticeMessage}
           error={error}
@@ -79,11 +82,11 @@ export default function Ludo() {
       <StartScreen
         key={game === undefined ? "waiting" : "ready"}
         waiting={game === undefined}
-        playerName={playerName}
+        playerName={shownName}
         disabled={busy}
         error={error}
         initialGameCode={gameCodeFromLink}
-        onNewPlayerName={() => setPlayerName(newPlayerName())}
+        onNewPlayerName={account?.playerName ? undefined : () => setPlayerName(newPlayerName())}
         onCreateGame={createGame}
         onJoinGame={joinGame}
       />

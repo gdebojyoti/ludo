@@ -27,8 +27,40 @@ const tablesIn = async (schema: string) => {
 // server does when it starts on a new database.
 describe("migrating", () => {
   it("puts every Ludo table in the ludo schema, with what has run, and nothing in public", async () => {
-    expect(await tablesIn("ludo")).toEqual(["game_result_players", "game_results", "pgmigrations"]);
+    expect(await tablesIn("ludo")).toEqual([
+      "account_settings",
+      "game_result_players",
+      "game_results",
+      "pgmigrations",
+      "seen_accounts",
+    ]);
     expect(await tablesIn("public")).toEqual([]);
+  });
+
+  it("finds an Account's results through an index that leaves out Guests' and AI Players' rows", async () => {
+    pool ??= createTestPool();
+    const { rows } = await pool.query<{ indexdef: string }>(
+      "SELECT indexdef FROM pg_indexes WHERE schemaname = 'ludo' AND tablename = 'game_result_players'",
+    );
+
+    expect(rows.map((row) => row.indexdef)).toContain(
+      "CREATE INDEX game_result_players_account_id ON ludo.game_result_players USING btree (account_id) " +
+        "WHERE (account_id IS NOT NULL)",
+    );
+  });
+
+  it("refers to no table outside the ludo schema, such as accounts' own", async () => {
+    pool ??= createTestPool();
+    const { rows } = await pool.query<{ referenced: string }>(
+      `SELECT DISTINCT referenced.nspname AS referenced
+       FROM pg_constraint
+       JOIN pg_class ON pg_class.oid = pg_constraint.confrelid
+       JOIN pg_namespace referenced ON referenced.oid = pg_class.relnamespace
+       JOIN pg_namespace own ON own.oid = pg_constraint.connamespace
+       WHERE pg_constraint.contype = 'f' AND own.nspname = 'ludo'`,
+    );
+
+    expect(rows).toEqual([{ referenced: "ludo" }]);
   });
 
   it("does nothing when every migration has run", async () => {

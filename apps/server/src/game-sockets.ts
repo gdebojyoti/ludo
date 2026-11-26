@@ -1,31 +1,43 @@
 // The socket layer: turns Socket.IO events into game service commands, and sends each Player their snapshot.
 import type { Server } from "socket.io";
-import type {
-  Acknowledgement,
-  ClientToServerEvents,
-  GameMode,
-  GameSnapshot,
-  ServerToClientEvents,
+import {
+  settingsChangeIn,
+  type Acknowledgement,
+  type ClientToServerEvents,
+  type GameMode,
+  type GameSnapshot,
+  type ServerToClientEvents,
+  type Settings,
 } from "@ludo/shared";
 
+import type { AccountStore } from "./account-store.js";
 import type { GameNotifier } from "./game-notifier.js";
-import type { CommandResult, GameService } from "./game-service.js";
+import { createQueue, type CommandResult, type GameService } from "./game-service.js";
 import type { Game } from "./game-store.js";
-import type { PlayerData } from "./identity.js";
+import type { PlayerAccount, PlayerData } from "./identity.js";
 import { toSnapshot } from "./snapshot.js";
 
 export type GameIo = Server<ClientToServerEvents, ServerToClientEvents, object, PlayerData>;
 
 /**
  * Listens for Players' tabs, and returns whether a Player is Away. `isAiConnected` says whether an AI Player, which
- * has no tabs, is connected through MCP.
+ * has no tabs, is connected through MCP. `accounts` keeps the settings of the Accounts browsers are signed in to.
  */
 export const handleGameSockets = (
   io: GameIo,
   gameService: GameService,
   notifier: GameNotifier,
   isAiConnected: (playerId: string) => boolean,
+  accounts: AccountStore,
 ) => {
+  /**
+   * Keeps a change to the Account's settings, and sends it to every tab signed in to it, on every browser. Changes are
+   * kept and sent one at a time, so of two at the same moment, the Account sent last is the one with both.
+   */
+  const changeAccountSettings = createQueue()(async (account: PlayerAccount, changed: Partial<Settings>) => {
+    const settings = await accounts.changeSettings(account.accountId, changed);
+    io.to(accountRoom(account.accountId)).emit("account", { playerName: account.playerName, settings });
+  });
   const tabCount = (playerId: string) => io.sockets.adapter.rooms.get(playerRoom(playerId))?.size ?? 0;
   // A Player is Away while none of their tabs is connected, or, for an AI Player, while it's idle. Read when each
   // snapshot is made, so it's never stale.
@@ -45,8 +57,9 @@ export const handleGameSockets = (
   });
 
   io.on("connection", async (socket) => {
-    const { playerId } = socket.data;
+    const { playerId, account } = socket.data;
     socket.join(playerRoom(playerId));
+    if (account) socket.join(accountRoom(account.accountId));
     // Counted at once, before anything is awaited, so of two tabs opening together only one is the first.
     const isFirstTab = tabCount(playerId) === 1;
 
@@ -82,22 +95,26 @@ export const handleGameSockets = (
 
     onCommand("ping", async (_args, reply) => reply("pong"));
 
+    // A Player signed in to an Account enters every Game by its Player name, whatever the web app sends.
+    const accountId = account?.accountId ?? null;
+    const nameToEnterBy = (sent: string) => account?.playerName ?? sent;
+
     onCommand("createGame", async ([playerName, mode], reply) => {
       // The Player name first, as the game service checks it first. It checks the Game mode too.
       if (typeof playerName !== "string") return reply({ ok: false, reason: "invalidPlayerName" });
       // A tab still running the web app from before Game modes sends none. It only ever created Classic Games.
-      if (mode === undefined) {
-        return enterGame(await gameService.createGame(playerId, playerName, "classic", "webApp"), reply);
-      }
-      if (typeof mode !== "string") return reply({ ok: false, reason: "invalidGameMode" });
-      enterGame(await gameService.createGame(playerId, playerName, mode as GameMode, "webApp"), reply);
+      const gameMode = mode === undefined ? "classic" : mode;
+      if (typeof gameMode !== "string") return reply({ ok: false, reason: "invalidGameMode" });
+      const name = nameToEnterBy(playerName);
+      enterGame(await gameService.createGame(playerId, name, gameMode as GameMode, "webApp", accountId), reply);
     });
 
     onCommand("joinGame", async ([gameCode, playerName], reply) => {
       // The Player name first, as the game service checks it first.
       if (typeof playerName !== "string") return reply({ ok: false, reason: "invalidPlayerName" });
       if (typeof gameCode !== "string") return reply({ ok: false, reason: "gameCodeNotFound" });
-      enterGame(await gameService.joinGame(playerId, gameCode, playerName, "webApp"), reply);
+      const name = nameToEnterBy(playerName);
+      enterGame(await gameService.joinGame(playerId, gameCode, name, "webApp", accountId), reply);
     });
 
     onCommand("startGame", async (_args, reply) => {
@@ -122,11 +139,27 @@ export const handleGameSockets = (
       reply(result.ok ? { ok: true } : result);
     });
 
+    onCommand("changeSettings", async ([changed], reply) => {
+      if (!account) return reply({ ok: false, reason: "notSignedIn" });
+      const settingsChange = settingsChangeIn(changed);
+      if (!settingsChange) return reply({ ok: false, reason: "invalidSettings" });
+      await changeAccountSettings(account, settingsChange);
+      reply({ ok: true });
+    });
+
     // Closing the Player's last tab makes them Away, which everyone in their Game is shown. The Game waits for them.
     socket.on("disconnect", async () => {
       if (tabCount(playerId) > 0) return;
       await gameService.withActiveGame(playerId, (game) => game && sendToPlayers(game));
     });
+
+    // The Account, before the Game, so the tab shows its settings from the start.
+    if (!account) socket.emit("account", null);
+    else socket.emit("account", { playerName: account.playerName, settings: await findSettings(account.accountId) });
+
+    // A Guest who signed in during a Game stays in it, now known by their Account, and shown by its Player name. That
+    // sends the Game to everyone in it, this tab included, which brings them back from Away too.
+    if (account && await gameService.signIn(playerId, account)) return;
 
     // A Rejoin. A Player's first tab brings them back from Away, which everyone in their Game is shown, this tab
     // included. Any other tab changes nothing for the rest, so only it is sent the Game.
@@ -136,6 +169,20 @@ export const handleGameSockets = (
       else socket.emit("game", toSnapshot(game, playerId, isAway));
     });
   });
+
+  /**
+   * The settings the Account has changed, or none if they can't be read, such as while the database is down, so the
+   * browser keeps its own.
+   */
+  const findSettings = async (accountId: string) => {
+    try {
+      return await accounts.findSettings(accountId);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.error(`The settings of Account ${accountId} couldn't be read:`, reason);
+      return {};
+    }
+  };
 
   return { isAway };
 };
@@ -149,3 +196,6 @@ type Reply<Event extends Command> = Parameters<ClientToServerEvents[Event]> exte
 
 /** One room per Player, holding every tab they have open. */
 const playerRoom = (playerId: string) => `player:${playerId}`;
+
+/** One room per Account, holding every tab signed in to it, on every browser. */
+const accountRoom = (accountId: string) => `account:${accountId}`;

@@ -494,11 +494,14 @@ const explanations: Record<RejectionReason, string> = {
   invalidGameMode: `That isn't a Game mode: choose ${gameModes.map((mode) => `"${mode}"`).join(" or ")}.`,
   invalidPlayerName: `playerName must have 1 to ${playerNameMaxLength} characters, not counting spaces at either ` +
     "end. Leave it out to be given a random one.",
+  // An AI Player has no Account, and no tool changes settings, so no tool is refused this way.
+  invalidSettings: "Settings belong to the web app. No tool changes them.",
   noActiveGame: "You're not in a Game. Call create_game to host one, or join_game with a Host's Game code.",
   notEnoughPlayers: `Your Game needs at least ${classicRules.minPlayers} Players to start. Call wait_for_turn, ` +
     "which returns once someone joins.",
   notHost: "Only the Host can start the Game. Call wait_for_turn, which returns once they have and it's your Turn.",
   notRolled: "You haven't Rolled yet: call wait_for_turn, which Rolls for you when it's your Turn.",
+  notSignedIn: "An AI Player has no Account, and needs none: every tool works without one.",
   notYourTurn: "It's not your Turn. Call wait_for_turn, which returns once it is.",
   serverError: "Something went wrong on the server. Try again.",
 };

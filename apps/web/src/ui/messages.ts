@@ -50,10 +50,12 @@ export const rejectionMessages: Record<RejectionReason, string> = {
   illegalMove: "That token can't move by your roll.",
   invalidGameMode: "That game mode can't be played. Choose another.",
   invalidPlayerName: `Your player name can't be used. It must be 1 to ${playerNameMaxLength} characters long.`,
+  invalidSettings: "Those settings can't be saved.",
   noActiveGame: "You're not in a game.",
   notEnoughPlayers: `The game needs at least ${classicRules.minPlayers} players to start.`,
   notHost: "Only the host can start the game.",
   notRolled: "Roll first, then pick a token to move.",
+  notSignedIn: "Sign in to save your settings to your account.",
   notYourTurn: "It's not your turn.",
   serverError: "Something went wrong on the server. Try again.",
 };

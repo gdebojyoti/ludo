@@ -1,3 +1,5 @@
+import { localSessionCookieName, productionSessionCookieName } from "./sessions.js";
+
 export interface Config {
   /** Port the server listens on. */
   port: number;
@@ -6,10 +8,16 @@ export interface Config {
   /** Where a Player plays Ludo in a browser, which an AI Player sends them to, with no trailing slash. */
   webAppUrl: string;
   /**
-   * The connection string of the Postgres database where finished Games' results are kept. Null only off Render, where
-   * they're then kept in memory, for as long as the server runs.
+   * The connection string of the Postgres database every TableHop game shares, where finished Games' results and the
+   * Accounts Ludo has seen are kept, and Players' Sessions are checked. Null only off Render, where they're then kept in
+   * memory, for as long as the server runs, and every Player is a Guest.
    */
   databaseUrl: string | null;
+  /**
+   * The name of the cookie that carries a Player's Session, set by `accounts`: its production name on Render, and its
+   * local name elsewhere.
+   */
+  sessionCookieName: string;
 }
 
 export const readConfig = (env: NodeJS.ProcessEnv): Config => {
@@ -18,6 +26,7 @@ export const readConfig = (env: NodeJS.ProcessEnv): Config => {
     webOrigins: readOrigins(env.WEB_ORIGIN ?? "http://localhost:8083"),
     webAppUrl: readWebAppUrl(env),
     databaseUrl: readDatabaseUrl(env),
+    sessionCookieName: env.RENDER === undefined ? localSessionCookieName : productionSessionCookieName,
   };
 };
 
