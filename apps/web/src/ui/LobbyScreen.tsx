@@ -82,6 +82,8 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
   };
 
   // Only the Host can start the Game, once someone else has joined. The fourth join starts it by itself.
+  const canStart = isHost && players.length >= classicRules.minPlayers;
+
   const startPrompt = () => {
     if (!isHost) {
       return (
@@ -106,15 +108,29 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
     if (players.length < classicRules.minPlayers) {
       return <p className="m-0 text-center text-[13px] text-ludo-on-page-muted">{lobbyMessages.waitingForPlayers}</p>;
     }
+    // On phones, it stays in view at the bottom of the screen while the list above it scrolls, in a bar across the
+    // screen that blurs what scrolls under it, with the same space all round the button. It takes the screen's bottom
+    // padding into itself, so it reaches the bottom edge. Any error is shown in it, above the button, where the button
+    // doesn't cover it.
     return (
-      <div className="flex flex-col items-center gap-2.5">
+      <div
+        className="sticky bottom-0 -mx-5 -mb-8 flex flex-col gap-2.5 bg-ludo-page/60 p-5 backdrop-blur-md xl:static
+          xl:m-0 xl:bg-transparent xl:p-0 xl:backdrop-blur-none"
+      >
+        <ErrorMessage error={error} />
         <Button variant="accent" disabled={disabled} onClick={onStartGame}>
           {lobbyMessages.start(players.length)}
         </Button>
-        <span className="text-center text-[13px] text-ludo-on-page-muted">{lobbyMessages.startsByItself}</span>
       </div>
     );
   };
+
+  // Each Player with their place in join order, the viewer moved to the top, unless it can't be told which is them.
+  const inJoinOrder = players.map((player, index) => ({ player, index }));
+  const viewerFirst = [
+    ...inJoinOrder.filter(({ index }) => index === viewerIndex),
+    ...inJoinOrder.filter(({ index }) => index !== viewerIndex),
+  ];
 
   const otherNames = players.flatMap((player, index) => (index === viewerIndex ? [] : [player.playerName]));
   const openPlaces = Math.max(classicRules.maxPlayers - players.length, 0);
@@ -126,7 +142,7 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
     >
       <SnowCap />
       <h2 className="m-0 text-xs font-bold tracking-[0.12em] text-ludo-ink-muted uppercase">
-        {lobbyMessages.gameCodeHeading}
+        {lobbyMessages.mode(game.mode)}
       </h2>
       {/* Plain numerals, not a box, so it doesn't look editable. */}
       <p
@@ -163,24 +179,45 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
         </h2>
         <span className="text-[13px] text-ludo-on-page-muted">{lobbyMessages.playerCount(players.length)}</span>
       </div>
-      {/* In join order. Two Players can share a Player name, so they're told apart by their place. */}
+      {/* The viewer first, Host or not, then the others in join order. Two Players can share a Player name, so they're
+          told apart by their place. */}
       <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
-        {players.map((player, index) => {
-          // The line under the name, such as "You · Host" or "Host · Away". The viewer is never away.
-          const about = [
-            index === viewerIndex && commonMessages.you,
-            player.isHost && lobbyMessages.host,
-            player.away && commonMessages.away,
-          ].filter(Boolean);
+        {viewerFirst.map(({ player, index }) => {
+          const isViewer = index === viewerIndex;
+          // The line under the name, if any, as one phrase: "You" or "You are the host" for the viewer, who is never
+          // away, and "Host", "Away" or "The host is away" for the others.
+          const about = isViewer
+            ? (player.isHost ? lobbyMessages.youAreHost : commonMessages.you)
+            : player.isHost
+              ? (player.away ? lobbyMessages.hostAway : lobbyMessages.host)
+              : player.away && commonMessages.away;
+          // The viewer's own row stands out, outlined in ivory and named in gold. Its edge is thicker, so it has less
+          // padding, to stay the same size.
           return (
             <li
               key={index}
-              className="flex items-center gap-3 rounded-[14px] border border-ludo-row-line bg-ludo-row px-3.5 py-3"
+              className={`flex items-center gap-3 rounded-[14px] ${
+                isViewer
+                  ? "border-[1.5px] border-ludo-on-page bg-ludo-on-page/13 px-[13.5px] py-[11.5px]"
+                  : "border border-ludo-row-line bg-ludo-row px-3.5 py-3"
+              }`}
             >
-              <Avatar playerName={player.playerName} ringed={index === viewerIndex} absent={player.away} />
+              <Avatar playerName={player.playerName} absent={player.away} />
               <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="text-[15px] leading-tight font-semibold wrap-anywhere">{player.playerName}</span>
-                {about.length > 0 && <span className="text-xs text-ludo-on-page-muted">{about.join(" · ")}</span>}
+                <span
+                  className={`text-[15px] leading-tight wrap-anywhere ${
+                    isViewer ? "font-bold text-ludo-accent-light" : "font-semibold"
+                  }`}
+                >
+                  {player.playerName}
+                </span>
+                {about && (
+                  <span
+                    className={`text-xs ${isViewer ? "font-semibold text-ludo-accent-light" : "text-ludo-on-page-muted"}`}
+                  >
+                    {about}
+                  </span>
+                )}
               </span>
             </li>
           );
@@ -208,7 +245,6 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
   return (
     <div className="flex flex-1 flex-col gap-[22px] px-5 pt-3.5 pb-8 xl:gap-0 xl:p-0">
       <Header
-        subtitle={lobbyMessages.subtitle(game.mode)}
         action={
           <LeaveButton
             disabled={disabled}
@@ -224,7 +260,7 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
             <div className="px-1 xl:p-0">
               <h1 className="m-0 font-ludo-display text-[30px] font-normal xl:text-4xl">{lobbyMessages.heading}</h1>
               <p className="mt-1.5 mb-0 text-sm text-ludo-on-page-muted xl:mt-2 xl:text-[15px]">
-                {lobbyMessages.shareHint(isHost)}
+                {lobbyMessages.shareHint}
               </p>
             </div>
             {gameCodeCard()}
@@ -233,7 +269,7 @@ export default function LobbyScreen({ game, playerName, disabled, notice, error,
             {playerList()}
             <div className="flex-1 xl:hidden" />
             {startPrompt()}
-            <ErrorMessage error={error} />
+            {!canStart && <ErrorMessage error={error} />}
           </div>
         </div>
       </div>
